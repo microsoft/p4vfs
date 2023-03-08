@@ -1,0 +1,1058 @@
+Microsoft P4VFS Release Notes
+
+Version [1.24.0.0]
+* Initial Open Source release. 
+  https://github.com/microsoft/p4vfs
+
+Version [1.23.7.0]
+* Fixes to use signed driver binaries from restored P4VFS module in Dev builds
+* Fixing driver codesign verfication unit test to check built WDK sign, P4VFS module
+  production sign, and current installer
+* Additional support to remove existing WDKTest signature from driver binaries before
+  submitting to HDC for attestation sign.
+* Fixing p4d.exe & p4.exe references in unit tests to use binaries from P4API external 
+  module directly instead of resource
+
+Version [1.23.6.0]
+* Addition of External P4VFS module which restores an extracted nuget package containing
+  targeted signed binaries. This replaces the signed driver binaries in the repo folder
+  "P4VFS.Driver/Signed" which have now been removed.
+* P4VFS.Setup application now supports an "extract" command to simply extract it 
+  installation resources to a folder
+* Build support for overriding codesign method from msbuild property.
+
+Version [1.23.5.0]
+* Modified OpenSSL codesign to use OSS 3rd party keycode.
+* P4VFS.CodeSign change for kernel mode binaries to use a two stage codesign. The ESRP 
+  submission with EV certificate, followed by production HDC verification and sign.
+* P4VFS driver codesign now uses production attestation codesign from HDC, which works 
+  for Windows 10, 11, Server 2016, Server 2019. This will be replaced by HDC WHQL signing 
+  to include support for Server 2022
+* Addition of P4VFS.Driver.WDKTest certificate for test codesign of driver, which is now
+  used by default. For HDK automated testing, as well as local signed driver debugging, 
+  utilities have been added under "P4VFS.Driver\Scripts" to install & uninstall the driver 
+  and setup trust for the test codesign
+* Addition of configurations for various codesign methods used for driver signing from 
+  P4VFS.CodeSign tool. Pipelines may use different methods based on release requirements.
+
+Version [1.23.4.0]
+* Addition of P4VFS.External project for automatically downloading and building external
+  project references, such as OpenSSL adn P4API, as part of the solution build. This
+  is analogous to a nuget "restore" operatation, but for non-packaged references. Prebuilt
+  binaries from these external projects have been removed from the repository.
+* Cleanup and reorganization of some utilities in P4VFS.Extensions to allow for sharing
+  with P4VFS.External
+* Fixing UnsignedDriverInstallFailureTest unit test for handling possbile signtool error 
+  removing sign on .cat file when no WDK test certificates have been created yet.
+* P4VFS installer running in console mode no longer shows vcredist install window
+* Fixing possible windows long path error in SSL server duplication test 
+* Fixing race condition in TestRequireFilterOpLock causing intermittent failure performing
+  overlapped read from hydrated file first opened with an OPLOCK
+
+Version [1.23.3.0]
+* Updating nuget package Newtonsoft.Json to 13.0.1 for security compliance
+
+Version [1.23.2.0]
+* Fixing service hydration performing automatic p4 trust of server SSL certificate when 
+  fingerprint changes. This is common when rolling over server SSL certification.
+* Addition of unit test for intended automatic trust behaviour when encountering new 
+  or different certificates.
+* Fixing remote execution unit tests to confirm remote executing user also has an active
+  logon session. This is required by P4VFS to properly cache tickets and trust. P4VFS
+  behaviour is otherwise not confirmed.
+
+Version [1.23.1.0]
+* Removing legacy studio specific settings files. Adding instructions for deployment
+  procedures and example usage in new files under P4VFS.Setup\Settings
+* Removing miscelaneous test user credentials from RestartPerforceServer.bat utility,
+  which is used to quickly restart the previous unittest server
+* Adding write accessors to DepotResult classes for easier use of results as input for commands
+* Addition of p4vfs unit test support to duplicate test server on another port with/without
+  SSL enabled. Test test verify server duplication operation works as expected.
+* The DepotServerConfig option to resolve/remap a server name by regex has been changed
+  to a case insensitive match
+
+Version [1.23.0.0]
+* Fixing driver FltCreateCommunicationPort client handle leak
+* Improving P4VFS.Driver TraceStart & TraceStop scripts so that they can be run
+  standalone outside Visual Studio environment
+
+Version [1.22.0.0]
+* Fixing bug where P4VFS could possibly hydrate incorrect alternate or metadata NTFS
+  stream. Driver now ignores reparse actions on any possible alternate or metadata
+  streams in P4VFS placeholder files if any were to exist.
+* Updating to C++17 and fixing deprecation issues
+* Fixing bug with Error/Warning summary not displaying correctly and consistently between
+  regular and virtual sync
+* Cleanup of ExtensionsInterop project dependencies to only use Extensions assembly
+* Fixing p4vfs.exe exit code to return non-zero value depending on Warnings/Errors during
+  operation. Internal sync API now returns exit code and additional modification information
+  as part of the results. Extensive unit testing changes to additionally verify expected exit
+  codes and results.
+* Fixing Warning/Error output to go to STDERR
+
+Version [1.21.0.0]
+* Updating driver to WDK 10.0.19041.685, SDK 10.0.19041.685, VS 16.11.10
+* Updating P4API to 2021.2 using ntx64/p4api_vs2019_dyn*_openssl1.1.1
+* Added "external\P4API\Restore.py" which implements the entire process of downloading, 
+  checksum verifying, and deploying a new P4API and test binaries
+* Updated OpenSSL to latest stable 1.1.1m built with VS 16.11.10
+* Added "external\OpenSSL\Restore.py" which implements the entire process of downloading, 
+  checksum verifying, building debug & release, testing, and deploying a new OpenSSL
+* Updating driver p4vfsflt.inf with build architecture specific target
+* Fixing driver uninstall to manually perform required unloading before setupapi 
+  DefaultUninstall, for maximum compatibility
+* Adding new option '-d' to P4VFS.Setup to support automatically launching attached
+  debugger to internal p4vfs.exe calls.
+* Fixing default impersonated P4HOST value used for initial connection. This avoids a
+  Windows 11 error using deprecated gethostname. 
+
+Version [1.20.4.0]
+* Updated targets to 4.7.2 with v142 build tools for Visual Studio 2019. 
+  Now requires Visual Studio 2019 to build.
+
+Version [1.20.3.0]
+* Fixing bug occuring when failing to virtual sync a file that is opened by another 
+  process, resulting in the file being left as writable [BUG 37857]
+* Reducing non-verbose output in service log for file resolving [BUG 25274]
+* Addition of unit test to expose bug leaving writable file after failing to sync
+* Addition of API for tunning internal perforce client debug configuration values
+* Fixing minor unit testing failures when testing on Windows 11
+* Perforce client API ProgramName now includes P4VFS version, ie "<app>/1.20.3.0"
+
+Version [1.20.2.0]
+* Interactive install setup window support for resizing expanded output text
+
+Version [1.20.1.0]
+* Addition of "p4vfs resident" options [-q] to force a quiet sync, and [-l] to force 
+  regular logging. Default behaviour controled by SyncDefaultQuiet setting
+* Removing unit test references to northamerica\jessk
+* Updating build system to EsrpClient 1.2.65
+
+Version [1.20.0.0]
+* Addition of driver trace start/stop scripts for logging during tests
+* Driver filter now handles IRP_MJ_FILE_SYSTEM_CONTROL to hydrate a placeholder 
+  when an OPLOCK is requested on the handle. The driver will perform handle creation 
+  for the service hydration to avoid access violations. This fixes the OPLOCK
+  deadlock on placeholder files discovered from Entrian Source Search. 
+* Renaming DriverCommunication.h to DriverData.h and cleanup unecessary includes
+* Removing all use of crt references from driver
+* Addition of support for Perforce SSO (single sign on) login. The majority of these
+  changes are enhancements to unit testing for login cases. The configuration of local 
+  Perforce test server changed to support both Perforce passsword auth and SSO auth.
+  Client side tests added for login permutations. Addition of automated testing for 
+  interactive login prompt operations.
+* Fixing bug where perforce login operation may not correctly read environment variables
+  unique to the current process. This may have included process overridden values of
+  P4TRUST or P4TICKETS variables.
+* Addition of unit test helper script for quick Perforce server restart and login.
+* Addition of common utility and test for user mode P4VFS_UNICODE_STRING creation
+* Addition of unit test which aquires OPLOCK and performs asyncronous reads which will
+  reproduce the error similar to that exposed by Entrian Source Search. Currently fails.
+* ReleaseSign configuration now signs all embedded resources including driver files
+* Fixing bug where internal FileAttributes query required FILE_GENERIC_READ access
+  when it should not require any FILE_* access to read BY_HANDLE_FILE_INFORMATION
+* P4VFS.Setup now supports an optional application config XML file for customizing 
+  installation settings. This allows us to install custom global studio settings without 
+  having to build a custom installer. The config file must be placed in the same folder
+  as the installer and similarly named.
+* Addition of driver control command option to set driver flag by name using 
+  p4vfs.exe ctrl -f <name>=<value>
+* Addition of driver flag "ShareModeDuringHydration" which forces file handle creation 
+  during hydration have read/write share mode, which is a legacy requirement that we
+  we intend to remove now that the driver performs handle creation on P4VFS
+  placeholder files.
+* Rename of P4VFS.DriverSign project to P4VFS.CodeSign because it's now generally
+  used to sign all binaries, not just the driver
+* P4VFS.Setup application now launches as Aministrator from the shell if possible. The
+  installer now also checks if elevated before elevating itself.
+
+Version [1.19.3.0]
+* Updating to P4API 2020.1, and OpenSSL 1.1.1k and included detailed build 
+  and deployment steps for future updates.
+* Fixing bug with inconsisent vtable layout with some P4API classes between P4VFS 
+  and P4API due to P4VFS missing define of OS_NT.
+
+Version [1.19.2.0]
+* Adding Entrian Source Search (ess.exe) to ExcludedProcessNames by default as a 
+  temporary work-around for OPLOCK related deadlock.
+
+Version [1.19.1.0]
+* Fixing bug introduced in 1.19.0.0 where creating a directory from a UNC path 
+  would always fail. This bug would prevent remote log files from being created if
+  FileLoggerRemoteDirectory setting specified a UNC path.
+
+Version [1.19.0.0]
+* Adding long path aware support throughout P4VFS to generally support paths
+  exceeding MAX_PATH in length. Internal file operations now support a maximum 
+  path length of 32767 characters. Limitations of an NTFS reparse point max size 
+  of 16384 bytes will constrain supported P4VFS depot paths to roughly 8100 characters, 
+  depending on accumulated length of p4port, p4client, and p4user strings
+  within the reparse point. The P4VFS reparse point data format has is now changed 
+  to support variable, minimal sized unicode strings thus reducing most common
+  reparse point sizes on disk while also allowing very large paths.
+* New reparse point format changes maximum perforce FileRevision from 16^2 to 32^2
+* Now targeting .NET Framework 4.6.2 for addition managed longPathAware support
+* Removal of native shellapi.dll dependencies not supporting long paths
+* Additional unit tests for verifying long path support, including new server files
+* Additional unit tests of user mode compilation and testing of driver utilities. The
+  core P4VFS driver utilities can now be elaborately tested as part of P4VFS.UnitTest
+* Additional unit test for compatibility of files synced using a legacy version of P4VFS.
+  This helps ensure new driver and service compatibility with older reparse data.
+* Adding P4VFS.natvis debugging visualizer for display of P4VFS_UNICODE_STRING used
+  throughout reparse data and driver/service communication
+* P4VFS.Setup adding a short time for retrying folder deletion to fix possible race 
+  deleting folders after executing applications within it
+* Native unit tests now show execution name in console title, similar to managed tests
+* Memory sizes displayed in sync stats now also shown as major unit (KB,MB,GB,TB)
+* Profile times displayed in sync stats now also show hour, min, sec, ms, breakdown.
+* P4VFS.Core now compiling with Level 4 warnings
+
+Version [1.18.11.0]
+* Significantly improved p4vfs.exe startup time by excluding the log header from
+  local log files, and now only adds header to remote log files.
+* Fixing obscure error message running p4vfs.exe info command when service not running
+* Fixing testing support for ReleaseSign configuration to use final signed binaries
+
+Version [1.18.10.0]
+* Fixing intermitent unit testing errors from missing Etw processes to exclude
+* Moved remainder of p4vfs.exe test execution procedure into UnitTest assembly
+
+Version [1.18.9.0]
+* Fixing support for specifying revision ranges in filespecs. Added testing to
+  verify complex revision range usage.
+* Fixing case where perforce login could fail when populating a file in which the
+  workspace owner has changed and an expired ticket exists for the previous user. 
+  Attempting login using new workspace owner may possibly use the expired ticket.
+* Removing default host configuration from remote unit testing to further decouple
+  references to The Coalition
+
+Version [1.18.8.0]
+* Optimizing major sync performance bottlenecks from innerloops with c++ regex's.
+  This significantly reduces the pre-sync time for large syncs.
+
+Version [1.18.7.0]
+* Fixing error handling in p4vfs resident command from when a specified path
+  does not exist or is invalid
+* Addition of unit test to verify expected installation of signed binaries
+* Publish setup script now uses common DevOps Release pipeline target
+
+Version [1.18.6.0]
+* Addition of build configuration ReleaseSign for ESRP signing all binaries. 
+  Internal P4VFS builds from The Coalition now have all solution binaries and
+  installer signed by a Microsoft Root Authority for external use. Future DevOps
+  releases will also be likewise signed.
+
+Version [1.18.5.0]
+* Removing dependency on fltmc.exe and replacing with some simple win32 calls
+  inside P4VFS.Core. This allows removing more P4VFS.ExtensionsInterop interfaces.
+  Added unit test verifying driver loading & unloading
+
+Version [1.18.4.0]
+* Fixing flickering progress dialogs during driver installation process. This
+  was also potentially hazardous because these dialogs could except input to 
+  interupt the installation. The driver install moved to native code and now 
+  dynamically loads setupapi.dll instead of calling out to rundll.exe
+
+Version [1.18.3.0]
+* Fixing failure during reinstallation if a p4vfs service handle is open by an
+  external application. Typically if services.msc or Process Explorer is 
+  monitoring the P4VFS.Service, it will hold an open SC_HANDLE to the service.
+  In this case, the uninstall could leave the service as marked-for-delete, and
+  cause a later install to fail, until the external handle is closed. There 
+  is new unit test for this case.
+* Addition of "p4vfs populate" command which is Synonym for 'sync -q -m Single'
+  This is the fastest method of populating a workspace, however if terminated
+  before completion it will result in inconsistent files.
+* DriverSign application now supports downloading EsrpClient package on-demand
+  using nuget.exe
+* Migrated all projects packages.config to PackageReferences
+
+Version [1.18.2.0]
+* Fixing "quiet single flush" virtual sync [-q -m Single] behaviour which was 
+  terribly broken in native implimentation. This permutation was missing unit 
+  tests, and have now been added as well.
+* Fixing service shutdown request cancel any sync operation in progress and 
+  exit cleanly instead of possibly timing out.
+* Cleanup of LogDevice interface so that it's simple to know how to extend
+
+Version [1.18.1.0]
+* Significant change to interactive login prompt behaviour. Interactive login
+  from service will not be prompted, and blocked, if the calling process is a
+  common system account. This will likely include refusing login prompts for 
+  windows defender and windows telemetry file accesses.
+
+Version [1.18.0.0]
+* Driver tracing refactor to adopt standard WPP usage, and remove support for 
+  sending driver trace messages to service. This allows us to safely log messages
+  at any IRQL, and remove potentially hazardous string formating operations in
+  the driver. Control of tracing using "p4vfs ctrl -dt <level>" has been removed.
+  A p4vfsflt WPP trace format file is now generated on compilation and is included
+  with installation. This now allows us view trace logs from signed drivers.
+
+Version [1.17.0.0]
+* Driver change to disable WPP trace by default. This improves performance and 
+  prevents a possible PAGE_FAULT_IN_NONPAGED_AREA bugcheck in logging code at
+  IRQL >= APC_LEVEL. Tracing can still be enabled manually using the "p4vfs ctrl -dt <level>" 
+  command. Logging code will be properly fixed in next release.
+
+Version [1.16.0.0]
+* Fixing all Static Driver Verifier warnings from function calls at IRQL. This 
+  mainly included uses of Rtl* unicode string functions inside a FastMutex scope.
+* Fixing installer generation for *Dev configurations to include proper *Dev binaries
+* EsrpClient update to 1.2.36 with nuget reference, and removed from repo.
+* Console help command cleanup to make it work similar to p4.exe help. Now supports
+  isolated command help "p4vfs help <command>", help intro "p4vfs help", and all 
+  help "p4vfs help all"
+
+Version [1.15.2.0]
+* Fixing long-standing bug where connecting to perforce with invalid user, together 
+  with either missing or unspecified clientspec, could request an interactive login
+  prompt for password. There's a new unit test for extensive combinations of this.
+
+Version [1.15.1.0]
+* Fixing bug in p4vfs.exe where it was not always using P4CONFIG and the current working 
+  directory when establishing a connection.
+
+Version [1.15.0.0]
+* Fixing rare driver open file handle leak after failing to hydrate file. Typically only
+  occured when debugging and terminating the service process during driver PostCreate
+* Driver code refactor to cleanup and remove kernel level symlink residency policy
+* Addition of "ExcludedProcessNames" service setting which can be used to exclude
+  certain processes by name from hydrating files (such as anti-virus apps).
+  Running UnitTests now exclude Windows Defender processes for determinism. 
+* Removal of P4API.NET library which is not longer required
+* DepotClient support for built-in P4API file diff summary for testing
+* DepotClient exposing per-connection environment variable get/set
+* Multi-processor compilation now enabled for native projects
+* UnitTest console window title now shows identity of currently executing test
+* Fixing bug where service would request Perforce password to login when 
+  connecting using a non-existing clientspec name. Improved how DepotClient handles
+  establishing a valid connection when login succeeds but clientspec is invalid.
+
+Version [1.14.6.0]
+* Removed support for managed sync. All managed tests and extensions now using
+  C++/CLI interop wrappers for native classes
+
+Version [1.14.5.0]
+* Fixing behaviour of native sync with no files specified. In this case we expect
+  the entire workspace to sync to head.
+
+Version [1.14.4.0]
+* Fixing Win32 exception calling WTSQueryUserToken using remote sessionId with no user
+* Removing more unused ExtensionsInterop code no longer required
+* Addition of native service start/stop operations to use for testing and installation
+* Fixing regular sync double-space line output
+* Fixing p4vfs restart command to properly stop/start the service. Also 
+  added the restart command to p4vfs help
+
+Version [1.14.3.0]
+* Fixing log messages for native regular sync operations. There was a bug
+  with overriding untagged output on an existing P4API client
+* Fixing initialization of service settings before any logging begins
+* Cleaned up some verbose messages from preview sync with no files to sync
+* Fixing bug with service log LastWriteTime getting updated as a side-effect 
+  from querying by P4VFS monitor application
+
+Version [1.14.2.0]
+* Copy and Move populate method code paths now entirely native. Deleted
+  large swaths of now unused managed service code.
+
+Version [1.14.1.0]
+* Fixing native logging verbosity level filtering
+* Support for parallel native sync using MaxSyncConnections threads
+* Improved native string multibyte to/from wide performance which was
+  unnecessarily high on the profiles.
+
+Version [1.14.0.0]
+* Driver update with codesign credentials and 10.0.17763.0 SDK
+
+Version [1.12.3.0]
+* Timestamps from asyncronous logging now indicate time message is submitted
+  as opposed to previously it was the time written. This allows for profiling
+  from remote log files.
+
+Version [1.12.2.0]
+* The p4vfs sync now uses native code path with P4API instead of P4API.NET
+  by default. There is an additional sync option [-c] to perform the operation
+  using the legacy managed code path.
+* Major internal logging and settings changes to migrate implimentation
+  into native code.
+* Setup installer now uses property sheet P4VFS.Setup.props for studio configuration. The
+  pre-configured installer settings, and a symbol store path can be specified.
+
+Version [1.12.1.0]
+* Addition settings ConsoleRemoteLogging and ConsoleImmediateLogging to 
+  toggle remote logging behavior from p4vfs.exe
+* Fixing installation dialog status messages during uninstall
+
+Version [1.12.0.0]
+* Renaming BlackTusk.VFS to P4VFS
+
+Version [1.11.30.0]
+* Added output to regular resident command.
+
+Version [1.11.29.0]
+* Introduced 5 minute timeout for cached depot clients.
+* Fixed test failure related to Sync() with invalid parameters.
+
+Version [1.11.28.0]
+* Introduced SubActions to DepotSyncActionInfo so that we can group multiple messages
+  to the same file into one parent action.
+* Attempt to make an action with subactions write to the log atomically.
+* Re-enabled tagged output for quiet syncs.
+
+Version [1.11.27.0]
+* Fixed parsing bug that would let unknown message come through as unknown actions.
+* Switched depotClient.Sync to never use tagged output because we'll get the correct 
+  timeline/order if we use info output as it's unified.
+* Added support to recognize 'needs resolve' message.
+* Updated opened 'not changed message' to align with p4
+* Optimized regular sync code paths by not creating output (when not needed)
+
+Version [1.11.26.0]
+* Fixed so that depotClient.Sync() returns result regardless of success/failure.
+
+Version [1.11.25.0]
+* Updated resident command in p4vfs to use standard p4 argument types (i.e path\...)
+
+Version [1.11.24.0]
+* Added warning/error summary
+* Fixed summary to not include failed modifications
+
+Version [1.11.23.0]
+* Fixed so tests can be run in paths with spaces.
+* Fixed some behavior changes from below.
+* Increase speed of FileInfo::FileAttribute by using GetFileAttributes instead of 
+  CreateFile+GetFileInformationByHandle.
+
+Version [1.11.22.0]
+* Fixed interactive login dialog not getting populated with the correct 
+  port/user/client information
+* Added support for commandline input of password (align with p4 functionality
+  of login)
+* Added output when doing regular or preview syncs
+* Fixed not being able to run 'p4vfs sync' to sync to latest.
+
+Version [1.11.21.0]
+* Fixing problem with "sync -m" being ignored when specifying "sync -q" or 
+  SyncDefaultQuiet setting. Also changing "sync -q" without "-m" to use Atomic 
+  flush for added safety.
+
+Version [1.11.20.0]
+* Fixing memory leak around text encoding used by STREAM populate method
+* Fixing sync operation to not stop after the first file operation error, and 
+  instead continue syncing remaining files as it did before version 1.11.14
+* Restoring previous behaviour of the Single flush type to perform the p4 flush
+  operation before making local client file changes. This can significantly 
+  improve performance when syncing many files
+* Now supporting caching and reuse of native DepotClient connections which
+  will improve performance of STREAM populate method
+* Default FlushType changed from Single back to Atomic to provide the "safe to
+  terminate" sync by default. However, this default option is typically overridden 
+  in the studio settings file.
+* Fixing bug with SocketModel JSON serialization where properties with a default 
+  value not matching default ctor may would mismatch after deserialization 
+
+Version [1.11.19.0]
+* Additional test for P4CONFIG and environment variable usage and fix for 
+  non-impersonated environment configuration
+
+Version [1.11.18.0]
+* Updating P4API.NET to 2019.2 to fix bug using P4CONFIG and the current working 
+  directory when establishing a connection.
+* Fixing DriverSign tool to properly submit to ESRP codesign service. This allows
+  us to make production signing a integrated build step
+
+Version [1.11.17.0]
+* Fixed bug specifying current working directory for P4API.NET connection which
+  would cause possible incorrect P4CONFIG evaluation
+* Fixed bugs with remote executing unit tests. Added a p4d firewall exemption 
+  during the remote test. Now specifies P4PASSWD for remote test.
+* Including UserContext for managed DepotClient with processId of impersonated
+  process to allow faster user token lookup.
+* The p4vfs login command will now always update ticket if login was successful
+
+Version [1.11.16.0]
+* Full support for offline UnitTests. All tests now pass. No further dependencies 
+  on TheCoalition perforce server for testing. 
+
+Version [1.11.15.0]
+* Decoupled UnitTest executing from TheCoalition perforce server, and now using
+  self contained deterministically auto-generated server for testing. A p4d.exe
+  binary 2019.1 is now included with tests for portability. A basic recipe system 
+  now exists for populating server contents.
+* Unit tests now inherit new base priority from class for easier separation.
+
+Version [1.11.14.0]
+* Integration of changes from user/alexboc branch to support SSL connections.
+* Updating P4API and P4API.NET to 2019.1, and OpenSSL 1.02s
+* Fixing support for creating symlinks with non-elevated permission.
+* Decoupled the verbosity of the sync (Quiet vs Regular) and the flush mechanism.
+  Thereby the "safe to terminate" gaurantee can now be used with/without a 
+  Quiet sync using the -m option. Regular continues to always be safe to terminate.
+* First pass additional of native only P4 connection caching, not yet enabled.
+* Adding configurable LogChannel verbosity levels for partial limiting log output
+
+Version [1.11.13.0]
+* Addition of service RPCs for high frequency status timing. This is now used 
+  by the P4VFS monitor instead of querying log timestamps. Future enhancements 
+  to the monitor will also build off this status feedback.
+
+Version [1.11.12.0]
+* Including necessary support for STREAM populate method unicode text encodings
+  for UTF8, UTF16 including little endian BOM. Also includes common CRLF encoding 
+  support for ansi and unicode text as specified by the clientspec line ending option.
+* Additional unit testing for utf8 and utf16 text file encodings including both 
+  p4 reconcile and file checksum comparisons.
+* Additional unit testing for permutations of clientspec LineEnd options
+
+Version [1.11.11.0]
+* Fixing support for interactive login prompt for STREAM populate method
+* Fixing minor bugs with STREAM populate method causing unit test failures. All
+  tests now succeed and include passes for multiple service settings
+
+Version [1.11.10.0]
+* Fixing bug with STREAM populate method to properly handle text files when
+  clientspec has local-system line ending setting, instead of unix
+
+Version [1.11.9.0]
+* Fixing sync of forced resident files to avoid performing unecessary diff2
+* Addition of experimental support for P4VFS_POPULATE_METHOD_STREAM. This
+  uses the native P4API to download virtual file contents from Perforce directly into 
+  existing placeholder file stream.
+* Major new additions to native and mixed-managed unit tests and continued
+  consolidation of shared testing support into native code
+* Fixing virtual Sync with IgnoreOutput flag to execute properly
+* Additional common unit testing for both Copy and Stream populate methods
+
+Version [1.11.8.0]
+* Fixing warnings from Copy and Delete targets in driver INF
+* Additional native unit tests for FileInfo and StringInfo
+* Consolidating and refactoring native and mixed-managed logging
+* Ported native usage of deprecated Wincrypt API to Cryptography Next Generation APIs
+* P4VFS addition of native P4API client and native test framework
+
+Version [1.11.7.0]
+* Collapse resident file syncing to a single call to Quiet sync
+
+Version [1.11.6.0]
+* Updated the P4API.net to version to officially released 2016.2
+* Removing legacy codesign support for codesign.gtm.microsoft.com and prepared move
+  to Microsoft Azure Active Directory codesign submission using EsrpClient
+* Fixing failure connecting to perforce when login credentials need to be applied.
+  This fixes the error introduced in 1.11.4.0 along with P4API.net update
+* Addition of "p4vfs set" command to modify current service settings temporarily for 
+  this session. These temporarly setting changes will not persist after service
+  is restarted. Persistent settings changes should be made to the XML file.
+* Extended info output from "p4vfs info -x" will now include the display of all current 
+  service settings in the executing P4VFS.Service process
+* P4VFS additional support for VirtualFileSystem.Settings.Unattended setting. Interactive
+  P4VFS perforce login dialog prompts will be disabled when service is Unattended=true.
+  Selecting "Cancel" button from P4VFS perforce login dialog will automatically set the
+  service to Unattended=true. This current setting can also be modified by "p4vfs set".  
+* Additional unit tests for client/service socket model communication and utilities
+
+Version [1.11.5.0]
+* Addition of p4vfs info -x option to show extended configuration information 
+  including service and driver settings
+* Addition of unit test for sparse file underflow condition to verify how
+  the populated file size can be different than the sparse size
+  
+Version [1.11.4.0]
+* Updated the P4API.net to version to 2016.1
+
+Version [1.11.3.0]
+* Set the logging to the turn 10 share directory in Turn10.xml 
+
+Version [1.11.2.0]
+* Fixing sync command to strip whitespace off default sync resident regex
+* Modified settings XML file format to assign element values from XmlAttribute
+  instead of XmlText. This avoids cases where we may unexpectedly add invalid
+  characters within a XmlText block
+* Fixing bug with default settings XML file not loading from the correct 
+  executing assembly path.
+* Replacing references of the name "stub" file with "placeholder" file when referring 
+  to unpopulated reparse files. This fixes various inconstent terminology.
+* Addition of global setting for SyncDefaultQuiet to configure p4vfs.exe to use
+  a quiet sync [-q] by default. A new p4vfs command line option has been added
+  [-l] to force regular logging during sync (ie. not-quiet)
+* The remote and local file logging paths are now optional and can be configured
+  and/or disabled through the service settings
+* Setup project now has user build configuration support for including optional 
+  service settings file. This allows us to easily build custom deployments of the 
+  P4VFS installer with studio specific options
+
+Version [1.11.1.0]
+* Addition of unit test for xcopy of directories of placeholder files
+* Fixing support for p4vfs.exe remote syncing through service in a non-interactive
+  session. When performing a p4vfs.exe requests, the service will prefer to use
+  the impersonation token of requesting p4vfs.exe process. 
+* Fixing incremental build dependency problem with setup project from hiding 
+  embedded resources. We now group the installed files under a project folder.
+* Addition of default residency regex option to service settings 
+
+Version [1.11.0.0]
+* Addition of driver control flag for specifying whether or not to strip the
+  REPARSE_POINT and SPARSE_FILE attributes from placeholder files. By default the
+  attribute removal is disabled to be used for dev purposes for future release.
+
+Version [1.10.2.0]
+* Driver automated codesign utility now supports waiting for completed results
+  from codesign.gtm.microsoft.com and copying results to a target folder as
+  the codesign user
+* Driver install & uninstall now excluding possible user prompt for reboot since it 
+  will never be required. This fixes driver install & uninstall support while 
+  executing in non-interactive session
+* Fixup Setup project to hiding auto generated file resources
+* Fixup Service project to properly deploy vcredist across minor VCToolsVersion changes
+* Disabling Just My Code debugging for driver for VS 15.8.1
+* Driver install & uninstall verification timeout increased from 5 to 10 seconds
+
+Version [1.10.1.0]
+* Re-enabling impersonation user context override support now that fallback of best
+  guess for non-interactive user is known to work.
+* Adding immediate error when trying to run p4vfs test's as non-elevated user
+
+Version [1.10.0.0]
+* Partial driver support for stripping REPARSE_POINT and SPARSE_FILE attributes from 
+  placeholder files. Currently supported for individual file queries (IRP_MJ_QUERY_INFORMATION
+  and IRP_MJ_NETWORK_QUERY_OPEN) but not yet for directory listings (IRP_MJ_DIRECTORY_CONTROL)
+  In most cases this will be sufficient (such as from GetFileAttributes) but somewhat
+  confusing when looking at attributes from directory listings (FindFirstFile)
+
+Version [1.9.6.0]
+* Removing deprecated WCF ServiceModel sync support from P4VFS. Only Local and 
+  SocketMode are continued to be supported.
+* Fixing additional service operations requiring impersonation of currently logged-on
+  during non-interactive and disconnected sessions.
+* Additional extensive unit testing around installation and general usage of
+  P4VFS with non-interactive logon sessions
+* Removing REPARSE_POINT and SPARSE_FILE attributes from virtual placeholder files to 
+  avoid compatibility issues using virtual sync of windows SDK binaries. The
+  OFFLINE attribute will be the only attribute always set on virtual placeholder files.
+* Fixing quiet virtual sync to properly work with force resident flag so that
+  specified files are immediately downloaded.
+
+Version [1.9.5.0]
+* fix for service impersonating the requesting process user when populating a file
+  from a non-interactive session
+* setup window now has rotating icon indicating installation progress
+
+Version [1.9.4.0]
+* fix for service possibly impersonating incorrect user on win10 remote desktop
+* addition of installed P4VFS.Notes.txt release notes
+* driver WDK update to 10.1.17134
+
+Version [1.9.3.0]
+* fix for race condition flushing and restarting logging thread
+
+Version [1.9.2.0]
+* addition of default settings XML file in installation folder
+
+Version [1.9.1.0]
+* time-saving installer fix to properly check if vcredist is already installed
+* addition of GetFileProperties and unittest to which will be used to test for vcredist version during install
+
+Version [1.9.0.0]
+* signed driver 1.9.0.0
+* addition of DepotServerConfigTest test for resolving host remapping such as p4-blacktusk4
+* addition of DepotServerConfig support for resolving hostnames
+* now deploys vcredist_2017 from current Visual Studio platform tools version folder
+* status monitor logging script updated for new paths
+* compile fix for 15.5 and std::tr1 namespace deprecation
+* fix for unit tests using WDK 10
+* using latest install Windows 10 SDK
+
+Version [1.8.2.0]
+* newtonsoft lib forces explicit version
+* Fixing P4VFS driver project build for VS 2015
+* Enabling automated P4VFS build with VS 2017 and ignored WDK
+* Newtonsoft.Json 9.0.1 update
+* reparse data revision number interpreted as unsigned short instead of signed short
+
+Version [1.8.1.0]
+* DriverSign tool now support running as service user, possibly prompting for password 
+  with logging now properly redirected.
+* fixing force sync to ignore handling file writeable type changes on deleted files.
+
+Version [1.8.0.0]
+* updating codesign instructions
+* signed driver 1.8.0.0
+
+Version [1.7.9.0]
+* codesign submit wip
+* CodeSign submission project creation
+* fix for quiet sync file type changes, including fix to unit tests that should have caught this bug before!
+
+Version [1.7.8.0]
+* support for fast quiet sync
+
+Version [1.7.7.0]
+* fix for conflict with result of ::GetFileAttributes on placeholder files getting interfered with 
+  OSG's Dmflt.sys driver. The P4VFS now only queries file attributes by handle.
+
+Version [1.7.6.0]
+* changing p4vfs.exe logging to local by default to significantly improve sync performance
+
+Version [1.7.5.0]
+* specifying windows 10.0 project settings for consistency
+* compatibility fix for querying placeholder file attributes when DfmFlt is active
+
+Version [1.7.4.0]
+* monitor service on separate thread for more consistent sampling
+
+Version [1.7.3.0]
+* update to Newtonsoft.Json.8.0.2
+* Monitor icon color fixes
+* monitor fix for last sample descrepency
+
+Version [1.7.2.0]
+* improved monitor notify icon graph
+
+Version [1.7.1.0]
+* montior fix for progress icon
+* montitor tray icon now shows horizontal performance graph
+* fix for p4vfs resident command using filespec's ending in /... or \...
+
+Version [1.7.0.0]
+* 1.7.0.0 signed drivers
+* fix for resident command to limit number of threads
+* driver fix to avoid precreate file name query when there is no reparse in progress. 
+  This is a performance boost and reduces possibility of querying name a corrupted file system entry.
+
+Version [1.6.2.0]
+* log monitor script update
+* help text update
+* help message fixup
+* support for p4vfs resident command to change current population status of files
+
+Version [1.6.1.0]
+* status log filter script fix for splunk conflict
+* info command fixup
+* addition of unsigned/rejected driver installation failure test
+* support for p4vfs info command and service to driver connection stats
+
+Version [1.6.0.0]
+* unit test update to accomodate dual signed 1.6.0.0 release driver
+* codesign instruction update
+* signed driver 1.6.0.0 PR2
+* signed driver 1.6.0.0 PR1
+* Updating P4VFS codesign instructions
+* signed driver 1.6.0.0 PR0
+
+Version [1.5.1.0]
+* code sign info update
+* status monitor script support to update splunk logs
+* status monitor script updates splunk logs
+* unit test cleanup for WDK 10
+* addition of parallel service operation test
+* service listener processing distributed across multiple threads
+
+Version [1.5.0.0]
+* fixing monitor for lower bandwidth
+* signed driver 1.5.0.0
+* async vs immediate logging unittest fix and support for verbose logging switch
+* enhancing and fixing symlink unit tests
+* fixing support for symlink perforce file type
+* additional unit tests for handling perforce symlink filetype, not currently passing.
+* ported to VS 2015 platform
+
+Version [1.4.1.0]
+* Increasing P4VFS driver altitude so that it's above WIMMount filter which would 
+  interfere with FILE_OPEN_REPARSE_POINT option
+
+Version [1.4.0.0]
+* removing read/write lock for file sync which has caused deadlocks and is likely unnecessary
+* signed driver 1.4.0.0
+* driver fix for respecting FILE_OPEN_REPARSE_POINT
+
+Version [1.3.34.0]
+* Monitior status window fixes:
+  1. Added close button 
+  2. Removed CornerRadius
+  3. Increased the window width
+  4. Improved performance of reading tails of the log file
+* fix to properly wait for service shutdown during uninstall
+
+Version [1.3.33.0]
+* unit test fix for monitor hide command to wait for exit
+* client ownership change unit test enhanced and now passing
+* unit test for client ownership changes
+* support for handing perforce client owner changes
+
+Version [1.3.32.0]
+* enhancing resident sync unit test
+* unit testing for sync resident options
+
+Version [1.3.31.0]
+* support for resident file sync pattern
+
+Version [1.3.30.0]
+* monitor unit test addition and fixes for p4vfs monitor show/hide
+* support for sync -resident file pattern (WIP)
+* support for p4vfs monitor show/hide including setup fix for terminating 
+  monitor before uninstall. Includes unit tests.
+
+Version [1.3.29.0]
+* Monitor FileWatcher Error Handling
+* Get P4VFS.Driver to link in Visual Studio 2015 by explicitly setting the 
+  KernelBufferOverflowLib property in the vcxproj file, based on this page:
+  https://msdn.microsoft.com/en-us/library/windows/hardware/jj572863(v=vs.85).aspx
+* setup fix for Monitor
+
+Version [1.3.28.0]
+* monitor fixes
+* file symlink info API
+
+Version [1.3.27.0]
+* removing duplicate memory size calculations
+* addition SyncInvalidFileSpecTest unit test
+
+Version [1.3.26.0]
+* fix for slow sync preview when files are not in clientspec
+
+Version [1.3.25.0]
+* awesome fix to replace diff2 -ds with diff2 -q and fstat identical changes if necessary. 
+* Huge pre-sync time improvement thanks to suggestions from Simon Clay!
+
+Version [1.3.24.0]
+* Addition unit test reconcile checks for matching file types
+* sync optimization using diff2 instead of fstat
+
+Version [1.3.23.0]
+* fix for setup progress bar during partial install or uninstall
+
+Version [1.3.22.0]
+* setup has TopMostWindow
+
+Version [1.3.21.0]
+* fix for specifiing connection longer timeout
+
+Version [1.3.20.0]
+* addtion of p4vfs ctrl options
+
+Version [1.3.19.0]
+* sync optimization to use fileSize from sync -n instead of fstat
+
+Version [1.3.18.0]
+* fixing publish script for new build location
+* fixing unit tests for easier Dev configuration
+
+Version [1.3.17.0]
+* fixing bug with possible invalid impersonation of the system user
+* status monitor time regex fix
+* sync protocol unit test
+
+Version [1.3.16.0]
+* client side support for SocketModel service connections
+* addition of SocketModel service for communication of custom TCP protocol
+* fixing unit tests for console mode exectution of setup
+* adding the P4VFS.sln which has addition Dev configurations for development driver binaries
+* updating setup status message
+* setup window added
+
+Version [1.3.15.0]
+* fix for incorrectly assuming the location of P4TICKETS file
+
+Version [1.3.14.0]
+* fix for perforce sync action "replaced"
+
+Version [1.3.13.0]
+* unit tests now include correct implimentation of DiskFileSize for verification
+
+Version [1.3.12.0]
+* fix for clientspec names with invalid characters used in the client lock mutex
+
+Version [1.3.11.0]
+* setup application now installs 2013 x64 vcredist if not already installed
+* fixing file directory creation
+
+Version [1.3.10.0]
+* fix for PATH environment variable change to ensure it is REG_SZ_EXPAND
+
+Version [1.3.9.0]
+* addition of setup icon
+* setup now includes windows uninstal registry info
+
+Version [1.3.8.0]
+* Setup project dependency fix
+* addition of file sync summary
+* fixing uninstall to using staging directory so that it handles broken installations
+* fix for proper behaviour of sync to previous revision of opened file operations. 
+* Addition of unit test for sync of opened files.
+
+Version [1.3.7.0]
+* deploy script now in setup project
+* deploy script change to no longer require version number
+* cheesy setup deploy script fix. Will be removed once Setup has a proper msbuild deploy step
+* addition of Setup project to BlackTuskTools.sln
+
+Version [1.3.6.0]
+* setup now includes adding installation folder to PATH environment variable
+* setup now also includes the setup executable with the deployment
+* addition of setup tool for single-file installation and deployment. 
+  unit testing workflow now uses setup for testing deployments
+* unit test priority specification can now also be a range
+* fixing service impersonated temp folder location and fixing driverpackage project dependency
+* fix for the Copy populate method to use the TEMP folder for temporary perforce file in order to 
+  avoid directory modification time change
+* fix for including current working directory as part of every perforce command, both 
+  local p4vfs.exe and service operations
+
+Version [1.3.5.0]
+* fixing log thread exceptions and changing PopulateMethod to Move because it's faster than Copy and also does not demonstrate the race condition failure
+
+Version [1.3.4.0]
+* version update for release
+
+Version [1.3.3.0]
+* updating service sync to go wide
+* support for impersonated sync across multiple threads
+* fix for service impersonation when called from an already impersonated thread
+
+Version [1.3.2.0]
+* addition of force sync test
+* Updating service sync timeouts
+* fixing client timeout on very long sync's
+
+Version [1.3.1.0]
+* including safe p4vfs.exe termination of syncs
+
+Version [1.3.0.0]
+* changed service WCP comm to NetTcpBinding to allow non-administrator process access
+* fixing support for remote sync on server... currently syncing on one thread only though untill we make an impersonated thread pool
+* fixing impersonated server log bug from previous change
+* service support for remote operations, including syncing
+* signed driver 1.3.0.0
+* fixing sparse attribute removal from resident files
+* driver verbosity reduced
+* additional race fix
+* removing unneed debug info from race condition fix
+* fixing race condition resolving placeholder files
+* individual trace channel enabling
+* additional process and thread info in logs to help debug race conditions
+
+Version [1.2.4.0]
+* copy resident testing
+* make file resident race condition test... now failing as expected. Fix in progress.
+* fix for clearing perforce command results when re-using connections
+
+Version [1.2.3.0]
+* correcting service application title
+* support for sparse files indicating correct resident file size
+
+Version [1.2.2.0]
+* common unit test update for next sparse file addition
+* adding support to p4vfs for immediate logging
+
+Version [1.2.1.0]
+* fixing service log file line appending to not lock file. Allows us to properly tail the log file
+
+Version [1.2.0.0]
+* 1.2.0.0 signed binaries
+* driver support for non-admin user access to control port communication
+
+Version [1.1.6.0]
+* addition of publish script to automate first-look version deployment
+* support for virtual sync with file types +w, client clobber and client allWrite. Addition unit tests!
+
+Version [1.1.5.0]
+* reconcile unit testing
+* fixing bug with service impersonating after system sleep cause bad log locations and incorrect p4 login credentials
+
+Version [1.1.4.0]
+* install unit test safety checks
+* driver test sign and root sign unit tests... along with a properly root signed driver release
+* addition of reconcile workflow unit test
+
+Version [1.1.3.0]
+* sync fix for deleted files and force syncing
+
+Version [1.1.2.0]
+* assigned UnitTest assembly proper version
+* fixing sync options for initial release
+
+Version [1.1.0.0]
+* fixing resource file encoding
+* fixing unicode text for resource files
+* fixing unicode resource files
+* addition of driver version request
+
+Version [1.0.0.0]
+* fixing memory leak getting session user tokens
+* cleanup props file
+* impersonated process creation cleanup
+* fixing build from missing shelved file
+* support for impersonated perforce login dialog when needed from Service
+* perforce login prompt support and fix for service P4TICKETS impersonation
+* p4vfs version number fixes to use common system
+* addition of common versioning
+* removing user mode handle creation in driver to ensure we don't leak handles when service is not available
+* driver support for control messages along with unit test fix for testing when driver is "ready"
+* driver and service logging improvements in search of startup race condition
+* removing jessk-pc certificate since I'm now using the WDKTestSign certificate from the Store
+* unit test assert message now has stack frame info
+* support for virtual sync across multiple threads
+* more unit testing for syncing different revisions
+* adding WPP trace logging to driver for easy verbose debugging with TraceViewer.exe
+* service fix to use impersonated p4tickets
+* async logging now working properly with/without network access and user impersonation. 
+  P4VFS now generally support Ctrl+C and Ctrl+Break for safer termination. 
+* Addition of logging unit tests and misc fixes.
+* fixing file residency and file time unit tests
+* async logging, sync callback removal, and more unit tests
+* disabling invalid prefast warning
+* test certificate signing instructions and bat file updated for testing on other machines
+* fixing service log impersonating to work over remote desktop sessions
+* Fixing C compile errors
+* driver now logging messages through service... and on into network files
+* unit testing exposed fixes
+* debugging fixes
+* fixing unit test file deletion
+* unit test debugger attach command line option
+* service logging working using impersonation
+* unit testing fixes for removed manifests
+* replacing Extensions and Service ETW trace events with super-sweet BlackTusk.Lib logging
+* depot client print fix
+* fix for file resolving
+* sync unit testing debugging. Adding proper service installation description with version.
+* unit testing exposed fixes for sync, and workspace reset
+* manifest install test
+* fixing support for sub-manifests
+* fixing support for manifest installation and uninstallation
+* test driver signing instructions
+* Removing test driver signing for automated builds
+* fixing test driver signing
+* driver and service installation tests setup with test certificate
+* support for running unit tests from p4vfs.exe as well as mstest.exe
+* unit tests for installation and deployment work-in-progress
+* addition of UnitTest project
+* driver, service and manifest installation support
+* sync command implimented in p4vfs
+* p4vfs command placeholderbing
+* Changing Forge to use P4API.NET x64 to fix build
+* now using BlackTusk.Lib.Logging.FileLogger for common logging redirection
+* perforce syncing and debugging work in progress
+* FileResidency work in progress
+* removal of old generated extension file no longer used
+* Extensive perforce extension and file operation work
+* perforce work which now includes addition required client configuation in the reparse point
+* extensions now includes perforce references
+* extensions projects compiling and added to BlackTuskTools.sln
+* extenstions work in progress
+* registry class fix
+* changing manifest files to perforce type text
+* fixing text encoding for event manifest files
+* wip of C# extension layer getting ready for perforce IO
+* project changes to complete namespacing
+* removing Sync from project namespace
+* Addition of P4VFS SyncExtensions assembly project
+* event message codegen changes to use a common msbuild task
+* VirtualFileSystem file interop work in progress
+* Addition of P4VFS SyncService and SyncExtensionsInterop wip
+* SyncDriver inf rename fix to match category and driver file for deployment
+* SyncDriver namespacing fixes
+* Changing P4VFS trace events codegen header to always writable
+* Addition of BlackTusk port of 343 miniFilter sync driver
+

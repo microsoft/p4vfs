@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildThisFileDirectory)\..\P4VFS.props" Condition="'$(P4VFSRootDir)' == ''" />
+  <Target Name="P4VFSExternalPackageRestore">
+    <Message Text="Restoring External Packages" Importance="High" />
+    <ItemGroup>
+      <ExternalArguments Include="/p:Verbose=False"/>
+      <ExternalArguments Include="/p:RootDir=$([System.IO.Path]::GetFullPath('$(P4VFSRootDir)'))"/>
+      <ExternalArguments Include="/p:VisualStudioEdition=$(P4VFSVisualStudioEdition)"/>
+    </ItemGroup>
+    <MsBuild Projects="$(P4VFSSolutionDir)/$(P4VFSExternalName)/$(P4VFSExternalName).csproj" Targets="Build" Properties="Configuration=$(P4VFSConfiguration);Platform=$(Platform)" />
+    <Message Text="$(P4VFSExternalBuildDir)\$(P4VFSConfiguration)\$(P4VFSExternalName).exe &quot;@(ExternalArguments->'%(Identity)','&quot; &quot;')&quot;" Importance="High" />
+    <Exec Command="$(P4VFSExternalBuildDir)\$(P4VFSConfiguration)\$(P4VFSExternalName).exe &quot;@(ExternalArguments->'%(Identity)','&quot; &quot;')&quot;" IgnoreStandardErrorWarningFormat="true" />
+  </Target>
+</Project>

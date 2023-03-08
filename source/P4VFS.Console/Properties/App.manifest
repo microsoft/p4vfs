@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v3">
+  <application>
+    <windowsSettings xmlns:ws="http://schemas.microsoft.com/SMI/2016/WindowsSettings">
+      <ws:longPathAware>true</ws:longPathAware>
+    </windowsSettings>
+  </application>
+</assembly>

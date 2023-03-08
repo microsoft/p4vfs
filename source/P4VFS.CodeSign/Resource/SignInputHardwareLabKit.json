@@ -1,0 +1,107 @@
+{
+  "Version": "1.0.0",
+  "SignBatches": [
+    {
+      "SourceLocationType": "UNC",
+      "SourceRootDirectory": "",
+      "DestinationLocationType": "UNC",
+      "DestinationRootDirectory": "",
+      "SignRequestFiles": [
+        {
+          "CustomerCorrelationId": "01A7F55F-6CDD-4123-B255-77E6F212CDAD",
+          "SourceLocation": "p4vfsflt.hlkx",
+          "Manifest": {
+            "InputFiles": [
+              {
+                "SourceLocation": "p4vfsflt.sys",
+                "TargetDirectory": "bin"
+              },
+              {
+                "SourceLocation": "p4vfsflt.cat",
+                "TargetDirectory": "bin"
+              },
+              {
+                "SourceLocation": "p4vfsflt.inf",
+                "TargetDirectory": "bin"
+              },
+              {
+                "SourceLocation": "p4vfsflt.pdb",
+                "TargetDirectory": "bin"
+              }
+            ],
+            "OutputFiles": [
+              {
+                "SourceLocation": "p4vfsflt.sys"
+              },
+              {
+                "SourceLocation": "p4vfsflt.cat"
+              }
+            ],
+            "DevCenterSign": {
+              "TenantId": "72f988bf-86f1-41af-91ab-2d7cd011db47",
+              "KeyVaultUri": "https://gfwlcss-kv.vault.azure.net",
+              "SecretName": "gfwlcss-app-reg-secret",
+              "ServiceUri": "https://manage.devcenter.microsoft.com",
+              "TokenEndpoint": "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47/oauth2/token",
+              "Scope": "https://manage.devcenter.microsoft.com",
+              "Product": {
+                "AnnouncementDate": "",
+                "DeviceMetadataCategory": "Component.Controller.Storage",
+                "DeviceMetadataIds": [],
+                "FirmwareVersion": "",
+                "DeviceType": "Internal",
+                "IsTestSign": false,
+                "MarketingNames": [ "P4VFS Filter Driver" ],
+                "ProductName": "Microsoft P4VFS",
+                "SelectedProductTypes": {
+                  "Windows_v100": "Unclassified"
+                },
+                "RequestedSignatures": [
+                  "WINDOWS_v100_X64_RS1_FULL"
+                ],
+                "AdditionalAttributes": {
+                  "StorageController": null,
+                  "RaidController": null,
+                  "Svvp": null
+                },
+                "TestHarness": "hlk"
+              },
+              "HLK": {
+                "AgentUsername": "HLKAdminUser",
+                "AgentSecretName": "gfwlcss-hlkadminuser-password",
+                "ProjectName": "P4VFS",
+                "PoolName": "P4VFS Test",
+                "Controllers": [
+                  {
+                    "Name": "HLK-CR-1903",
+                    "Clients": [ "HLK-CT-1903" ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "SigningInfo": {
+        "Operations": [
+          {
+            "KeyCode": "CP-233102",
+            "OperationCode": "OpcSign",
+            "Parameters": {
+              "FileDigest": "/fd SHA256"
+            },
+            "ToolName": "sign",
+            "ToolVersion": "1.0"
+          },
+          {
+            "KeyCode": "CP-233102",
+            "OperationCode": "OpcVerify",
+            "Parameters": {},
+            "ToolName": "sign",
+            "ToolVersion": "1.0"
+          }
+        ]
+      }
+    }
+  ]
+}

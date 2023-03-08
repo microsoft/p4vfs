@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+
+    <!-- Common -->
+    <P4VFSSolutionDir>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), P4VFS.props))</P4VFSSolutionDir>
+    <P4VFSRootDir>$([System.IO.Path]::GetFullPath("$(P4VFSSolutionDir)/.."))</P4VFSRootDir>
+    <P4VFSBuildDir>$(P4VFSRootDir)/intermediate/builds</P4VFSBuildDir>
+    <P4VFSExternalDir>$(P4VFSRootDir)/external</P4VFSExternalDir>
+    <P4VFSPackagesDir>$(P4VFSRootDir)/packages</P4VFSPackagesDir>
+    <P4VFSConfiguration>$([System.Text.RegularExpressions.Regex]::Replace($(Configuration), "(Dev|Sign)$", ""))</P4VFSConfiguration>
+    <P4VFSConfigurationIsDev>$([System.Text.RegularExpressions.Regex]::IsMatch($(Configuration), "(Dev|Sign)$"))</P4VFSConfigurationIsDev>
+    <P4VFSConfigurationIsSign>$([System.Text.RegularExpressions.Regex]::IsMatch($(Configuration), "(Sign)$"))</P4VFSConfigurationIsSign>
+    <P4VFSVisualStudioEdition>2019</P4VFSVisualStudioEdition>
+
+    <!-- P4VFS.Driver -->
+    <P4VFSDriverProjectName>P4VFS.Driver</P4VFSDriverProjectName>
+    <P4VFSDriverTargetName>p4vfsflt</P4VFSDriverTargetName>
+    <P4VFSDriverSourceDir>$(P4VFSSolutionDir)/$(P4VFSDriverProjectName)/Source</P4VFSDriverSourceDir>
+    <P4VFSDriverIncludeDir>$(P4VFSSolutionDir)/$(P4VFSDriverProjectName)/Include</P4VFSDriverIncludeDir>
+    <P4VFSDriverBuildDir>$(P4VFSBuildDir)/$(P4VFSDriverProjectName)</P4VFSDriverBuildDir>
+
+    <!-- P4VFS.CodeSign -->
+    <P4VFSCodeSignName>P4VFS.CodeSign</P4VFSCodeSignName>
+    <P4VFSCodeSignBuildDir>$(P4VFSBuildDir)/$(P4VFSCodeSignName)</P4VFSCodeSignBuildDir>
+    <P4VFSCodeSignSupport>$([System.IO.File]::Exists($(P4VFSRootDir)/source/$(P4VFSCodeSignName)/$(P4VFSCodeSignName).csproj))</P4VFSCodeSignSupport>
+
+    <!-- P4VFS.Service -->
+    <P4VFSServiceName>P4VFS.Service</P4VFSServiceName>
+    <P4VFSServiceTargetName>P4VFS.Service</P4VFSServiceTargetName>
+    <P4VFSServiceIncludeDir>$(P4VFSSolutionDir)/$(P4VFSServiceName)/Include</P4VFSServiceIncludeDir>
+    <P4VFSServiceBuildDir>$(P4VFSBuildDir)/$(P4VFSServiceName)</P4VFSServiceBuildDir>
+
+    <!-- P4VFS.External -->
+    <P4VFSExternalName>P4VFS.External</P4VFSExternalName>
+    <P4VFSExternalBuildDir>$(P4VFSBuildDir)/$(P4VFSExternalName)</P4VFSExternalBuildDir>
+    
+    <!-- P4VFS.Extensions -->
+    <P4VFSExtensionsName>P4VFS.Extensions</P4VFSExtensionsName>
+    <P4VFSExtensionsBuildDir>$(P4VFSBuildDir)/$(P4VFSExtensionsName)</P4VFSExtensionsBuildDir>
+
+    <!-- P4VFS.ExtensionsInterop -->
+    <P4VFSExtensionsInteropName>P4VFS.ExtensionsInterop</P4VFSExtensionsInteropName>
+    <P4VFSExtensionsInteropIncludeDir>$(P4VFSSolutionDir)/$(P4VFSExtensionsInteropName)/Include</P4VFSExtensionsInteropIncludeDir>
+    <P4VFSExtensionsInteropBuildDir>$(P4VFSBuildDir)/$(P4VFSExtensionsInteropName)</P4VFSExtensionsInteropBuildDir>
+
+    <!-- P4VFS.Core -->
+    <P4VFSCoreName>P4VFS.Core</P4VFSCoreName>
+    <P4VFSCoreIncludeDir>$(P4VFSSolutionDir)/$(P4VFSCoreName)/Include</P4VFSCoreIncludeDir>
+    <P4VFSCoreTestsDir>$(P4VFSSolutionDir)/$(P4VFSCoreName)/Tests</P4VFSCoreTestsDir>
+    <P4VFSCoreBuildDir>$(P4VFSBuildDir)/$(P4VFSCoreName)</P4VFSCoreBuildDir>
+    
+    <!-- P4VFS.CoreInterop -->
+    <P4VFSCoreInteropName>P4VFS.CoreInterop</P4VFSCoreInteropName>
+    <P4VFSCoreInteropIncludeDir>$(P4VFSSolutionDir)/$(P4VFSCoreInteropName)/Include</P4VFSCoreInteropIncludeDir>
+    <P4VFSCoreInteropBuildDir>$(P4VFSBuildDir)/$(P4VFSCoreInteropName)</P4VFSCoreInteropBuildDir>
+
+    <!-- P4VFS.Console -->
+    <P4VFSConsoleName>P4VFS.Console</P4VFSConsoleName>
+    <P4VFSConsoleBuildDir>$(P4VFSBuildDir)/$(P4VFSConsoleName)</P4VFSConsoleBuildDir>
+    
+    <!-- P4VFS.UnitTest -->
+    <P4VFSUnitTestName>P4VFS.UnitTest</P4VFSUnitTestName>
+    <P4VFSUnitTestBuildDir>$(P4VFSBuildDir)/$(P4VFSUnitTestName)</P4VFSUnitTestBuildDir>
+
+    <!-- Perforce API -->
+    <PerforceApiVersion>2021.2</PerforceApiVersion>
+    <PerforceApiConfiguration>$(P4VFSConfiguration)</PerforceApiConfiguration>
+    <PerforceApiDir>$(P4VFSExternalDir)/P4API/$(PerforceApiVersion)</PerforceApiDir>
+    <PerforceApiIncludeDir>$(PerforceApiDir)/include</PerforceApiIncludeDir>
+    <PerforceApiLibDir>$(PerforceApiDir)/lib/x64.vs$(P4VFSVisualStudioEdition).dyn.$(PerforceApiConfiguration)</PerforceApiLibDir>
+    <PerforceApiLibFiles>libclient.lib;libp4api.lib;libp4script.lib;libp4script_c.lib;libp4script_curl.lib;libp4script_sqlite.lib;librpc.lib;libsupp.lib</PerforceApiLibFiles>
+
+    <!-- OpenSSL -->
+    <OpenSSLApiVersion>1.1.1q</OpenSSLApiVersion>
+    <OpenSSLApiConfiguration>$(P4VFSConfiguration)</OpenSSLApiConfiguration>
+    <OpenSSLApiDir>$(P4VFSExternalDir)/OpenSSL/$(OpenSSLApiVersion)</OpenSSLApiDir>
+    <OpenSSLApiIncludeDir>$(OpenSSLApiDir)/include</OpenSSLApiIncludeDir>
+    <OpenSSLApiLibDir>$(OpenSSLApiDir)/lib/x64.vs$(P4VFSVisualStudioEdition).dyn.$(OpenSSLApiConfiguration)</OpenSSLApiLibDir>
+    <OpenSSLApiLibFiles>libcrypto.lib;libssl.lib</OpenSSLApiLibFiles>
+    <OpenSSLApiBinFiles>libcrypto-1_1-x64.dll;libssl-1_1-x64.dll</OpenSSLApiBinFiles>
+
+  </PropertyGroup>
+</Project>

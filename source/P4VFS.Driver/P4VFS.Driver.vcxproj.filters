@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Include">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{7d8d6eb4-5bd6-4f2d-aa81-fe952550cb96}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Include\DriverTrace.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\DriverVersion.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\DriverFilter.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\DriverCore.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\DriverData.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\DriverFilter.c">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DriverCore.c">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource\Driver.rc">
+      <Filter>Resource</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Inf Include="p4vfsflt.inf" />
+  </ItemGroup>
+</Project>

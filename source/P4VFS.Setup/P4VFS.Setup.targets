@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildThisFileDirectory)\..\P4VFS.props" Condition="'$(P4VFSRootDir)' == ''" />
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)'==''">Release</Configuration>
+  </PropertyGroup>
+  <PropertyGroup>
+    <P4VFSPublishSetupSrcFile>$(P4VFSBuildDir)\P4VFS.Setup\$(Configuration)\P4VFS.Setup.exe</P4VFSPublishSetupSrcFile>
+    <P4VFSPublishDeployDir Condition="'$(P4VFSPublishDeployDir)'==''">$(P4VFSBuildDir)\Publish</P4VFSPublishDeployDir>
+  </PropertyGroup>
+  <Target Name="P4VFSGetSetupVersion">
+    <GetAssemblyIdentity AssemblyFiles="$(P4VFSPublishSetupSrcFile)">
+      <Output TaskParameter="Assemblies" ItemName="P4VFSSetupAssemblyInfo" />
+    </GetAssemblyIdentity>
+    <PropertyGroup>
+      <P4VFSSetupVersion>%(P4VFSSetupAssemblyInfo.Version)</P4VFSSetupVersion>
+    </PropertyGroup>
+    <Error Condition="$(P4VFSSetupVersion)==''" Text="P4VFSPublishSetupSrcFile not found: $(P4VFSPublishSetupSrcFile)"/>
+    <Message Text="P4VFSSetupVersion = $(P4VFSSetupVersion)" Importance="High" />
+  </Target>
+  <Target Name="P4VFSDeploySetup" DependsOnTargets="P4VFSGetSetupVersion">
+    <PropertyGroup>
+      <P4VFSPublishSetupVerFile>$([System.IO.Path]::GetDirectoryName('$(P4VFSPublishSetupSrcFile)'))\P4VFS.Setup-$(P4VFSSetupVersion).exe</P4VFSPublishSetupVerFile>
+      <P4VFSPublishSetupDstFile>$(P4VFSPublishDeployDir)\$([System.IO.Path]::GetFileName('$(P4VFSPublishSetupVerFile)'))</P4VFSPublishSetupDstFile>
+    </PropertyGroup>
+    <Message Text="Copying: $(P4VFSPublishSetupSrcFile) -> $(P4VFSPublishSetupVerFile)" Importance="High" />
+    <Copy SourceFiles="$(P4VFSPublishSetupSrcFile)" DestinationFiles="$(P4VFSPublishSetupVerFile)" SkipUnchangedFiles="False" OverwriteReadOnlyFiles="True" />
+    <Message Text="Copying: $(P4VFSPublishSetupVerFile) -> $(P4VFSPublishSetupDstFile)" Importance="High" />
+    <Copy SourceFiles="$(P4VFSPublishSetupVerFile)" DestinationFiles="$(P4VFSPublishSetupDstFile)" SkipUnchangedFiles="False" OverwriteReadOnlyFiles="True" />
+    <Exec Command='attrib +r "$(P4VFSPublishSetupDstFile)"' />
+    <Message Text="##vso[task.setvariable variable=P4VFSVersion]$(P4VFSSetupVersion)" Importance="High" />
+  </Target>
+</Project>

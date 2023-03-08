@@ -1,0 +1,25 @@
+############################### 
+# P4VFS EditorConfig Options  # 
+############################### 
+root = true 
+
+[*.{cs,csx,vb,vbx,cpp,h}] 
+indent_style = tab 
+indent_size = 4 
+
+[*.{cs}]
+dotnet_sort_system_directives_first = true
+csharp_space_after_keywords_in_control_flow_statements = false
+csharp_space_between_method_declaration_parameter_list_parentheses = true
+csharp_space_between_method_call_parameter_list_parentheses = true
+csharp_space_between_parentheses = control_flow_statements
+csharp_indent_switch_labels = false
+csharp_indent_case_contents = true
+csharp_new_line_before_open_brace = all
+
+
+[*.cs]
+csharp_space_between_method_declaration_parameter_list_parentheses=false
+csharp_space_between_method_call_parameter_list_parentheses=false
+csharp_space_after_keywords_in_control_flow_statements=true
+csharp_space_between_parentheses=false

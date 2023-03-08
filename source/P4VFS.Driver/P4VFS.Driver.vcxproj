@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Win10.0.Debug|x64">
+      <Configuration>Win10.0.Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Win10.0.Release|x64">
+      <Configuration>Win10.0.Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{44770B51-86D7-4A43-B57D-A0F7E7A34450}</ProjectGuid>
+    <TemplateGuid>{f2f62967-0815-4fd7-9b86-6eedcac766eb}</TemplateGuid>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
+    <Configuration>Win10.0.Release</Configuration>
+    <Platform Condition="'$(Platform)' == ''">x64</Platform>
+    <RootNamespace>Microsoft::P4VFS::Driver</RootNamespace>
+    <InfVerif_AdditionalOptions>/msft</InfVerif_AdditionalOptions>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win10.0.Debug|x64'" Label="Configuration">
+    <TargetVersion>WindowsV6.3</TargetVersion>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>Driver</ConfigurationType>
+    <DriverType>WDM</DriverType>
+    <DriverTargetPlatform>Desktop</DriverTargetPlatform>
+    <SignMode>TestSign</SignMode>
+    <TestCertificate>P4VFS.Driver.WDKTest.pfx</TestCertificate>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win10.0.Release|x64'" Label="Configuration">
+    <TargetVersion>WindowsV6.3</TargetVersion>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>Driver</ConfigurationType>
+    <DriverType>WDM</DriverType>
+    <DriverTargetPlatform>Desktop</DriverTargetPlatform>
+    <SignMode>TestSign</SignMode>
+    <TestCertificate>P4VFS.Driver.WDKTest.pfx</TestCertificate>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Win10.0.Debug|x64'">
+    <Import Project="..\P4VFS.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Win10.0.Release|x64'">
+    <Import Project="..\P4VFS.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win10.0.Debug|x64'">
+    <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
+    <OutDir>$(P4VFSDriverBuildDir)\$(Configuration)\</OutDir>
+    <IntDir>$(P4VFSDriverBuildDir)\$(Configuration)\</IntDir>
+    <TargetName>$(P4VFSDriverTargetName)</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win10.0.Release|x64'">
+    <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
+    <OutDir>$(P4VFSDriverBuildDir)\$(Configuration)\</OutDir>
+    <IntDir>$(P4VFSDriverBuildDir)\$(Configuration)\</IntDir>
+    <TargetName>$(P4VFSDriverTargetName)</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win10.0.Debug|x64'">
+    <Link>
+      <AdditionalDependencies>$(DDK_LIB_PATH)\fltmgr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(P4VFSDriverIncludeDir);$(OutDir)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;P4VFS_KERNEL_MODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4127;4748;4995;4311;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <SupportJustMyCode>false</SupportJustMyCode>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <CompileAs>CompileAsC</CompileAs>
+      <WppScanConfigurationData>Include\DriverTrace.h</WppScanConfigurationData>
+      <WppEnabled>true</WppEnabled>
+    </ClCompile>
+    <ResourceCompile />
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(P4VFSDriverIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <DriverSign>
+      <FileDigestAlgorithm>SHA256</FileDigestAlgorithm>
+    </DriverSign>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win10.0.Release|x64'">
+    <Link>
+      <AdditionalDependencies>$(DDK_LIB_PATH)\fltmgr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(P4VFSDriverIncludeDir);$(OutDir)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;P4VFS_KERNEL_MODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4127;4748;4995;4311;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <CompileAs>CompileAsC</CompileAs>
+      <WppEnabled>true</WppEnabled>
+      <WppScanConfigurationData>Include\DriverTrace.h</WppScanConfigurationData>
+    </ClCompile>
+    <ResourceCompile />
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(P4VFSDriverIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <DriverSign>
+      <FileDigestAlgorithm>SHA256</FileDigestAlgorithm>
+    </DriverSign>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="Include\DriverData.h" />
+    <ClInclude Include="Include\DriverFilter.h" />
+    <ClInclude Include="Include\DriverTrace.h" />
+    <ClInclude Include="Include\DriverCore.h" />
+    <ClInclude Include="Include\DriverVersion.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\DriverFilter.c">
+      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Win10.0.Debug|x64'">true</WppEnabled>
+      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Win10.0.Release|x64'">true</WppEnabled>
+      <WppKernelMode Condition="'$(Configuration)|$(Platform)'=='Win10.0.Debug|x64'">true</WppKernelMode>
+      <WppKernelMode Condition="'$(Configuration)|$(Platform)'=='Win10.0.Release|x64'">true</WppKernelMode>
+    </ClCompile>
+    <ClCompile Include="Source\DriverCore.c">
+      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Win10.0.Debug|x64'">true</WppEnabled>
+      <WppEnabled Condition="'$(Configuration)|$(Platform)'=='Win10.0.Release|x64'">true</WppEnabled>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Inf Include="p4vfsflt.inf" />
+  </ItemGroup>
+  <ItemGroup>
+    <FilesToPackage Include="$(TargetPath)" />
+    <FilesToPackage Include="@(Inf->'%(CopyOutput)')" Condition="'@(Inf)'!=''" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource\Driver.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <PropertyGroup>
+    <P4VFSTraceFormatTargetFile>$([System.IO.Path]::GetFullPath($(OutDir)\$(ProjectName)\$(P4VFSDriverTargetName).tmf))</P4VFSTraceFormatTargetFile>
+    <P4VFSTraceFormatSymbolFile>$([System.IO.Path]::GetFullPath($(OutDir)\$(P4VFSDriverTargetName).pdb))</P4VFSTraceFormatSymbolFile>
+  </PropertyGroup>
+  <Target Name="PostBuildEvent">
+    <Message Text="Trace format: $(P4VFSTraceFormatTargetFile)" Importance="High" />
+    <Exec Command="&quot;$(TraceWppToolPath)\tracepdb.exe&quot; -f &quot;$(P4VFSTraceFormatSymbolFile)&quot; -o &quot;$(P4VFSTraceFormatTargetFile)&quot;" StandardOutputImportance="low" WorkingDirectory="$(OutDir)" />
+  </Target>
+</Project>

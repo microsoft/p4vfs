@@ -1,0 +1,200 @@
+MICROSOFT SOFTWARE LICENSE TERMS
+
+Microsoft Windows Assessment and Deployment Kit (ADK) for Windows 10 
+Microsoft Windows Hardware Lab Kit (HLK) for Windows 10
+Microsoft Windows Driver Kit (WDK) for Windows 10
+
+These license terms are an agreement between Microsoft Corporation (or based on where you live, one 
+of its affiliates) and you. Please read them. They apply to the software named above, which includes the 
+media on which you received it, if any. The terms also apply to any Microsoft
+*	updates,
+*	supplements,
+*	Internet-based services, and
+*	support services,
+for this software, unless other terms accompany those items. If so, those terms apply.
+
+By using the software, you accept these terms. If you do not accept them, do not use the 
+software.
+*******************************************************************
+If you comply with these license terms, you have the perpetual rights below.
+
+1.	INSTALLATION AND USE RIGHTS.
+a.	ADK. 
+i.	You may install and use any number of copies of the software on your devices 
+solely for the purpose of deploying, maintaining, assessing system quality and 
+evaluating your systems and devices on Windows Server 2008, Windows Server 
+2008 R2, Windows Server 2012, Windows Server 2012 R2, Windows Vista, 
+Windows 7, Windows 8, Windows 8.1, or Windows 10 operating system 
+software, and subsequent versions of Windows Server and Windows operating 
+systems.
+ii.	Windows Pre-Installation Environment. You may install and use the 
+Windows Pre-Installation Environment for purposes of installing and recovering 
+Windows operating system software. For the avoidance of doubt, you may not 
+use the Windows Pre-Installation Environment for any other purpose not 
+expressly permitted in these license terms, including without limitation as a 
+general operating system, as a thin client or as a remote desktop client.
+b.	HLK. One user may install and use any number of copies of the software on your devices 
+to design, develop and test your programs, including to create submissions for the 
+Windows Hardware Compatibility Program.
+c.	WDK. One user may install and use any number of copies of the software on your 
+devices to design, develop and test your programs. Further, you may install, use and/or 
+deploy via a network management system or as part of a desktop image, any number of 
+copies of the software on computer devices within your internal corporate network to 
+design, develop and test your programs that run on a Microsoft operating system. Each 
+copy must be complete, including all copyright and trademark notices. You must require 
+end users to agree to terms that protect the software as much as these license terms.
+d.	Included Microsoft Programs. The software contains other Microsoft programs. 
+These license terms govern your use of included Microsoft programs, except as otherwise 
+indicated in these license terms.  The ADK and HLK software includes SQL Server 2012 
+Express, which is licensed under the terms and conditions of the SQL Server 2012 
+Express license located at https://go.microsoft.com/fwlink/?linkid=842829.  You may 
+only use this program in conjunction with the ADK and HLK software licensed here.  If 
+you do not accept the SQL Server 2012 Express license terms, you may not use the 
+program.
+e.	Third Party Programs. The software may include third party code that Microsoft, not 
+the third party, licenses to you under this agreement. Notices, if any, for the third party 
+code are included for your information only and may be found in the credits.rtf or 
+ThirdPartyNotices.txt file associated with the software.
+
+2.	ADDITIONAL LICENSING REQUIREMENTS AND/OR USE RIGHTS.  
+a.	Distributable Code. The software contains code that you are permitted to distribute in 
+programs you develop if you comply with the terms below.
+i.	Right to Use and Distribute. The code and text files listed below are 
+"Distributable Code."
+1.	ADK
+a.	Sample Code. You may modify, copy, and distribute the source 
+and object code form of code marked as "sample."
+2.	WDK
+a.	REDIST.TXT Files. You may copy and distribute the object code 
+form of code listed in REDIST.TXT files plus any of the files listed 
+on the REDIST list located at 
+http://go.microsoft.com/fwlink/?LinkId=294840.
+3.	Third Party Distribution
+a.	You may permit distributors of your programs to copy and 
+distribute the Distributable Code as part of those programs.
+ii.	Distribution Requirements. For any Distributable Code you distribute, 
+you must
+1.	add significant primary functionality to it in your programs;
+2.	for any Distributable Code having a filename extension of .lib, distribute 
+only the results of running such Distributable Code through a linker with 
+your program;
+3.	distribute Distributable Code included in a setup program only as part of 
+that setup program without modification;
+4.	require distributors and external end users to agree to terms that protect 
+it at least as much as this agreement; 
+5.	display your valid copyright notice on your programs; and
+6.	indemnify, defend, and hold harmless Microsoft from any claims, 
+including attorneys' fees, related to the distribution or use of your 
+programs.
+iii.	Distribution Restrictions. You may not
+1.	alter any copyright, trademark or patent notice in the Distributable Code;
+2.	use Microsoft's trademarks in your programs' names or in a way that 
+suggests your programs come from or are endorsed by Microsoft;
+3.	distribute Distributable Code to run on a platform other than the 
+Windows platform;
+4.	include Distributable Code in malicious, deceptive or unlawful programs; 
+or
+5.	modify or distribute the source code of any Distributable Code so that 
+any part of it becomes subject to an Excluded License. An Excluded 
+License is one that requires, as a condition of use, modification or 
+distribution, that
+a.	the code be disclosed or distributed in source code form; or
+b.	others have the right to modify it.
+
+3.	INTERNET-BASED SERVICES. The software connects to Microsoft or service provider 
+computer systems over the Internet. For more information see the Privacy Statement at 
+go.microsoft.com/fwlink/?LinkID=522457.  By using the software, you agree that 
+Microsoft may collect and use your information as described in the Privacy 
+Statement.
+
+4.	ACTIVATION. The ADK software activates the use of Windows Vista, Windows Server 2008, 
+Windows 7, Windows Server 2008 R2, Windows Thin PC, Windows PosReady 7, Windows 8, 
+Windows Server 2012, Windows 8.1, Windows Server 2012 R2, Windows 10, subsequent versions 
+of Windows and subsequent versions of Windows Server, select products that use add-on 
+product keys, and Microsoft Office 2010, 2013, 2016, and subsequent versions of Microsoft 
+Office, with a specific physical hardware system ("Device").  During activation, the ADK software 
+will send information about the Device(s) to Microsoft. This information includes the version, 
+language and product key of the software, the Internet protocol address of the system running 
+the software, and information derived from the hardware configuration of the Device(s) running 
+the software listed above in this Section 4. For more information, see 
+go.microsoft.com/fwlink/?linkid=141210. By using the ADK software, you consent to the 
+transmission of this information.
+
+5.	SCOPE OF LICENSE. The software is licensed, not sold. This agreement only gives you some 
+rights to use the software. Microsoft reserves all other rights. Unless applicable law gives you 
+more rights despite this limitation, you may use the software only as expressly permitted in this 
+agreement. In doing so, you must comply with any technical limitations in the software that only 
+allow you to use it in certain ways. You may not
+a.	Except for the Microsoft .NET Framework, you must obtain Microsoft's prior written 
+approval to disclose to a third party the results of any benchmark test of the software. 
+You may conduct internal benchmark testing of .NET components and disclose the 
+results of any benchmark test of those components under the conditions set forth at 
+go.microsoft.com/fwlink/?LinkID=66406.
+b.	work around any technical limitations in the software;
+c.	reverse engineer, decompile or disassemble the software, except and only to the extent 
+that applicable law expressly permits, despite this limitation;
+d.	make more copies of the software than specified in this agreement or allowed by 
+applicable law, despite this limitation;
+e.	publish the software for others to copy;
+f.	rent, lease or lend the software;
+g.	transfer the software or this agreement to any third party; or
+h.	use the software for commercial software hosting services.
+
+6.	.NET FRAMEWORK SOFTWARE. The software contains Microsoft .NET Framework software. 
+This software is part of Windows. The license terms for Windows apply to your use of the .NET 
+Framework software.
+
+7.	BACKUP COPY. You may make one backup copy of the software. You may use it only to 
+reinstall the software.
+
+8.	DOCUMENTATION. Any person that has valid access to your computer or internal network may 
+copy and use the documentation for your internal, reference purposes.
+
+9.	EXPORT RESTRICTIONS. The software is subject to United States export laws and regulations. 
+You must comply with all domestic and international export laws and regulations that apply to 
+the software. These laws include restrictions on destinations, end users and end use. For 
+additional information, see www.microsoft.com/exporting.
+
+10.	SUPPORT SERVICES. Because this software is "as is," we may not provide support services for 
+it.
+
+11.	ENTIRE AGREEMENT. This agreement, and the terms for supplements, updates, 
+Internet-based services and support services that you use, are the entire agreement for the 
+software and support services.
+
+12.	APPLICABLE LAW.
+a.	United States. If you acquired the software in the United States, Washington state law 
+governs the interpretation of this agreement and applies to claims for breach of it, 
+regardless of conflict of laws principles. The laws of the state where you live govern all 
+other claims, including claims under state consumer protection laws, unfair competition 
+laws, and in tort.
+b.	Outside the United States. If you acquired the software in any other country, the laws 
+of that country apply.
+
+13.	LEGAL EFFECT. This agreement describes certain legal rights. You may have other rights under 
+the laws of your country. You may also have rights with respect to the party from whom you 
+acquired the software. This agreement does not change your rights under the laws of your 
+country if the laws of your country do not permit it to do so.
+
+14.	DISCLAIMER OF WARRANTY. The software is licensed "as-is." You bear the risk of 
+using it. Microsoft gives no express warranties, guarantees or conditions. You may 
+have additional consumer rights or statutory guarantees under your local laws which 
+this agreement cannot change. To the extent permitted under your local laws, 
+Microsoft excludes the implied warranties of merchantability, fitness for a particular 
+purpose and non-infringement.
+FOR AUSTRALIA - You have statutory guarantees under the Australian Consumer 
+Law and nothing in these terms is intended to affect those rights.
+
+15.	LIMITATION ON AND EXCLUSION OF REMEDIES AND DAMAGES. You can recover 
+from Microsoft and its suppliers only direct damages up to U.S. $5.00. You cannot 
+recover any other damages, including consequential, lost profits, special, indirect or 
+incidental damages.
+a.	This limitation applies to
+i.	anything related to the software, services, content (including code) on third party 
+Internet sites, or third party programs; and
+ii.	claims for breach of contract, breach of warranty, guarantee or condition, strict 
+liability, negligence, or other tort to the extent permitted by applicable law.
+It also applies even if Microsoft knew or should have known about the possibility of the damages. 
+The above limitation or exclusion may not apply to you because your country may not allow the 
+exclusion or limitation of incidental, consequential or other damages.
+

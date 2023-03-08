@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+ Example P4VFS.Setup installer configuration file for specifing P4VFS.Setup Options. 
+ You can place a file like this in the same folder as your P4VFS.Setup*.exe installer file 
+ to configure options for running the installer. This example shows how to include a 
+ relative path to a common global settings file.  See Default.xml for more info.
+-->
+<Configuration>
+  <IncludeFiles>
+    <Path>P4VFS.Settings.xml</Path>
+  </IncludeFiles>
+</Configuration>

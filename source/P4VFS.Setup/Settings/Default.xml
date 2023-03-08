@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+ Example global P4VFS settings. There are a few ways to deploy your changes along with a P4VFS.Setup.exe
+ 
+ * Option 1: (Recommended) Use a P4VFS.Setup.xml configuration file placed in the same folder as the P4VFS.Setup*.exe installer. 
+             The P4VFS.Setup.xml can specify an include path to your version of this settings configuration file. See the 
+             P4VFS.Setup.xml file in this folder as an example of how to specify a settings file path from the installer configuration file.
+ 
+ * Option 2: (Recommended) Specify the command line "P4VFS.Setup.exe -i <path-to-this-file>" to use your version of this 
+             settings configuration file. 
+ 
+ * Option 2: Change this file locally to include as default in your local build of P4VFS.Setup installer. This option is well 
+             suited to using signed release builds, unless you have a code-signing pipeline setup for P4VFS already.
+-->
+
+<Settings xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<!--
+  <FileLoggerRemoteDirectory Value="\\contoso\studio\logs\P4VFS" />
+  <RemoteLogging Value="true" />
+  <ConsoleRemoteLogging Value="false" />
+  <DepotServerConfig>
+    <Servers>
+      <Entry Pattern="^p4-contoso4([\.:].+)?$" Address="p4-contoso:1666" />
+    </Servers>
+  </DepotServerConfig>
+  <SyncDefaultQuiet Value="true"/>
+  <SyncResidentPattern Value="/(external)/(FirstParty|Windows)/.*/(bin)"/>
+-->
+</Settings>

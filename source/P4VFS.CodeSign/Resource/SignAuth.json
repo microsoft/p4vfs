@@ -1,0 +1,15 @@
+{
+  "Version": "1.0.0",
+  "AuthenticationType": "AAD_CERT",
+  "ClientId": "6d26a40a-a071-42ba-9af7-33ba9cdecf00",
+  "AuthCert": {
+    "SubjectName": "6d26a40a-a071-42ba-9af7-33ba9cdecf00.microsoft.com",
+    "StoreLocation": "CurrentUser",
+    "StoreName": "My"
+  },
+  "RequestSigningCert": {
+    "SubjectName": "6d26a40a-a071-42ba-9af7-33ba9cdecf00",
+    "StoreLocation": "CurrentUser",
+    "StoreName": "My"
+  }
+}

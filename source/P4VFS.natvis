@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+  <!-- P4VFS Debug Visualizer --> 
+
+  <Type Name="P4VFS_UNICODE_STRING">
+    <AlternativeType Name="_P4VFS_UNICODE_STRING"/>
+    <DisplayString Condition="offsetBytes == 0">Empty</DisplayString>
+    <DisplayString Condition="offsetBytes != 0">{(wchar_t*)(((char*)this)+offsetBytes)}</DisplayString>
+    <StringView Condition="offsetBytes != 0">(wchar_t*)(((char*)this)+offsetBytes),su</StringView>
+  </Type>
+  
+</AutoVisualizer>

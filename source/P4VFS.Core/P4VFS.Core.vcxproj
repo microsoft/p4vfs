@@ -1,0 +1,189 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Include\DepotClient.h" />
+    <ClInclude Include="Include\DepotClientCache.h" />
+    <ClInclude Include="Include\DepotCommand.h" />
+    <ClInclude Include="Include\DepotConfig.h" />
+    <ClInclude Include="Include\DepotConstants.h" />
+    <ClInclude Include="Include\DepotOperations.h" />
+    <ClInclude Include="Include\DepotResult.h" />
+    <ClInclude Include="Include\DepotResultClient.h" />
+    <ClInclude Include="Include\DepotResultDiff2.h" />
+    <ClInclude Include="Include\DepotResultFStat.h" />
+    <ClInclude Include="Include\DepotResultInfo.h" />
+    <ClInclude Include="Include\DepotResultPrint.h" />
+    <ClInclude Include="Include\DepotResultWhere.h" />
+    <ClInclude Include="Include\DepotRevision.h" />
+    <ClInclude Include="Include\DepotSyncAction.h" />
+    <ClInclude Include="Include\DepotSyncOptions.h" />
+    <ClInclude Include="Include\DepotDateTime.h" />
+    <ClInclude Include="Include\DriverOperations.h" />
+    <ClInclude Include="Include\FileAssert.h" />
+    <ClInclude Include="Include\FileContext.h" />
+    <ClInclude Include="Include\FileCore.h" />
+    <ClInclude Include="Include\FileOperations.h" />
+    <ClInclude Include="Include\ServiceOperations.h" />
+    <ClInclude Include="Include\SettingManager.h" />
+    <ClInclude Include="Include\FileSystem.h" />
+    <ClInclude Include="Include\LogDevice.h" />
+    <ClInclude Include="Include\ThreadPool.h" />
+    <ClInclude Include="Source\Pch.h" />
+    <ClInclude Include="Tests\TestFactory.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource\Core.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\DepotClient.cpp" />
+    <ClCompile Include="Source\DepotClientCache.cpp" />
+    <ClCompile Include="Source\DepotConfig.cpp" />
+    <ClCompile Include="Source\DepotDateTime.cpp" />
+    <ClCompile Include="Source\DepotOperations.cpp" />
+    <ClCompile Include="Source\DepotResult.cpp" />
+    <ClCompile Include="Source\DepotResultClient.cpp" />
+    <ClCompile Include="Source\DepotResultFStat.cpp" />
+    <ClCompile Include="Source\DepotResultPrint.cpp" />
+    <ClCompile Include="Source\DepotRevision.cpp" />
+    <ClCompile Include="Source\DepotSyncAction.cpp" />
+    <ClCompile Include="Source\DepotSyncOptions.cpp" />
+    <ClCompile Include="Source\DriverOperations.cpp" />
+    <ClCompile Include="Source\FileAssert.cpp" />
+    <ClCompile Include="Source\FileCore.cpp" />
+    <ClCompile Include="Source\FileOperations.cpp" />
+    <ClCompile Include="Source\FileSystem.cpp" />
+    <ClCompile Include="Source\LogDevice.cpp" />
+    <ClCompile Include="Source\Pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Source\ServiceOperations.cpp" />
+    <ClCompile Include="Source\SettingManager.cpp" />
+    <ClCompile Include="Tests\TestDepotClient.cpp" />
+    <ClCompile Include="Tests\TestDepotClientCache.cpp" />
+    <ClCompile Include="Tests\TestDepotOperations.cpp" />
+    <ClCompile Include="Tests\TestDepotRevision.cpp" />
+    <ClCompile Include="Tests\TestDriver.cpp" />
+    <ClCompile Include="Tests\TestFactory.cpp" />
+    <ClCompile Include="Tests\TestFileInfo.cpp" />
+    <ClCompile Include="Tests\TestFileOperations.cpp" />
+    <ClCompile Include="Tests\TestFileSystem.cpp" />
+    <ClCompile Include="Tests\TestRegistry.cpp" />
+    <ClCompile Include="Tests\TestServiceOperations.cpp" />
+    <ClCompile Include="Tests\TestStringInfo.cpp" />
+    <ClCompile Include="Tests\TestThreadPool.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+    <ProjectGuid>{A61F43EC-B569-4FA3-A487-99BAC29BC479}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\P4VFS.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\P4VFS.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(P4VFSCoreBuildDir)\$(Configuration)\</OutDir>
+    <IntDir>$(P4VFSCoreBuildDir)\$(Configuration)\</IntDir>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(P4VFSCoreBuildDir)\$(Configuration)\</OutDir>
+    <IntDir>$(P4VFSCoreBuildDir)\$(Configuration)\</IntDir>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;P4VFS_CORE_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(P4VFSCoreIncludeDir);$(P4VFSDriverSourceDir);$(P4VFSDriverIncludeDir);$(PerforceApiIncludeDir)</AdditionalIncludeDirectories>
+      <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <EnablePREfast>false</EnablePREfast>
+      <MinimalRebuild>false</MinimalRebuild>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <SupportJustMyCode>false</SupportJustMyCode>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+      <AdditionalDependencies>advapi32.lib;bcrypt.lib;ws2_32.lib;wtsapi32.lib;shlwapi.lib;shell32.lib;fltlib.lib;userenv.lib;crypt32.lib;$(PerforceApiLibFiles);$(OpenSSLApiLibFiles);%(AdditionalDependencies)</AdditionalDependencies>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <AdditionalLibraryDirectories>$(PerforceApiLibDir);$(OpenSSLApiLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <BuildLog />
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(P4VFSDriverIncludeDir)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;P4VFS_CORE_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(P4VFSCoreIncludeDir);$(P4VFSDriverSourceDir);$(P4VFSDriverIncludeDir);$(PerforceApiIncludeDir)</AdditionalIncludeDirectories>
+      <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <EnablePREfast>false</EnablePREfast>
+      <MinimalRebuild>false</MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+      <AdditionalDependencies>advapi32.lib;bcrypt.lib;ws2_32.lib;wtsapi32.lib;shlwapi.lib;shell32.lib;fltlib.lib;userenv.lib;crypt32.lib;$(PerforceApiLibFiles);$(OpenSSLApiLibFiles);%(AdditionalDependencies)</AdditionalDependencies>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <AdditionalLibraryDirectories>$(PerforceApiLibDir);$(OpenSSLApiLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <BuildLog />
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(P4VFSDriverIncludeDir)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="$(MSBuildProjectDirectory)\..\P4VFS.External\P4VFS.External.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <Target Name="Deploy" />
+  <Target Name="PreBuildEvent">
+    <CallTarget Targets="P4VFSExternalPackageRestore" />
+  </Target>
+</Project>

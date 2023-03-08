@@ -1,0 +1,95 @@
+;;
+;; P4VFS.Driver
+;;
+
+[Version]
+Signature         = "$Windows NT$"
+Class             = "HSM"                                     ; This is determined by the work this filter driver does
+ClassGuid         = {d546500a-2aeb-45f6-9482-f4b1799c3177}    ; This value is determined by the Load Order Group value
+Provider          = %MSFT%
+DriverVer         = 
+CatalogFile       = p4vfsflt.cat
+PnpLockdown       = 1
+
+[DestinationDirs]
+DefaultDestDir            = 12 ; %windir%\system32\drivers
+P4VFSFLT.DriverCopyFiles  = 12 ; %windir%\system32\drivers
+
+;;
+;; Default install sections
+;;
+
+[DefaultInstall.NT$ARCH$]
+OptionDesc       = %ServiceDescription%
+CopyFiles        = P4VFSFLT.DriverCopyFiles
+
+[DefaultInstall.NT$ARCH$.Services]
+AddService       = %ServiceName%,,P4VFSFLT.Service
+
+;;
+;; Default uninstall sections
+;;
+
+[DefaultUninstall.NT$ARCH$]
+LegacyUninstall  = 1
+DelFiles         = P4VFSFLT.DriverDelFiles
+
+[DefaultUninstall.NT$ARCH$.Services]
+DelService       = %ServiceName%,0x200  ; Ensure service is stopped before deleting
+
+;;
+;; Services Section
+;;
+
+[P4VFSFLT.Service]
+DisplayName      = %ServiceName%
+Description      = %ServiceDescription%
+ServiceBinary    = %12%\%DriverName%.sys        ; %windir%\system32\drivers\
+Dependencies     = "FltMgr"
+ServiceType      = 2                            ; SERVICE_FILE_SYSTEM_DRIVER
+StartType        = 3                            ; SERVICE_DEMAND_START
+ErrorControl     = 1                            ; SERVICE_ERROR_NORMAL
+LoadOrderGroup   = "FSFilter HSM"               ; Change the Load Order Group value, see http://connect.microsoft.com/site221/content/content.aspx?ContentID=2512
+AddReg           = P4VFSFLT.AddRegistry
+
+;;
+;; Registry Modifications
+;;
+
+[P4VFSFLT.AddRegistry]
+HKR,,"DebugFlags",0x00010001 ,0x0
+HKR,,"SupportedFeatures",0x00010001,0x3
+HKR,"Instances","DefaultInstance",0x00000000,%DefaultInstance%
+HKR,"Instances\"%Instance1.Name%,"Altitude",0x00000000,%Instance1.Altitude%
+HKR,"Instances\"%Instance1.Name%,"Flags",0x00010001,%Instance1.Flags%
+
+;;
+;; Copy Files Section
+;;
+
+[P4VFSFLT.DriverCopyFiles]
+%DriverName%.sys,,,0x2002         ; COPYFLG_NOPRUNE|COPYFLG_NOSKIP
+
+[P4VFSFLT.DriverDelFiles]
+%DriverName%.sys
+
+[SourceDisksFiles]
+p4vfsflt.sys = 1,,
+
+[SourceDisksNames]
+1 = %DiskId1%,,,
+
+;;
+;; String Section
+;;
+
+[Strings]
+MSFT                    = "Microsoft Corporation"
+ServiceDescription      = "P4VFS Mini-Filter Driver"
+ServiceName             = "p4vfsflt"
+DriverName              = "p4vfsflt"
+DiskId1                 = "P4VFS Device Installation Disk"
+DefaultInstance         = "P4VFS Instance"
+Instance1.Name          = "P4VFS Instance"
+Instance1.Altitude      = "191024"
+Instance1.Flags         = 0x0           ; Allow all attachments

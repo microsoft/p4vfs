@@ -1,0 +1,280 @@
+﻿<ResourceDictionary
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" >
+
+    <!-- Global Windows Settings -->
+    <Style TargetType="{x:Type Window}" x:Key="windowStyle">
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush EndPoint="0.504,1.5" StartPoint="0.504,0.03">
+                    <GradientStop Color="#FF141414" Offset="1"/>
+                    <GradientStop Color="#FF19191C" Offset="0.259"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Global UserControlWindow Settings -->
+    <!--<Style TargetType="{x:Type UserControl}" x:Key="userControlStyle">
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush EndPoint="0.504,1.5" StartPoint="0.504,0.03">
+                    <GradientStop Color="#FF141414" Offset="1"/>
+                    <GradientStop Color="#FF1E1E21" Offset="0.259"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+    </Style>-->
+
+    <!-- Global TreeView Settings -->
+    <Style TargetType="{x:Type TreeView}" x:Key="treeViewStyle">
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush EndPoint="0.504,1.5" StartPoint="0.504,0.03">
+                    <GradientStop Color="#FF1E1E1E" Offset="1"/>
+                    <GradientStop Color="#FF2D2D30" Offset="0.259"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Global CheckBox Syle-->
+    <Style TargetType="{x:Type CheckBox}">
+        <Setter Property="Foreground" Value="Snow" />
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="True">
+                <Setter Property="Background" Value="Snow" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="DimGray" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Global Button Style -->
+    <!-- This is used to remove the WPF default 'animated' mouse over effect -->
+    <Style TargetType="{x:Type Button}">
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Setter Property="Foreground" Value="Snow" />
+        <Setter Property="Width" Value="78" />
+        <Setter Property="Height" Value="30" />
+        <Setter Property="Margin" Value="5" />
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="#FF1E1E1E" Offset="1"/>
+                    <GradientStop Color="#FF2D2D30" Offset="0.259"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Name="border" 
+                            BorderThickness="1"
+                            Padding="4,2" 
+                            BorderBrush="DarkGray" 
+                            Background="{TemplateBinding Background}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="#FF2E2E2E" Offset="1"/>
+                                        <GradientStop Color="#FF3D3D40" Offset="0.259"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="#FF5E5E5E" Offset="1"/>
+                                        <GradientStop Color="#FF6D6D70" Offset="0.259"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter Property="Foreground" Value="DarkGray" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- List Box Style -->
+    <Style TargetType="{x:Type ListBox}">
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="#FF1E1E1E" Offset="1"/>
+                    <GradientStop Color="#FF2D2D30" Offset="0.259"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Foreground" Value="Snow" />
+    </Style>
+
+    <!-- DockPanel Style -->
+    <Style TargetType="{x:Type DockPanel}" x:Key="DarkDockPanel">
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="#FF141414" Offset="1"/>
+                    <GradientStop Color="#FF232326" Offset="0.259"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- DarkGrid Style -->
+    <Style TargetType="{x:Type Grid}" x:Key="DarkGrid">
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="#FF141414" Offset="1"/>
+                    <GradientStop Color="#FF1E1E21" Offset="0.259"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- RadioButton Style -->
+    <Style TargetType="{x:Type RadioButton}">
+        <Setter Property="Foreground" Value="Snow" />
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="True">
+                <Setter Property="Background" Value="Snow" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="DimGray" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ToolTip Style -->
+    <Style TargetType="{x:Type ToolTip}">
+        <Setter Property="Foreground" Value="Snow" />
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush EndPoint="0.504,1.5" StartPoint="0.504,0.03">
+                    <GradientStop Color="#FF1E1E1E" Offset="1"/>
+                    <GradientStop Color="#FF2D2D30" Offset="0.259"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Label Style -->
+    <Style TargetType="{x:Type Label}">
+        <Setter Property="Foreground" Value="Snow" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Width" Value="Auto" />
+        <Setter Property="Height" Value="Auto" />
+    </Style>
+
+    <!-- Expander Style -->
+    <Style TargetType="{x:Type Expander}">
+        <Setter Property="Foreground" Value="Snow" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Width" Value="Auto" />
+        <Setter Property="Height" Value="Auto" />
+    </Style>
+    
+    <!-- TextBlock Style -->
+    <Style TargetType="{x:Type TextBlock}">
+        <Setter Property="Foreground" Value="Snow" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Width" Value="Auto" />
+        <Setter Property="Height" Value="Auto" />
+    </Style>
+    
+    <!-- Password Box -->
+    <Style TargetType="{x:Type PasswordBox}">
+        <Setter Property="Foreground" Value="Snow" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Width" Value="Auto" />
+        <Setter Property="Height" Value="Auto" />
+    </Style>    
+
+    <!-- Border Style -->
+    <Style TargetType="{x:Type Border}" x:Key="borderStyle">
+        <Setter Property="BorderBrush" Value="#FF595959"/>
+        <Setter Property="BorderThickness" Value="1,1,1,1"/>
+        <Setter Property="Margin" Value="5"/>
+    </Style>
+
+    <!-- ProgressBar Style -->
+    <Style TargetType="{x:Type Border}" x:Key="progressBarStyle">
+        <Setter Property="Background" Value="#484848"/>
+    </Style>
+    
+    <!-- TextBox Style -->
+    <Style TargetType="{x:Type TextBox}">
+        <Setter Property="Height" Value="24"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Foreground" Value="Snow" />
+        <Setter Property="Background" Value="#FF2D2D30" />
+    </Style>
+
+    <!-- DataGrid Style -->
+    <Style TargetType="{x:Type DataGrid}">
+        <Setter Property="Foreground" Value="Snow" />
+        <Setter Property="Background" Value="#FF2D2D30" />
+    </Style>
+    <Style TargetType="{x:Type DataGridCell}">
+        <Setter Property="Foreground" Value="Snow" />
+        <Setter Property="Background" Value="#FF2D2D30" />
+        <Setter Property="BorderBrush" Value="DarkGray" />
+    </Style>
+    <Style TargetType="{x:Type DataGridColumnHeader}">
+        <Setter Property="Foreground" Value="Snow" />
+        <Setter Property="Background" Value="#FF2D2D35" />
+        <Setter Property="BorderBrush" Value="DarkGray" />
+    </Style>
+    <Style TargetType="{x:Type DataGridRow}">
+        <Setter Property="Foreground" Value="Snow" />
+        <Setter Property="Background" Value="#FF2D2D35" />
+        <Setter Property="BorderBrush" Value="DarkGray" />
+    </Style>
+    <Style TargetType="{x:Type DataGridRowHeader}">
+        <Setter Property="Foreground" Value="Snow" />
+        <Setter Property="Background" Value="#FF2D2D35" />
+        <Setter Property="BorderBrush" Value="DarkGray" />
+    </Style>
+
+    <!-- Date Picker Style-->
+    <Style TargetType="DatePicker">
+        <Setter Property="Foreground" Value="Snow"/>
+    </Style>
+    <Style TargetType="DatePickerTextBox">
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Background" Value="#FF2D2D30"/>
+        <Setter Property="Foreground" Value="Snow"/>
+    </Style>
+
+    <!-- List View Style-->
+    <Style TargetType="ListView">
+        <Setter Property="Background" Value="#FF2D2D30"/>
+        <Setter Property="Foreground" Value="Snow"/>
+    </Style>
+    <Style TargetType="ListViewItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderBrush" Value="White"/>
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderBrush" Value="SkyBlue"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<Playlist xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Id="27eb1a7b-9dfb-459a-bb3f-fda1c9dea519" Version="1.0" Name="test-playlist" xmlns="http://schemas.microsoft.com/hlk/playlist/2014">
+  <Test Id="b972fc52-2468-4462-9799-6a1898808c86" Name="HyperVisor Code Integrity Readiness Test" />
+  <Test Id="1597d1fd-055a-43c7-b4c7-5396ab1ad525" Name="TDI filters and LSPs are not allowed" />
+</Playlist>

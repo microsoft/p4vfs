@@ -1,0 +1,45 @@
+{
+  "Version": "1.0.0",
+  "SignBatches": [
+    {
+      "SourceLocationType": "UNC",
+      "SourceRootDirectory": "",
+      "DestinationLocationType": "UNC",
+      "DestinationRootDirectory": "",
+      "SignRequestFiles": [
+        {
+          "CustomerCorrelationId": "01A7F55F-6CDD-4123-B255-77E6F212CDAD",
+          "SourceLocation": "p4vfsflt.sys"
+        },
+        {
+          "CustomerCorrelationId": "01A7F55F-6CDD-4123-B255-77E6F212CDAD",
+          "SourceLocation": "p4vfsflt.cat"
+        }
+      ],
+      "SigningInfo": {
+        "Operations": [
+          {
+            "KeyCode": "CP-232852",
+            "OperationCode": "SigntoolSign",
+            "Parameters": {
+              "OpusName": "Microsoft",
+              "OpusInfo": "http://www.microsoft.com",
+              "FileDigest": "/fd \"SHA256\"",
+              "PageHash": "/NPH",
+              "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+            },
+            "ToolName": "sign",
+            "ToolVersion": "1.0"
+          },
+          {
+            "KeyCode": "CP-232852",
+            "OperationCode": "SigntoolVerify",
+            "Parameters": {},
+            "ToolName": "sign",
+            "ToolVersion": "1.0"
+          }
+        ]
+      }
+    }  
+  ]
+}

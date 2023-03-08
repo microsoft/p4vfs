@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  ============================================================================================
+  This file is authored manually. It contains the change specifications to describe filespecs
+  which will have changes mirrored in the unit test server. Only file names, types, and sizes
+  will be mirrored, all file content will be deterministically pseudorandom generated!!
+  
+  Avoid reordering the <change> elements in this file, as it will produce different changelist 
+  numbers in the generated database and likely cause unit test failure(s). New changes should
+  be added to the end of this file.
+  ============================================================================================
+-->
+<server>
+  <user name="p4vfstest" fullname="Test Account" email="p4vfstest@localhost.com" password="Password1" />
+  <user name="northamerica\gatineau" password="Password2" />
+  <user name="northamerica\quebec" />
+  <user name="northamerica\montreal" />
+  <client name="p4vfstest-depot" owner="p4vfstest" view="//depot/..." />
+  <client name="p4vfstest-fenix" owner="p4vfstest" view="//depot/...,//fenix/..." />
+  <client name="gatineau-pc-depot" owner="northamerica\gatineau" view="//depot/..." />
+  <client name="quebec-pc-depot" owner="northamerica\quebec" view="//depot/..." />
+  <client name="montreal-pc-main" owner="northamerica\montreal" view="//depot/..." />
+  <change fstat="//depot/gears1/Development/Src/Core/...@7102175" />
+  <change fstat="//depot/gears1/Development/Src/Engine/Src/...@343196" />
+  <change fstat="//depot/gears1/Development/Src/Engine/Src/...@343915" />
+  <change fstat="//depot/gears1/Binaries/Xenon/...@7102175" />
+  <change fstat="//depot/tools/dev/bin/studio/maya/scripts/python/Utilities/...@347167" />
+  <change fstat="//depot/tools/dev/bin/studio/maya/scripts/python/Utilities/...@347169" />
+  <change fstat="//depot/tools/dev/bin/studio/maya/scripts/python/Utilities/...@367736" />
+  <change fstat="//depot/tools/dev/bin/studio/maya/scripts/python/Utilities/...@407051" />
+  <change fstat="//depot/tools/dev/bin/studio/maya/scripts/python/Utilities/...@448382" />
+  <change fstat="//depot/gears1/Development/External/nvDXT/...@343068" />
+  <change fstat="//depot/gears1/Development/External/nvDXT/...@343302" />
+  <change fstat="//depot/gears1/Development/External/nvDXT/...@7102175" />
+  <change fstat="//depot/gears1/Development/External/nvTriStrip/...@804829" />
+  <change fstat="//depot/mono/...@105948">
+    <file path="//depot/mono/2.0/Accessibility.dll" size="65" type="symlink" rev="1" target="../gac/Accessibility/2.0.0.0__b03f5f7f11d50a3a/Accessibility.dll" />
+    <file path="//depot/mono/2.0/al.exe" size="29184" type="binary+x" rev="1" />
+    <file path="//depot/mono/2.0/Commons.Xml.Relaxng.dll" size="77" type="symlink" rev="1" target="../gac/Commons.Xml.Relaxng/2.0.0.0__0738eb9f132ed756/Commons.Xml.Relaxng.dll" />
+    <file path="//depot/mono/2.0/cscompmgd.dll" size="57" type="symlink" rev="1" target="../gac/cscompmgd/8.0.0.0__b03f5f7f11d50a3a/cscompmgd.dll" />
+    <file path="//depot/mono/2.0/culevel.exe" size="19456" type="binary+x" rev="1" />
+    <file path="//depot/mono/compat-2.0/System.Web.Mvc.dll" size="67" type="symlink" rev="1" target="../gac/System.Web.Mvc/1.0.0.0__31bf3856ad364e35/System.Web.Mvc.dll" />
+    <file path="//depot/mono/gac/Accessibility/2.0.0.0__b03f5f7f11d50a3a/Accessibility.dll" size="10240" type="binary+x" rev="1" />
+    <file path="//depot/mono/gac/Commons.Xml.Relaxng/2.0.0.0__0738eb9f132ed756/Commons.Xml.Relaxng.dll" size="240128" type="binary+x" rev="1" />
+    <file path="//depot/mono/gac/cscompmgd/8.0.0.0__b03f5f7f11d50a3a/cscompmgd.dll" size="15872" type="binary+x" rev="1" />
+    <file path="//depot/mono/gac/System.Web.Mvc/1.0.0.0__31bf3856ad364e35/System.Web.Mvc.dll" size="187904" type="binary+x" rev="1" />
+  </change>
+  <change fstat="//depot/gears3/GearGame/Movies/...@343424" filetype="binary+F"/>
+  <change fstat="//fenix/main/tools/scripts/batch/...@1860318" client="p4vfstest-fenix" />
+  <change fstat="//depot/tools/dev/source/CinematicCapture/...@346167" />
+  <change fstat="//depot/tools/dev/source/CinematicCapture/...@408174" />
+  <change fstat="//depot/tools/dev/source/CinematicCapture/...@475304" />
+  <change fstat="//depot/tools/dev/source/Hammer/...@346167" />
+  <change fstat="//depot/tools/dev/source/Hammer/...@408174" />
+  <change fstat="//depot/tools/dev/source/Hammer/...@475304" />
+  <change fstat="//depot/gears1/WarGame/Localization/INT/Human_Myrrah_Dialog.int@7102175" />
+  <change fstat="//depot/tools/dev/external/EsrpClient/1.1.5/Enable-EsrpClientLog.ps1@7102175" />
+  <change fstat="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/...@7102176">
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.ApplicationModel.Activation.WebUISearchActivatedEventsContract/1.0.0.0/zh-hans/Windows.ApplicationModel.Activation.WebUISearchActivatedEventsContract.xml" size="2682" type="text" rev="1" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.ApplicationModel.Activation.WebUISearchActivatedEventsContract/1.0.0.0/zh-hant/Windows.ApplicationModel.Activation.WebUISearchActivatedEventsContract.xml" size="2754" type="text" rev="1" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.ApplicationModel.Activation.WebUISearchActivatedEventsContract/1.0.0.0/zh-hans/2019/Enterprise/VSSDK/VisualStudioIntegration/Common/Source/CPP/VSL/VSLArcitecture_files/Microsoft Azure Tools/Visual Studio 16.0/2.9/RemoteDebuggerConnector/Connector/MSBuild/Microsoft/Microsoft.NET.Build.Extensions/net471/Windows.ApplicationModel.Activation.WebUISearchActivatedEventsContract/References/Windows.ApplicationModel.CommunicationBlocking.CommunicationBlockingContract/2.0.0.0/Windows.ApplicationModel.CommunicationBlocking.CommunicationBlockingContract.WinMD/Windows.ApplicationModel.Background.BackgroundAlarmApplicationContract.xml" size="2134" type="text" rev="1" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.ApplicationModel.Background.BackgroundAlarmApplicationContract/1.0.0.0/zh-hans/Windows.ApplicationModel.Background.BackgroundAlarmApplicationContract.xml" size="2167" type="text" rev="1" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.ApplicationModel.Background.BackgroundAlarmApplicationContract/1.0.0.0/zh-hant/Windows.ApplicationModel.Background.BackgroundAlarmApplicationContract.xml" size="2233" type="text" rev="1" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.ApplicationModel.CommunicationBlocking.CommunicationBlockingContract/2.0.0.0/Windows.ApplicationModel.CommunicationBlocking.CommunicationBlockingContract.WinMD" size="21784" type="binary" rev="1" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.ApplicationModel.Preview.InkWorkspace.PreviewInkWorkspaceContract/1.0.0.0/Windows.ApplicationModel.Preview.InkWorkspace.PreviewInkWorkspaceContract.winmd" size="4096" type="binary" rev="1" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.ApplicationModel.Resources.Management.ResourceIndexerContract/1.0.0.0/zh-hans/Windows.ApplicationModel.Resources.Management.ResourceIndexerContract.xml" size="5939" type="text" rev="1" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.ApplicationModel.Resources.Management.ResourceIndexerContract/1.0.0.0/zh-hant/Windows.ApplicationModel.Resources.Management.ResourceIndexerContract.xml" size="6032" type="text" rev="1" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.System.Profile.SystemManufacturers.SystemManufacturersContract/2.0.0.0/zh-hans/Windows.System.Profile.SystemManufacturers.SystemManufacturersContract.xml" size="2497" type="text" rev="1" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.System.Profile.SystemManufacturers.SystemManufacturersContract/2.0.0.0/zh-hant/Windows.System.Profile.SystemManufacturers.SystemManufacturersContract.xml" size="2495" type="text" rev="1" />
+  </change>
+  <change fstat="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/...@7102177">
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.ApplicationModel.Activation.WebUISearchActivatedEventsContract/1.0.0.0/zh-hans/Windows.ApplicationModel.Activation.WebUISearchActivatedEventsContract.xml" size="2789" type="utf8" rev="2" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.ApplicationModel.Activation.WebUISearchActivatedEventsContract/1.0.0.0/zh-hant/Windows.ApplicationModel.Activation.WebUISearchActivatedEventsContract.xml" size="2852" type="utf8" rev="2" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.ApplicationModel.Activation.WebUISearchActivatedEventsContract/1.0.0.0/zh-hans/2019/Enterprise/VSSDK/VisualStudioIntegration/Common/Source/CPP/VSL/VSLArcitecture_files/Microsoft Azure Tools/Visual Studio 16.0/2.9/RemoteDebuggerConnector/Connector/MSBuild/Microsoft/Microsoft.NET.Build.Extensions/net471/Windows.ApplicationModel.Activation.WebUISearchActivatedEventsContract/References/Windows.ApplicationModel.CommunicationBlocking.CommunicationBlockingContract/2.0.0.0/Windows.ApplicationModel.CommunicationBlocking.CommunicationBlockingContract.WinMD/Windows.ApplicationModel.Background.BackgroundAlarmApplicationContract.xml" size="1572" type="text" rev="2" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.ApplicationModel.Background.BackgroundAlarmApplicationContract/1.0.0.0/zh-hans/Windows.ApplicationModel.Background.BackgroundAlarmApplicationContract.xml" size="2167" type="text" rev="2" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.ApplicationModel.Background.BackgroundAlarmApplicationContract/1.0.0.0/zh-hant/Windows.ApplicationModel.Background.BackgroundAlarmApplicationContract.xml" size="2233" type="text" rev="2" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.ApplicationModel.CommunicationBlocking.CommunicationBlockingContract/2.0.0.0/zh-hans/Windows.ApplicationModel.CommunicationBlocking.CommunicationBlockingContract.xml" size="4202" type="text" rev="1" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.ApplicationModel.Preview.InkWorkspace.PreviewInkWorkspaceContract/1.0.0.0/Windows.ApplicationModel.Preview.InkWorkspace.PreviewInkWorkspaceContract.winmd" size="4096" type="binary" rev="2" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.ApplicationModel.Resources.Management.ResourceIndexerContract/2.0.0.0/zh-hans/Windows.ApplicationModel.Resources.Management.ResourceIndexerContract.xml" size="6874" type="text" rev="1" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.ApplicationModel.Resources.Management.ResourceIndexerContract/2.0.0.0/zh-hant/Windows.ApplicationModel.Resources.Management.ResourceIndexerContract.xml" size="6931" type="text" rev="1" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.System.Profile.SystemManufacturers.SystemManufacturersContract/3.0.0.0/zh-hans/Windows.System.Profile.SystemManufacturers.SystemManufacturersContract.xml" size="4167" type="text" rev="1" />
+    <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.System.Profile.SystemManufacturers.SystemManufacturersContract/3.0.0.0/zh-hant/Windows.System.Profile.SystemManufacturers.SystemManufacturersContract.xml" size="4165" type="text" rev="1" />
+  </change>
+</server>

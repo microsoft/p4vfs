@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+  
+    <!-- 
+    ============================================================================================
+    P4VFSSettingsName is the title of the xml config file to include with the installer.
+    For example:
+    <P4VFSSettingsName>TheCoalition</P4VFSSettingsName> 
+    ============================================================================================
+    -->
+    
+    <P4VFSSettingsName></P4VFSSettingsName>
+    
+    <!-- 
+    ============================================================================================
+    P4VFSSymbolServer is the path or URL to the symbol server to publish to.
+    For example:
+    <P4VFSSymbolServer>C:\symstore</P4VFSSymbolServer>
+    ============================================================================================
+    -->
+    
+    <P4VFSSymbolServer></P4VFSSymbolServer>
+    
+    <!-- 
+    ============================================================================================
+    P4VFSCodeSignMethod specifies sign input name that will be used to perform ESRP and 
+    Hardware Development Center codesign operations
+    For example:
+    <P4VFSCodeSignMethod>Attestation</P4VFSCodeSignMethod> 
+    <P4VFSCodeSignMethod>HardwareLabKit</P4VFSCodeSignMethod> 
+    <P4VFSCodeSignMethod>Legacy</P4VFSCodeSignMethod> 
+    ============================================================================================
+    -->
+    
+    <P4VFSCodeSignMethod Condition="'$(P4VFSCodeSignMethod)'==''">Attestation</P4VFSCodeSignMethod>
+    
+  </PropertyGroup>
+</Project>

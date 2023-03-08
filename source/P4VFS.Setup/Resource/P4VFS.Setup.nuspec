@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>P4VFS.Setup</id>
+    <version>$version$</version>
+    <title>P4VFS.Setup</title>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <authors>xbox studios</authors>
+    <description>P4VFS setup installer tool</description>
+    <iconUrl>http://w.halocdn.com/favicon.ico?v=2</iconUrl>
+  </metadata>
+  <files>
+    <file src="..\P4VFS.Setup-*.exe" target="tools"/>
+  </files>
+</package>

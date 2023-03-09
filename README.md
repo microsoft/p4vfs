@@ -6,11 +6,11 @@ The P4VFS is a Windows service that allows you to sync files from Perforce very 
 For example, you can use the P4VFS to perform a "virtual sync" to a Perforce filespec and it will complete relatively quickly, and the files will exist on machine as usual. However, the actual size of the files on disk will be zero, and the file contents will be downloaded on-demand during the first read operation.
 
 # Installation
-You can install the latest signed release of P4VFS from nuget:
-> [P4VFS.Setup](https://xboxstudios.visualstudio.com/The%20Coalition/_artifacts/feed/Packages)
+You can install the latest signed release of P4VFS from here:
+> [P4VFS.Setup](https://github.com/microsoft/p4vfs/releases/download/stable/P4VFS.Setup-1.24.0.0.exe)
 
 The entire history of release notes is included with the installer.
-> [Release Notes](https://xboxstudios.visualstudio.com/The%20Coalition/_git/P4VFS?path=%2Fsource%2FP4VFS.Console%2FP4VFS.Notes.txt)
+> [Release Notes](https://github.com/microsoft/p4vfs/blob/main/source/P4VFS.Console/P4VFS.Notes.txt)
 
 # Build and Test
 #### Build Requirments:

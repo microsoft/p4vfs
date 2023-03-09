@@ -3,7 +3,7 @@
 ############################### 
 root = true 
 
-[*.{cs,csx,vb,vbx,cpp,h}] 
+[*.{cs,csx,vb,vbx,cpp,h,c}] 
 indent_style = tab 
 indent_size = 4 
 

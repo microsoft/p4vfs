@@ -42,7 +42,7 @@ The main program that you'll use to do a virtual sync, and possibly other P4VFS 
 
     C:\Program Files\P4VFS\p4vfs.exe
 
- The tool has a very similar interface to **p4.exe**. If you want ever need to terminate **p4vfs.exe** while in-progress, simply use Ctrl+C or Ctrl+Break as usual, or just terminate it with the Windows Task Manager. A p4vfs sync will always terminate gracefully and always leave your client consistent with Perforce. Take a look at the command help:
+ The tool has a very similar interface to **p4.exe**. If you ever need to terminate **p4vfs.exe** while in-progress, simply use Ctrl+C or Ctrl+Break from the terminal, or just terminate the process with the Windows Task Manager. A p4vfs sync will always terminate gracefully and always leave your client consistent with Perforce. Take a look at the command help:
 
     p4vfs.exe help
     p4vfs.exe help sync

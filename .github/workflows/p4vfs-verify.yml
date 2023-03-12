@@ -1,0 +1,36 @@
+
+name: p4vfs-verify
+
+on:
+  push:
+    branches: [ "main", "dev/ci-pipeline" ]
+  pull_request:
+    branches: [ "main", "dev/ci-pipeline" ]
+
+env:
+  SOLUTION_FILE_PATH: source/P4VFS.sln
+  BUILD_CONFIGURATION: Release
+  BUILD_PLATFORM: x64
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.0.2
+      with:
+        vs-version: '[16.4,16.5)'
+
+    - name: Restore NuGet packages
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: nuget.exe restore ${{env.SOLUTION_FILE_PATH}}
+
+    - name: Build
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: msbuild.exe /nologo /nr:false /m "/p:Configuration=${{env.BUILD_CONFIGURATION}}" "/p:Configuration=${{env.BUILD_PLATFORM}}" /p:VisualStudioVersion=16.0 ${{env.SOLUTION_FILE_PATH}}

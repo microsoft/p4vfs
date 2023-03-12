@@ -105,7 +105,7 @@
       <Version>13.0.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.CommandLine" GeneratePathProperty="true">
-      <Version>6.2.1</Version>
+      <Version>6.2.2</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

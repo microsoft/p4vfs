@@ -571,10 +571,16 @@ namespace FileCore {
 
 	struct Algo
 	{
-		template <typename ArrayType, typename ValueType>
-		static bool Contains(const ArrayType& elements, const ValueType& v)
+		template <typename ValueType>
+		static bool Contains(const Array<ValueType>& elements, const ValueType& v)
 		{
 			return std::find(elements.begin(), elements.end(), v) != elements.end();
+		}
+
+		template <typename KeyType>
+		static bool Contains(const HashSet<KeyType>& elements, const KeyType& v)
+		{
+			return elements.find(v) != elements.end();
 		}
 
 		template <typename ArrayType, typename Predicate>

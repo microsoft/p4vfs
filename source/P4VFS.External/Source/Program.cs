@@ -54,7 +54,7 @@ namespace Microsoft.P4VFS.External
 			}
 			if (properties.IsSet(ReservedProperty.VisualStudioEdition) == false)
 			{
-				properties.Set(ReservedProperty.VisualStudioEdition, "2019");
+				properties.Set(ReservedProperty.VisualStudioEdition, "2022");
 			}
 			if (properties.IsSet(ReservedProperty.VisualStudioInstallFolder) == false)
 			{

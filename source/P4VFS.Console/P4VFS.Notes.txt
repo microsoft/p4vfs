@@ -1,5 +1,15 @@
 Microsoft P4VFS Release Notes
 
+Version [1.24.1.0]
+* Adding simple verify pipeline for running on GitHub hosted runners which has required
+  some library updates, for the best. Full CI/CD pipelines remain in internal Microsoft
+  DevOps for codesign purposes.
+* Updating to Visual Studio 2022 (17.5.1). Platform toolset v143. MSVC Redist 14.34.31931
+* Updating to Windows SDK version 10.0.22621.0 (current latest component install for 17.5.1)
+* Updating to WDK verion 10.0.22621.382
+* Updating to OpenSSL 1.1.1t
+* Dropping driver support for Windows 8.1 and earlier.
+
 Version [1.24.0.0]
 * Initial Open Source release. 
   https://github.com/microsoft/p4vfs

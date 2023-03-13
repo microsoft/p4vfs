@@ -12,7 +12,7 @@
     <P4VFSConfiguration>$([System.Text.RegularExpressions.Regex]::Replace($(Configuration), "(Dev|Sign)$", ""))</P4VFSConfiguration>
     <P4VFSConfigurationIsDev>$([System.Text.RegularExpressions.Regex]::IsMatch($(Configuration), "(Dev|Sign)$"))</P4VFSConfigurationIsDev>
     <P4VFSConfigurationIsSign>$([System.Text.RegularExpressions.Regex]::IsMatch($(Configuration), "(Sign)$"))</P4VFSConfigurationIsSign>
-    <P4VFSVisualStudioEdition>2019</P4VFSVisualStudioEdition>
+    <P4VFSVisualStudioEdition>2022</P4VFSVisualStudioEdition>
 
     <!-- P4VFS.Driver -->
     <P4VFSDriverProjectName>P4VFS.Driver</P4VFSDriverProjectName>
@@ -73,7 +73,7 @@
     <PerforceApiLibFiles>libclient.lib;libp4api.lib;libp4script.lib;libp4script_c.lib;libp4script_curl.lib;libp4script_sqlite.lib;librpc.lib;libsupp.lib</PerforceApiLibFiles>
 
     <!-- OpenSSL -->
-    <OpenSSLApiVersion>1.1.1q</OpenSSLApiVersion>
+    <OpenSSLApiVersion>1.1.1t</OpenSSLApiVersion>
     <OpenSSLApiConfiguration>$(P4VFSConfiguration)</OpenSSLApiConfiguration>
     <OpenSSLApiDir>$(P4VFSExternalDir)/OpenSSL/$(OpenSSLApiVersion)</OpenSSLApiDir>
     <OpenSSLApiIncludeDir>$(OpenSSLApiDir)/include</OpenSSLApiIncludeDir>

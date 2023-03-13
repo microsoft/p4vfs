@@ -12,32 +12,20 @@ You can install the latest signed release of P4VFS from here:
 The entire history of release notes is included with the installer.
 > [Release Notes](https://github.com/microsoft/p4vfs/blob/main/source/P4VFS.Console/P4VFS.Notes.txt)
 
-# Build and Test
-#### Build Requirments:
-1. Visual Studio 2019 version 16.11.9 or later
-1. Windows 10 SDK version 10.0.19041.0
-1. Windows 10 WDK version 10 (2004)
-
-#### Instructions:
-1. Using Visual Studio 2019, open solution file P4VFS.sln
-1. Build solution configurations Release/Debug for regular user mode development including the current production signed driver binaries. Build solution configuration Release-Dev/Debug-Dev for local built, test signed, driver binaries.
-1. Run P4VFS.Setup project to install local build.
-
-#### Testing:
-1. Full suite of unit tests can be run locally by first opening Visual Studio as Administrator, and building the P4VFS.sln solution
-1. In the P4VFS.Console project, set the debug command arguments to:
-    ```
-    p4vfs.exe test
-    ```
+### Supported operating systems
+* Windows 10
+* Windows 11
+* Windows Server 2022 
+* Windows Server 2019
+* Windows Server 2016
+* Windows 8.1 (P4VFS 1.24.0.0 and earlier)
 
 # Technical Overview
 P4VFS is a Windows service, driver, and console application that allows us to sync files from Perforce immediately, and then actually download the file contents on-demand. It introduces the concept of a "Virtual" sync, where a file revision can be sync'ed from Perforce and will exist locally on disk with a correct size, but zero disk-size, until accessed. When first opened, the Windows NTFS file system will automatically download file's contents, and the file will be read as expected.
 
 The P4VFS is intended to work perfectly seamless with regular p4 and p4v usage. There is no need for special perforce configuration, special clientspecs, or any other non-sense. You can feel free to sync files immediately using **p4.exe**, or sync a zero sized "offline" file with contents on demand using **p4vfs.exe**.
 
-P4VFS is officially supported and tested on Windows 8.1 and Windows 10. If you are running Windows 8.0 or previous, I don't recommend installing it.
-
-# Advanced Usage
+# Basic Usage
 The main program that you'll use to do a virtual sync, and possibly other P4VFS operations, is **p4vfs.exe**. 
 
     C:\Program Files\P4VFS\p4vfs.exe
@@ -56,4 +44,28 @@ Try syncing as usual:
 The tool respects P4CONFIG file usage, as well as supports typical configuration settings (just like **p4.exe**)
  
     p4vfs.exe -c joe-pc-depot -u contonso\joe -p p4-contoso:1666 sync //depot/tools/dev/...
+
+# Build and Test
+### Build Requirments:
+
+1. Visual Studio 2022 version 17.5.0 or later
+1. Windows SDK version 10.0.22621.0 (22H2) 
+1. Windows WDK version 10.0.22621.382 (22H2)
+
+Details for installing Visual Studio 2022, the Windows Software Development Kit (SDK), and the Windows Driver Kit (WDK) can be found here: 
+> [Download the Windows Driver Kit](https://learn.microsoft.com/en-us/windows-hardware/drivers/download-the-wdk)
+
+### Instructions:
+1. Using Visual Studio 2022, open solution file P4VFS.sln
+1. Build solution configurations Release/Debug for regular user mode development including the current production signed driver binaries. Build solution configuration Release-Dev/Debug-Dev for local built, test signed, driver binaries.
+1. Run P4VFS.Setup project to install local build.
+
+### Testing:
+1. Full suite of unit tests can be run locally by first opening Visual Studio as Administrator, and building the P4VFS.sln solution
+1. In the P4VFS.Console project, set the debug command arguments to:
+    ```
+    p4vfs.exe test
+    ```
+1. See the [Development.md](doc/Development.md) for details.
+
 

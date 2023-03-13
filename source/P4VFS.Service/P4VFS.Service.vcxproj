@@ -14,19 +14,19 @@
     <ProjectGuid>{CE2C3AF7-ECFB-4252-89AB-F3D6BD631CF9}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Microsoft::P4VFS::Service</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -136,13 +136,13 @@
   </ImportGroup>
   <Target Name="Deploy" />
   <PropertyGroup>
-    <ServiceVCToolsVersion>$([System.Text.RegularExpressions.Regex]::Replace($(VCToolsVersion),"\.[0-9]+$",""))</ServiceVCToolsVersion>
+    <ServiceVCToolsRedistVersion>$([System.Text.RegularExpressions.Regex]::Replace($(VCToolsRedistVersion),"\.[0-9]+$",""))</ServiceVCToolsRedistVersion>
     <ServiceVCToolsFolder>$([System.IO.Path]::GetFullPath($(VCTargetsPath)\..\..\..\..\VC\Redist\MSVC))</ServiceVCToolsFolder>
-    <ServiceVCRedistSourcePattern>$(ServiceVCToolsFolder)\$(ServiceVCToolsVersion).*\vcredist_x64.exe</ServiceVCRedistSourcePattern>
+    <ServiceVCRedistSourcePattern>$(ServiceVCToolsFolder)\$(ServiceVCToolsRedistVersion).*\vc_redist.x64.exe</ServiceVCRedistSourcePattern>
   </PropertyGroup>
   <ItemGroup>
     <ServiceVCRedistSourceFiles Include="$(ServiceVCRedistSourcePattern)">
-      <ServiceVCRedistTargetName>vcredist_2019_x64.exe</ServiceVCRedistTargetName>
+      <ServiceVCRedistTargetName>vcredist_$(P4VFSVisualStudioEdition)_x64.exe</ServiceVCRedistTargetName>
     </ServiceVCRedistSourceFiles>
   </ItemGroup>
   <Target Name="PostBuildEvent">

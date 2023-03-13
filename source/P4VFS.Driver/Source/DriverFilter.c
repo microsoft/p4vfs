@@ -549,7 +549,7 @@ P4vfsServicePortConnect(
 		goto CLEANUP;
 	}
 
-	pConnectionHandle = (P4VFS_SERVICE_PORT_CONNECTION_HANDLE*)ExAllocatePoolWithTag( 
+	pConnectionHandle = (P4VFS_SERVICE_PORT_CONNECTION_HANDLE*)ExAllocatePool2( 
 																	NonPagedPool,
 																	sizeof(P4VFS_SERVICE_PORT_CONNECTION_HANDLE),
 																	P4VFS_SERVICE_PORT_HANDLE_ALLOC_TAG);
@@ -657,7 +657,7 @@ P4vfsControlPortConnect(
 		goto CLEANUP;
 	}
 
-	pConnectionHandle = (P4VFS_CONTROL_PORT_CONNECTION_HANDLE*)ExAllocatePoolWithTag( 
+	pConnectionHandle = (P4VFS_CONTROL_PORT_CONNECTION_HANDLE*)ExAllocatePool2( 
 																	NonPagedPool,
 																	sizeof(P4VFS_CONTROL_PORT_CONNECTION_HANDLE),
 																	P4VFS_CONTROL_PORT_HANDLE_ALLOC_TAG);

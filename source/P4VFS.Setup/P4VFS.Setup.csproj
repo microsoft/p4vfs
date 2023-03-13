@@ -154,7 +154,7 @@
     <InstallResource Include="$(P4VFSBuildDir)\P4VFS.Extensions\$(P4VFSConfiguration)\Newtonsoft.Json.dll" Visible="false" />
     <InstallResource Include="$(P4VFSBuildDir)\P4VFS.ExtensionsInterop\$(P4VFSConfiguration)\P4VFS.ExtensionsInterop.dll" Visible="false" />
     <InstallResource Include="$(P4VFSBuildDir)\P4VFS.Service\$(P4VFSConfiguration)\P4VFS.Service.exe" Visible="false" />
-    <InstallResource Include="$(P4VFSBuildDir)\P4VFS.Service\$(P4VFSConfiguration)\vcredist_2019_x64.exe" Visible="false" />
+    <InstallResource Include="$(P4VFSBuildDir)\P4VFS.Service\$(P4VFSConfiguration)\vcredist_$(P4VFSVisualStudioEdition)_x64.exe" Visible="false" />
     <InstallResource Include="$(P4VFSBuildDir)\P4VFS.Core\$(P4VFSConfiguration)\P4VFS.Core.dll" Visible="false" />
     <InstallResource Include="$(P4VFSBuildDir)\P4VFS.CoreInterop\$(P4VFSConfiguration)\P4VFS.CoreInterop.dll" Visible="false" />
     <InstallResource Include="$(P4VFSBuildDir)\P4VFS.UnitTest\$(Configuration)\P4VFS.UnitTest.dll" Visible="false" />

@@ -20,12 +20,13 @@ jobs:
     runs-on: windows-latest
 
     steps:
+    - name: Checkout
     - uses: actions/checkout@v3
 
     - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.0.2
+      uses: microsoft/setup-msbuild@v1.1
 
-    - name: Restore NuGet packages
+    - name: NuGet Restore
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: nuget.exe restore ${{env.SOLUTION_FILE_PATH}}
 

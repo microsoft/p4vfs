@@ -17,7 +17,7 @@ typedef	VOID* PFLT_VOLUME;
 typedef	VOID* PKTRANSACTION;
 typedef	INT	FLT_FILE_NAME_PARSED_FLAGS;
 typedef	INT	FLT_FILE_NAME_OPTIONS;
-typedef	INT	POOL_TYPE;
+typedef ULONG64 POOL_FLAGS;
 typedef	VOID* PACCESS_STATE;
 typedef INT FILE_INFORMATION_CLASS;
 
@@ -249,7 +249,7 @@ typedef	struct _FILE_STANDARD_INFORMATION_EX {
 #define	FLT_FILE_NAME_ALLOW_QUERY_ON_REPARSE	0x04000000
 #define OBJ_CASE_INSENSITIVE					0x00000040L
 #define OBJ_KERNEL_HANDLE						0x00000200L
-#define	NonPagedPool							0
+#define POOL_FLAG_NON_PAGED						0x0000000000000040UI64
 #define	FileBasicInformation					4
 #define FileStandardInformation					5
 #define	FileInternalInformation					6
@@ -278,7 +278,7 @@ std::function<NTSTATUS(PFLT_INSTANCE, PFILE_OBJECT, PVOID, ULONG, FILE_INFORMATI
 std::function<NTSTATUS(PFLT_INSTANCE, PFLT_VOLUME*)> FltGetVolumeFromInstance;
 std::function<NTSTATUS(PFLT_VOLUME, PUNICODE_STRING, PULONG)> FltGetVolumeName;
 
-std::function<PVOID(POOL_TYPE, SIZE_T, ULONG)> ExAllocatePoolWithTag;
+std::function<PVOID(POOL_FLAGS, SIZE_T, ULONG)> ExAllocatePool2;
 std::function<VOID(PVOID, ULONG)> ExFreePoolWithTag;
 std::function<VOID(PFAST_MUTEX)> ExAcquireFastMutex;
 std::function<VOID(PFAST_MUTEX)> ExReleaseFastMutex;
@@ -395,7 +395,7 @@ static void InternalTestDriverReset(const TestContext& context)
 	FltQueryInformationFile = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
 	FltGetVolumeFromInstance = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
 
-	ExAllocatePoolWithTag = [](POOL_TYPE, SIZE_T s, ULONG) -> PVOID { return GAlloc(s); };
+	ExAllocatePool2 = [](POOL_FLAGS, SIZE_T s, ULONG) -> PVOID { return GAlloc(s); };
 	ExFreePoolWithTag = [](PVOID p, ULONG) -> VOID { GFree(p); };
 	ExAcquireFastMutex = P4VFS_DEFAULT_ACTION();
 	ExReleaseFastMutex = P4VFS_DEFAULT_ACTION();

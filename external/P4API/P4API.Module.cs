@@ -13,6 +13,7 @@ namespace Microsoft.P4VFS.External
 	public class P4apiModule : Module
 	{
 		private const string P4API_VERSION = "r21.2";
+		private const string P4API_VISUAL_STUDIO_EDITION = "2019"; // TODO: Remove when P4API libs are available for 2022  
 
 		public override string Name
 		{
@@ -66,6 +67,7 @@ namespace Microsoft.P4VFS.External
 		public override void Restore()
 		{
 			string visualStudioEdition = Context.Properties.Get(ReservedProperty.VisualStudioEdition);
+			string p4apiVisualStudioEdition = P4API_VISUAL_STUDIO_EDITION ?? visualStudioEdition;
 			string p4apiModuleFolder = Context.Properties.Get(ReservedProperty.ModuleDir);
 			string p4apiUrlRoot = String.Format("http://filehost.perforce.com/perforce/{0}", P4API_VERSION);
 			string p4apiTargetFolder = String.Format("{0}\\{1}", p4apiModuleFolder, Regex.Replace(P4API_VERSION, "^r","20"));
@@ -79,11 +81,11 @@ namespace Microsoft.P4VFS.External
 			Dictionary<string, string> checksums = ModuleInfo.LoadChecksumFile(checksumFilePath);
 
 			// Download and deploy the debug P4API
-			string p4apiDbgFile = ModuleInfo.DownloadFileToFolder($"{p4apiUrlRoot}/bin.ntx64/p4api_vs{visualStudioEdition}_dyn_vsdebug_openssl1.1.1.zip", workingFolder, checksums);
+			string p4apiDbgFile = ModuleInfo.DownloadFileToFolder($"{p4apiUrlRoot}/bin.ntx64/p4api_vs{p4apiVisualStudioEdition}_dyn_vsdebug_openssl1.1.1.zip", workingFolder, checksums);
 			ExtractP4apiSDK(p4apiDbgFile, p4apiTargetFolder, $"x64.vs{visualStudioEdition}.dyn.debug");
 	
 			// Download and deploy the release P4API
-			string p4apiRelFile = ModuleInfo.DownloadFileToFolder($"{p4apiUrlRoot}/bin.ntx64/p4api_vs{visualStudioEdition}_dyn_openssl1.1.1.zip", workingFolder, checksums);
+			string p4apiRelFile = ModuleInfo.DownloadFileToFolder($"{p4apiUrlRoot}/bin.ntx64/p4api_vs{p4apiVisualStudioEdition}_dyn_openssl1.1.1.zip", workingFolder, checksums);
 			ExtractP4apiSDK(p4apiRelFile, p4apiTargetFolder, $"x64.vs{visualStudioEdition}.dyn.release");
 	
 			// Download and deploy the perforce test binaries

@@ -32,4 +32,4 @@ jobs:
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild.exe /nologo /nr:false /m "/p:Configuration=${{env.BUILD_CONFIGURATION}}" "/p:Platform=${{env.BUILD_PLATFORM}}" /p:VisualStudioVersion=16.0 ${{env.SOLUTION_FILE_PATH}}
+      run: msbuild.exe /nologo /nr:false /m "/p:Configuration=${{env.BUILD_CONFIGURATION}}" "/p:Platform=${{env.BUILD_PLATFORM}}" ${{env.SOLUTION_FILE_PATH}}

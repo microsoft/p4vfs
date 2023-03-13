@@ -63,9 +63,9 @@ Details for installing Visual Studio 2022, the Windows Software Development Kit 
 ### Testing:
 1. Full suite of unit tests can be run locally by first opening Visual Studio as Administrator, and building the P4VFS.sln solution
 1. In the P4VFS.Console project, set the debug command arguments to:
-    ```
-    p4vfs.exe test
-    ```
+
+       p4vfs.exe test
+
 1. See the [Development.md](doc/Development.md) for details.
 
 

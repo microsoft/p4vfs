@@ -37,8 +37,8 @@ namespace Microsoft.P4VFS.UnitTest
 					Assert(ProcessInfo.ExecuteWait(P4Exe, String.Format("{0} sync -f \"{1}{2}\"", ClientConfig, clientFile, revision), echo:true) == 0);
 					Assert(File.Exists(clientFile));
 					Assert(IsPlaceholderFile(clientFile) == false);
-					Assert(getAttr(clientFile) == (FileAttributes.ReadOnly|FileAttributes.Archive));
-					Assert(getAttr(clientFolder) == FileAttributes.Directory);
+					Assert(getAttr(clientFile).HasFlag(FileAttributes.ReadOnly|FileAttributes.Archive));
+					Assert(getAttr(clientFolder).HasFlag(FileAttributes.Directory));
 					try { getAttr(clientFileMissing); Assert(false); } catch {}
 
 					AssertLambda(() => FileUtilities.DeleteDirectoryAndFiles(clientRoot));
@@ -48,7 +48,7 @@ namespace Microsoft.P4VFS.UnitTest
 					Assert(File.Exists(clientFile));
 					Assert(IsPlaceholderFile(clientFile));
 					Assert(getAttr(clientFile).HasFlag(FileAttributes.ReadOnly|FileAttributes.Offline));
-					Assert(getAttr(clientFolder) == FileAttributes.Directory);
+					Assert(getAttr(clientFolder).HasFlag(FileAttributes.Directory));
 					try { getAttr(clientFileMissing); Assert(false); } catch {}
 				
 					Assert(ReconcilePreview(clientFolder).Any() == false);

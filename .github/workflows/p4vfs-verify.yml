@@ -9,27 +9,45 @@ on:
 
 env:
   SOLUTION_FILE_PATH: source/P4VFS.sln
-  BUILD_CONFIGURATION: Release
   BUILD_PLATFORM: x64
+
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: true
 
 permissions:
   contents: read
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [windows-latest]
+        configuration: [Debug, Release]
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+    - name: Set image info in env
+      run: |
+        Write-Output "ImageOS=$env:ImageOS" >> $env:GITHUB_ENV
+        Write-Output "ImageVersion=$env:ImageVersion" >> $env:GITHUB_ENV
+
+    - name: Checkout the repo
+      uses: actions/checkout@v3.3.0
 
     - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v1.3.1
+      with:
+        msbuild-architecture: x64
 
-    - name: NuGet Restore
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: nuget.exe restore ${{env.SOLUTION_FILE_PATH}}
+    - name: Cache OpenSSL ${{env.ImageOS}} ${{env.ImageVersion}}
+      uses: actions/cache@v3.3.0
+      with:
+        path: |
+          external/OpenSSL
+          !external/OpenSSL/OpenSSL.Module.cs
+        key: build-openssl-${{env.ImageOS}}-${{env.ImageVersion}}-${{ hashFiles('external/OpenSSL/OpenSSL.Module.cs') }}
 
-    - name: Build
+    - name: Build ${{matrix.configuration}}
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild.exe /nologo /nr:false /m "/p:Configuration=${{env.BUILD_CONFIGURATION}}" "/p:Platform=${{env.BUILD_PLATFORM}}" ${{env.SOLUTION_FILE_PATH}}
+      run: msbuild.exe -clp:Summary -nologo -nodeReuse:false -verbosity:m -restore -maxcpucount "-p:Configuration=${{matrix.configuration}}" "-p:Platform=${{env.BUILD_PLATFORM}}" ${{env.SOLUTION_FILE_PATH}}

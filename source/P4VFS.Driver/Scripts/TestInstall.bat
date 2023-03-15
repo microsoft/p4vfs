@@ -22,12 +22,12 @@ EXIT /B 1
 :WIN_SDK_X64_DIR_EXISTS
 
 :: Import test sign certificate to local store
-"%WIN_SDK_X64_DIR%\certmgr.exe" -add "%DRIVER_INF_FOLDER%\p4vfsflt.cer" -all -s -r LocalMachine ROOT
+"%WIN_SDK_X64_DIR%\certmgr.exe" -add "%DRIVER_INF_FOLDER%\P4VFS.Driver.WDKTest.pfx" -all -s -r LocalMachine ROOT
 IF NOT "%ERRORLEVEL%"=="0" (
 	ECHO Failed to add test certificate to LocalMachine Root
 	EXIT /B 1
 )
-"%WIN_SDK_X64_DIR%\certmgr.exe" -add "%DRIVER_INF_FOLDER%\p4vfsflt.cer" -all -s -r LocalMachine TRUSTEDPUBLISHER
+"%WIN_SDK_X64_DIR%\certmgr.exe" -add "%DRIVER_INF_FOLDER%\P4VFS.Driver.WDKTest.pfx" -all -s -r LocalMachine TRUSTEDPUBLISHER
 IF NOT "%ERRORLEVEL%"=="0" (
 	ECHO Failed to add test certificate to LocalMachine Trusted Publisher
 	EXIT /B 1

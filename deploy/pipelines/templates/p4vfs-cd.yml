@@ -1,0 +1,35 @@
+
+parameters:
+- name: configuration
+  displayName: 'Configuration'
+  type: string
+  default: 'Release'
+
+- name: publishTo
+  displayName: 'Publish To'
+  type: string
+  default: ''
+
+jobs:
+- deployment:
+  displayName: P4VFS_CD
+  environment: P4VFS_GITHUB
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+
+        - task: NuGetToolInstaller@1
+          displayName: 'NuGet Install'
+
+        - task: NuGetAuthenticate@1
+          displayName: 'NuGet Authenticate'
+
+        - task: NuGetCommand@2
+          displayName: 'Push Package to VSTS Feed'
+          inputs:
+            command: 'push'
+            allowPackageConflicts: true
+            packagesToPush: '$(Pipeline.Workspace)/drop/*.nupkg;'
+            nuGetFeedType: 'internal'
+            publishVstsFeed: ${{ parameters.publishTo }}

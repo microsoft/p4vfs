@@ -1,0 +1,22 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - src/
+
+variables:
+  configuration: 'ReleaseSign'
+
+pool: 
+  name: TC GFWLCSS
+
+stages:
+- stage: CI
+  jobs:
+  - template: templates/p4vfs-ci.yml
+    parameters:
+      configuration: $(configuration)
+      additionalBuildArguments: '/p:P4VFSCodeSignMethod=Attestation'
+

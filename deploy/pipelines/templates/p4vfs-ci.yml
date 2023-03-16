@@ -1,0 +1,70 @@
+
+parameters:
+- name: solutionFile
+  displayName: 'Solution File'
+  type: string
+  default: 'source/P4VFS.sln'
+
+- name: platform
+  displayName: 'Platform'
+  type: string
+  default: 'x64'
+
+- name: configuration
+  displayName: 'Configuration'
+  type: string
+  default: 'Release'
+
+- name: additionalBuildArguments
+  displayName: 'Additional Build Arguments'
+  type: string
+  default: ''
+
+jobs:
+- job: P4VFS_CI
+  timeoutInMinutes: 240
+  
+  steps:
+  - task: NuGetToolInstaller@1
+    displayName: 'NuGet Install'
+    
+  - task: NuGetAuthenticate@1
+    displayName: 'NuGet Authenticate'
+
+  - task: NuGetCommand@2
+    displayName: 'NuGet Restore'
+    inputs:
+      restoreSolution: '${{ parameters.solutionFile }}'
+
+  - task: VSBuild@1
+    displayName: 'Build'
+    timeoutInMinutes: 180
+    inputs:
+      vsVersion: '16.0'
+      solution: '${{ parameters.solutionFile }}'
+      platform: '${{ parameters.platform }}'
+      configuration: '${{ parameters.configuration }}'
+      msbuildArgs: '${{ parameters.additionalBuildArguments }}'
+
+  - task: PublishSymbols@2
+    displayName: 'Publish Symbols'
+    inputs:
+      SearchPattern: '**/builds/**/*.pdb'
+      SymbolServerType: 'TeamServices'
+
+  - task: CopyFiles@2
+    displayName: 'Stage Artifacts'
+    inputs:
+      sourceFolder: '$(Build.SourcesDirectory)'
+      contents: |
+        intermediate/*/P4VFS.Setup/*/*.exe
+        intermediate/*/P4VFS.Setup/**/Resource/*.nuspec
+        source/**/+(*.props|*.targets)
+        nuget.config
+      TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifacts'
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: 'drop'

@@ -40,7 +40,7 @@ jobs:
     displayName: 'Build'
     timeoutInMinutes: 180
     inputs:
-      vsVersion: '16.0'
+      vsVersion: '17.0'
       solution: '${{ parameters.solutionFile }}'
       platform: '${{ parameters.platform }}'
       configuration: '${{ parameters.configuration }}'

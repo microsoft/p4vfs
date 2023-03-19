@@ -1,5 +1,12 @@
 Microsoft P4VFS Release Notes
 
+Version [1.24.2.0]
+* Specializing the Algo::Contains method to for optimized use of HashSet. This significantly 
+  speeds up the Contains ops in the last loop of DepotOperations::SyncCommand. @belkiss
+* Fixing test FileAttributeTest for handling possible NotContentIndexed attribute @belkiss
+* Removing UnitTest EventSourceAnalyzer dependency and cleanup of EventSource trace
+  support and tests
+
 Version [1.24.1.0]
 * Adding simple verify pipeline for running on GitHub hosted runners which has required
   some library updates, for the best. Full CI/CD pipelines remain in internal Microsoft

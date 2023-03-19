@@ -2,10 +2,15 @@
 name: p4vfs-verify
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ "main", "dev/ci-pipeline" ]
+    branches:
+      - 'main'
+      - 'dev/*'
   pull_request:
-    branches: [ "main", "dev/ci-pipeline" ]
+    branches:
+      - 'main'
+      - 'dev/*'
 
 env:
   SOLUTION_FILE_PATH: source/P4VFS.sln

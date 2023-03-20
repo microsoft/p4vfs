@@ -137,7 +137,8 @@
   <Target Name="Deploy" />
   <UsingTask TaskName="FindVCRedistSourceFile" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
-      <OutputPath ParameterType="System.String" Output="true" />
+      <OutputFilePath ParameterType="System.String" Output="true" />
+      <OutputVersion ParameterType="System.String" Output="true" />
     </ParameterGroup>
     <Task>
       <Using Namespace="System"/>
@@ -147,17 +148,18 @@
       <![CDATA[
         string redistMajorVersion = Regex.Replace("$(VCToolsRedistVersion)", @"(\.\d+)+$", ".");
         string redistRootFolder = Path.GetFullPath(@"$(VCTargetsPath)\..\..\..\..\VC\Redist\MSVC");
-        Version outputVersion = new Version(0,0);
+        Version version = new Version(0,0);
         foreach (string redistFolderPath in Directory.GetDirectories(redistRootFolder))
         {
             Version redistVersion = null;
             string redistFolderName = Path.GetFileName(redistFolderPath);
-            if (redistFolderName.StartsWith(redistMajorVersion) && Version.TryParse(redistFolderName, out redistVersion) && redistVersion > outputVersion)
+            if (redistFolderName.StartsWith(redistMajorVersion) && Version.TryParse(redistFolderName, out redistVersion) && redistVersion > version)
             {
                 string redistFilePath = String.Format("{0}\\vc_redist.x64.exe", redistFolderPath);
                 if (File.Exists(redistFilePath))
                 {
-                    OutputPath = redistFilePath;
+                    OutputFilePath = redistFilePath;
+                    OutputVersion = redistFolderName;
                 }
             }
         }
@@ -170,13 +172,11 @@
   </PropertyGroup>
   <Target Name="PostBuildEvent">
     <FindVCRedistSourceFile>
-      <Output PropertyName="ServiceVCRedistSourceFile" TaskParameter="OutputPath" />
+      <Output PropertyName="ServiceVCRedistSourceFile" TaskParameter="OutputFilePath" />
+      <Output PropertyName="ServiceVCRedistTargetVersion" TaskParameter="OutputVersion" />
     </FindVCRedistSourceFile>
     <Error Text="Failed to find vcredist: $(VCToolsRedistVersion)" Condition="!Exists('$(ServiceVCRedistSourceFile)')" />
-    <PropertyGroup>
-      <ServiceVCRedistSourceRelativeFile>$([System.Text.RegularExpressions.Regex]::Replace($(ServiceVCRedistSourceFile),".*?([^\\/]+[\\/]+[^\\/]+)$","$1"))</ServiceVCRedistSourceRelativeFile>
-    </PropertyGroup>    
-    <Message Text="$(ServiceVCRedistSourceRelativeFile) -> $(OutDir)\$(ServiceVCRedistTargetName)" Importance="High" />
+    <Message Text="$(ServiceVCRedistTargetVersion)\$([System.IO.Path]::GetFileName($(ServiceVCRedistSourceFile))) -> $([System.IO.Path]::GetFullPath($(OutDir)\$(ServiceVCRedistTargetName)))" Importance="High" />
     <Copy SourceFiles="$(ServiceVCRedistSourceFile)" DestinationFiles="$(OutDir)\$(ServiceVCRedistTargetName)" SkipUnchangedFiles="true" />
   </Target>
 </Project>

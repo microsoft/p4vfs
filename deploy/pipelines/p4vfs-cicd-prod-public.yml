@@ -11,5 +11,5 @@ stages:
   - template: templates/p4vfs-ci.yml
     parameters:
       configuration: $(configuration)
-      additionalBuildArguments: '/p:P4VFSCodeSignMethod=Attestation'
+      additionalBuildArguments: '/Property:P4VFSCodeSignMethod=Attestation'
 

@@ -12,10 +12,12 @@ stages:
   - template: templates/p4vfs-ci.yml
     parameters:
       configuration: $(configuration)
-      additionalBuildArguments: '/p:P4VFSCodeSignMethod=Legacy'
+      additionalBuildArguments: '/Property:P4VFSCodeSignMethod=Legacy'
 
 - stage: CD
   jobs:
   - template: templates/p4vfs-cd.yml
     parameters:
       configuration: $(configuration)
+      additionalBuildArguments: '/Property:P4VFSPublishDeployDir=\\tc\studio\tools\P4VFS\DevOps'
+

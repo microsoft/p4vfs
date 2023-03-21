@@ -34,17 +34,17 @@ jobs:
   - task: NuGetCommand@2
     displayName: 'NuGet Restore'
     inputs:
-      restoreSolution: '${{ parameters.solutionFile }}'
+      restoreSolution: '${{parameters.solutionFile}}'
 
   - task: VSBuild@1
     displayName: 'Build'
     timeoutInMinutes: 180
     inputs:
       vsVersion: '17.0'
-      solution: '${{ parameters.solutionFile }}'
-      platform: '${{ parameters.platform }}'
-      configuration: '${{ parameters.configuration }}'
-      msbuildArgs: '${{ parameters.additionalBuildArguments }}'
+      solution: '${{parameters.solutionFile}}'
+      platform: '${{parameters.platform}}'
+      configuration: '${{parameters.configuration}}'
+      msbuildArgs: '${{parameters.additionalBuildArguments}}'
 
   - task: PublishSymbols@2
     displayName: 'Publish Symbols'

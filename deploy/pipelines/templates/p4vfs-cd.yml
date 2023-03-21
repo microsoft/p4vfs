@@ -3,10 +3,10 @@ parameters:
 - name: configuration
   displayName: 'Configuration'
   type: string
-  default: 'Release'
+  default: 'ReleaseSign'
 
-- name: publishTo
-  displayName: 'Publish To'
+- name: additionalBuildArguments
+  displayName: 'Additional Build Arguments'
   type: string
   default: ''
 
@@ -25,11 +25,29 @@ jobs:
         - task: NuGetAuthenticate@1
           displayName: 'NuGet Authenticate'
 
-        - task: NuGetCommand@2
-          displayName: 'Push Package to VSTS Feed'
+        - task: MSBuild@1
+          displayName: 'P4VFS Publish'
           inputs:
-            command: 'push'
+            solution: '$(System.DefaultWorkingDirectory)/drop/source/P4VFS.Setup/P4VFS.Setup.targets'
+            msbuildVersion: 17.0
+            msbuildArchitecture: x64
+            configuration: ReleaseSign
+            msbuildArguments: '/Target:P4VFSDeploySetup ${{parameters.additionalBuildArguments}}'
+
+        - task: NuGetCommand@2
+          displayName: 'NuGet pack'
+          inputs:
+            command: pack
+            packagesToPack: '$(System.DefaultWorkingDirectory)/drop/intermediate/builds/P4VFS.Setup/${{parameters.publishTo}}/Resource/*.nuspec'
+            configuration: Release
+            packDestination: '$(Agent.ReleaseDirectory)/packages'
+            versioningScheme: byEnvVar
+            versionEnvVar: P4VFSVersion
+
+        - task: NuGetCommand@2
+          displayName: 'NuGet push'
+          inputs:
+            command: push
+            packagesToPush: '$(Agent.ReleaseDirectory)/packages/*.nupkg;!$(Agent.ReleaseDirectory)/packages/*.symbols.nupkg'
+            publishVstsFeed: '66103a38-2d5b-410d-8814-2d27d51f10f2'
             allowPackageConflicts: true
-            packagesToPush: '$(Pipeline.Workspace)/drop/*.nupkg;'
-            nuGetFeedType: 'internal'
-            publishVstsFeed: ${{ parameters.publishTo }}

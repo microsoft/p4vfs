@@ -28,7 +28,7 @@ jobs:
         - task: MSBuild@1
           displayName: 'P4VFS Publish'
           inputs:
-            solution: '$(System.DefaultWorkingDirectory)/drop/source/P4VFS.Setup/P4VFS.Setup.targets'
+            solution: '$(Pipeline.Workspace)/drop/source/P4VFS.Setup/P4VFS.Setup.targets'
             msbuildVersion: 17.0
             msbuildArchitecture: x64
             configuration: ${{parameters.configuration}}
@@ -38,7 +38,7 @@ jobs:
           displayName: 'NuGet pack'
           inputs:
             command: pack
-            packagesToPack: '$(System.DefaultWorkingDirectory)/drop/intermediate/builds/P4VFS.Setup/${{parameters.configuration}}/Resource/*.nuspec'
+            packagesToPack: '$(Pipeline.Workspace)/drop/intermediate/builds/P4VFS.Setup/${{parameters.configuration}}/Resource/*.nuspec'
             configuration: Release
             packDestination: '$(Agent.ReleaseDirectory)/packages'
             versioningScheme: byEnvVar

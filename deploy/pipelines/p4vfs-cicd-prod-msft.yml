@@ -1,7 +1,6 @@
 
 variables:
   configuration: 'ReleaseSign'
-  poolName: ''
 
 pool: 
   name: TC GFWLCSS

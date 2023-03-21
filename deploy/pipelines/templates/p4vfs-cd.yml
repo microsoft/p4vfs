@@ -3,7 +3,7 @@ parameters:
 - name: configuration
   displayName: 'Configuration'
   type: string
-  default: 'ReleaseSign'
+  default: 'Release'
 
 - name: additionalBuildArguments
   displayName: 'Additional Build Arguments'
@@ -31,14 +31,14 @@ jobs:
             solution: '$(System.DefaultWorkingDirectory)/drop/source/P4VFS.Setup/P4VFS.Setup.targets'
             msbuildVersion: 17.0
             msbuildArchitecture: x64
-            configuration: ReleaseSign
+            configuration: ${{parameters.configuration}}
             msbuildArguments: '/Target:P4VFSDeploySetup ${{parameters.additionalBuildArguments}}'
 
         - task: NuGetCommand@2
           displayName: 'NuGet pack'
           inputs:
             command: pack
-            packagesToPack: '$(System.DefaultWorkingDirectory)/drop/intermediate/builds/P4VFS.Setup/${{parameters.publishTo}}/Resource/*.nuspec'
+            packagesToPack: '$(System.DefaultWorkingDirectory)/drop/intermediate/builds/P4VFS.Setup/${{parameters.configuration}}/Resource/*.nuspec'
             configuration: Release
             packDestination: '$(Agent.ReleaseDirectory)/packages'
             versioningScheme: byEnvVar

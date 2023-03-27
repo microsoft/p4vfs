@@ -24,6 +24,11 @@ namespace Microsoft.P4VFS.External
 			get { return String.Format("{0} {1}", Name, P4VFS_SIGNED_VERSION); }
 		}
 
+		public override string Signature
+		{ 
+			get { return String.Join(";", Name, P4VFS_SIGNED_VERSION, P4VFS_SIGNED_ARTIFACTS_URL); }
+		}
+
 		public string SignedVersionFolderName
 		{
 			get { return Version.Parse(P4VFS_SIGNED_VERSION).ToString(2); }

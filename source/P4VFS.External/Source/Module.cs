@@ -29,6 +29,11 @@ namespace Microsoft.P4VFS.External
 			set; 
 		}
 
+		public abstract string Signature
+		{ 
+			get; 
+		}
+
 		public abstract void Restore();
 	}
 
@@ -280,17 +285,22 @@ namespace Microsoft.P4VFS.External
 			return "";
 		}
 
-		public static bool IsModuleRestored(ModuleContext context)
+		public static bool IsModuleRestored(Module module)
 		{
-			return File.Exists(GetModuleRestoredFile(context));
+			string restoredFile = GetModuleRestoredFile(module.Context);
+			if (File.Exists(restoredFile) && String.Compare(module.Signature ?? "", File.ReadAllText(restoredFile)) == 0)
+			{
+				return true;
+			}
+			return false;
 		}
 
-		public static void SetModuleRestored(ModuleContext context, bool restored = true)
+		public static void SetModuleRestored(Module module, bool restored = true)
 		{
-			string restoredFile = GetModuleRestoredFile(context);
+			string restoredFile = GetModuleRestoredFile(module.Context);
 			if (restored)
 			{
-				File.WriteAllText(restoredFile, "");
+				File.WriteAllText(restoredFile, module.Signature ?? "");
 			}
 			else if (File.Exists(restoredFile))
 			{

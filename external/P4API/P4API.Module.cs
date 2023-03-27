@@ -24,6 +24,11 @@ namespace Microsoft.P4VFS.External
 		{
 			get { return String.Format("{0} {1}", Name, P4API_VERSION); }
 		}
+
+		public override string Signature
+		{ 
+			get { return String.Join(";", Name, P4API_VERSION, P4API_VISUAL_STUDIO_EDITION); }
+		}
 	
 		private void ExtractP4apiSDK(string p4apiZipFile, string targetFolder, string libName)
 		{

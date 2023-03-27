@@ -26,6 +26,11 @@ namespace Microsoft.P4VFS.External
 			get { return String.Format("{0} {1}", Name, OPENSSL_VERSION); }
 		}
 
+		public override string Signature
+		{ 
+			get { return String.Join(";", Name, OPENSSL_VERSION, PERL_PACKAGE_NAME, PERL_VERSION); }
+		}
+
 		private string ExtractOpensslArchive(string opensslArchiveFile)
 		{
 			if (opensslArchiveFile.EndsWith(".tar.gz", StringComparison.InvariantCultureIgnoreCase) == false)

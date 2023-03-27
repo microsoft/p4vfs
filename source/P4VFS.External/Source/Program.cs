@@ -81,7 +81,8 @@ namespace Microsoft.P4VFS.External
 					Module module = Activator.CreateInstance(moduleType) as Module;
 					module.Context = context;
 					module.Context.Properties.Set(ReservedProperty.ModuleDir, Path.Combine(module.Context.Properties.Get(ReservedProperty.ExternalDir), module.Name));
-					if (ModuleInfo.IsModuleRestored(module.Context))
+
+					if (ModuleInfo.IsModuleRestored(module))
 					{
 						Trace.TraceInformation("Module already restored {0} [{1}]", module.Description, moduleType.FullName);
 						continue;
@@ -94,7 +95,8 @@ namespace Microsoft.P4VFS.External
 
 					Trace.TraceInformation("Restoring {0} [{1}]", module.Description, moduleType.FullName);
 					module.Restore();
-					ModuleInfo.SetModuleRestored(module.Context);
+
+					ModuleInfo.SetModuleRestored(module);
 					Trace.TraceInformation("Module restored {0} [{1}]", module.Description, moduleType.FullName);
 				}
 				catch (WarningException e)

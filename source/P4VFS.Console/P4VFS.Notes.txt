@@ -1,5 +1,8 @@
 Microsoft P4VFS Release Notes
 
+Version [1.25.0.0]
+* Updated drivers for VS 2022 and WDK 10.0.22621.382
+
 Version [1.24.2.0]
 * Specializing the Algo::Contains method to for optimized use of HashSet. This significantly 
   speeds up the Contains ops in the last loop of DepotOperations::SyncCommand. @belkiss
@@ -13,7 +16,7 @@ Version [1.24.1.0]
   DevOps for codesign purposes.
 * Updating to Visual Studio 2022 (17.5.1). Platform toolset v143. MSVC Redist 14.34.31931
 * Updating to Windows SDK version 10.0.22621.0 (current latest component install for 17.5.1)
-* Updating to WDK verion 10.0.22621.382
+* Updating to WDK version 10.0.22621.382
 * Updating to OpenSSL 1.1.1t
 * Dropping driver support for Windows 8.1 and earlier.
 

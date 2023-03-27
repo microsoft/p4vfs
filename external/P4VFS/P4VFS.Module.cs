@@ -12,7 +12,7 @@ namespace Microsoft.P4VFS.External
 	public class P4vfsModule : Module
 	{
 		private const string P4VFS_SIGNED_VERSION = "1.25.0.0";
-		private const string P4VFS_SIGNED_ARTIFACTS_URL = "https://github.com/microsoft/p4vfs/releases/download/main";
+		private const string P4VFS_SIGNED_ARTIFACTS_URL = "https://github.com/microsoft/p4vfs/releases/download";
 
 		public override string Name
 		{
@@ -50,7 +50,7 @@ namespace Microsoft.P4VFS.External
 			try
 			{
 				// Try to download the signed production release of P4VFS.Setup for iteration
-				string p4vfsSetupSourceUrl = $"{P4VFS_SIGNED_ARTIFACTS_URL}/P4VFS.Setup-{P4VFS_SIGNED_VERSION}.exe";
+				string p4vfsSetupSourceUrl = String.Format("{0}/v{1}/P4VFS.Setup-{1}.exe", P4VFS_SIGNED_ARTIFACTS_URL, P4VFS_SIGNED_VERSION);
 				string p4vfsSetupFile = ModuleInfo.DownloadFileToFolder(p4vfsSetupSourceUrl, workingFolder);
 				if (File.Exists(p4vfsSetupFile))
 				{

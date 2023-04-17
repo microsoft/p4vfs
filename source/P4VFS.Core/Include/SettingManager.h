@@ -28,6 +28,7 @@ namespace FileCore {
 		_N( String,   ExcludedProcessNames,         L"" ) \
 		_N( int32_t,  CreateFileRetryCount,         8 ) \
 		_N( int32_t,  CreateFileRetryWaitMs,        250 ) \
+		_N( int32_t,  PoolDefaultNumberOfThreads,   8 ) \
 
 
 	class SettingManager;
@@ -150,7 +151,7 @@ namespace FileCore {
 	private:
 		typedef Map<String, SettingNode, StringInfo::LessInsensitive> PropertyMap;
 		PropertyMap m_PropertMap;
-		HANDLE m_Mutex;
+		HANDLE m_PropertMapMutex;
 	};
 
 }}}

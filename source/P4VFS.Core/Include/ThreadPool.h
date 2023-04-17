@@ -7,7 +7,15 @@
 
 namespace Microsoft {
 namespace P4VFS {
-namespace FileCore {
+namespace ThreadPool {
+
+	DWORD
+	GetPoolMaxNumberOfThreads(
+		);
+
+	DWORD
+	GetPoolDefaultNumberOfThreads(
+		);
 
 	struct ForEach
 	{
@@ -29,7 +37,7 @@ namespace FileCore {
 			size_t m_ItemCount;
 			ItemType* m_Items;
 			HANDLE m_CancelationEvent;
-			LogDevice* m_Log;
+			FileCore::LogDevice* m_Log;
 			std::function<void(ItemType&)> m_Predicate;
 			std::function<bool()> m_Initialize;
 			std::function<bool()> m_Shutdown;
@@ -172,7 +180,7 @@ namespace FileCore {
 			ItemType* items, 
 			size_t itemCount, 
 			HANDLE cancelationEvent, 
-			const UserContext* context,
+			const FileCore::UserContext* context,
 			PredicateType predicate
 			)
 		{
@@ -193,6 +201,5 @@ namespace FileCore {
 			return Execute(params);
 		}
 	};
-
 }}}
 #pragma managed(pop)

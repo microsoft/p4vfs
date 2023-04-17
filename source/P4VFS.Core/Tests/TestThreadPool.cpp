@@ -7,6 +7,7 @@
 
 using namespace Microsoft::P4VFS::FileCore;
 using namespace Microsoft::P4VFS::TestCore;
+using namespace Microsoft::P4VFS::ThreadPool;
 
 
 void TestThreadPool(const TestContext& context)

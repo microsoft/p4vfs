@@ -161,13 +161,13 @@ template SettingPropertyScope<String>;
 
 SettingManager::SettingManager()
 {
-	m_Mutex = CreateMutex(NULL, FALSE, NULL);
+	m_PropertMapMutex = CreateMutex(NULL, FALSE, NULL);
 	Reset();
 }
 
 SettingManager::~SettingManager()
 {
-	SafeCloseHandle(m_Mutex);
+	SafeCloseHandle(m_PropertMapMutex);
 }
 
 SettingManager& SettingManager::StaticInstance()
@@ -178,8 +178,6 @@ SettingManager& SettingManager::StaticInstance()
 
 void SettingManager::Reset()
 {
-	AutoMutex lock(m_Mutex);
-
 	using namespace Microsoft::P4VFS::FileSystem;
 	using namespace Microsoft::P4VFS::P4;
 	#define SETTING_MANAGER_DEFINE_PROP(type, name, value) m_##name.Create(this, TEXT(#name), value);
@@ -189,19 +187,19 @@ void SettingManager::Reset()
 
 bool SettingManager::HasProperty(const String& propertyName)
 {
-	AutoMutex lock(m_Mutex);
+	AutoMutex lock(m_PropertMapMutex);
 	return m_PropertMap.find(propertyName) != m_PropertMap.end();
 }
 
 void SettingManager::SetProperty(const String& propertyName, const SettingNode& propertyValue)
 {
-	AutoMutex lock(m_Mutex);
+	AutoMutex lock(m_PropertMapMutex);
 	m_PropertMap[propertyName] = propertyValue;
 }
 
 bool SettingManager::GetProperty(const String& propertyName, SettingNode& propertyValue) const
 {
-	AutoMutex lock(m_Mutex);
+	AutoMutex lock(m_PropertMapMutex);
 	PropertyMap::const_iterator propIt = m_PropertMap.find(propertyName);
 	if (propIt != m_PropertMap.end())
 	{

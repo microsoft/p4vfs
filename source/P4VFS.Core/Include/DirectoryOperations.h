@@ -10,12 +10,22 @@ namespace Microsoft {
 namespace P4VFS {
 namespace DirectoryOperations {
 
+	struct IterateDirectoryFlags { enum Enum
+	{
+		None			= 0,
+		DepthFirst		= 1<<0,
+		BreadthFirst	= 1<<1,
+	};};
+	
+	DEFINE_ENUM_FLAG_OPERATORS(IterateDirectoryFlags::Enum);
+
 	typedef std::function<bool(const FileCore::String&, DWORD dwAttributes)> IterateDirectoryVisitor;
 
-	void IterateDirectoryParallel(
+	HRESULT IterateDirectoryParallel(
 		const WCHAR* folderPath, 
-		IterateDirectoryVisitor* visitor, 
-		int32_t numThreads = -1
+		IterateDirectoryVisitor visitor, 
+		int32_t numThreads = -1,
+		IterateDirectoryFlags::Enum flags = IterateDirectoryFlags::None
 		);
 
 }}}

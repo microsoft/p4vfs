@@ -68,8 +68,7 @@ namespace TestCore {
 		TestObjectList executingTests;
 		for (const TestObject& test : m_Tests)
 		{
-			if (IsRequested(args, test))
-				executingTests.push_back(test);
+			executingTests.push_back(test);
 		}
 
 		WCHAR previousTitle[1024];
@@ -79,13 +78,24 @@ namespace TestCore {
 		for (const TestObject& test : executingTests)
 		{
 			SetConsoleTitle(StringInfo::Format(TEXT("P4VFS UnitTest [%d] TestCore.%s"), test.m_Priority, test.m_Name.c_str()).c_str());
-			context.Log()->Info(StringInfo::Format(TEXT("Running native unit test: %s"), test.m_Name.c_str()));
-			if (test.m_Exec != nullptr)
-				(*test.m_Exec)(context);
+			if (IsRequested(args, test))
+			{
+				context.Log()->Info(StringInfo::Format(TEXT("Running native unit test: [%d] TestCore.%s"), test.m_Priority, test.m_Name.c_str()));
+				if (test.m_Exec != nullptr)
+				{
+					(*test.m_Exec)(context);
+				}
+			}
+			else
+			{
+				context.Log()->Info(StringInfo::Format(TEXT("Skipping native unit test: [%d] TestCore.%s"), test.m_Priority, test.m_Name.c_str()));
+			}
 		}
 
 		if (previousTitleLen)
+		{
 			SetConsoleTitle(previousTitle);
+		}
 	}
 
 	bool TestFactory::IsRequested(const StringArray& args, const TestObject& test) const

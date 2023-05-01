@@ -97,17 +97,7 @@ void DepotStopwatch::Stop()
 	}
 }
 
-int64_t DepotStopwatch::TotalSeconds() const
-{
-	return TotalMicroseconds() / 1000000;
-}
-
-int64_t DepotStopwatch::TotalMilliseconds() const
-{
-	return TotalMicroseconds() / 1000;
-}
-
-int64_t DepotStopwatch::TotalMicroseconds() const
+double DepotStopwatch::DurationSeconds() const
 {
 	LARGE_INTEGER span = m_Span;
 	if (m_Running) 
@@ -116,8 +106,18 @@ int64_t DepotStopwatch::TotalMicroseconds() const
 		QueryPerformanceCounter(&now);
 		span.QuadPart += now.QuadPart - m_Start.QuadPart;
 	}
-	double totalSeconds = double(span.QuadPart) / double(m_Freq.QuadPart);
-	return int64_t(totalSeconds * 1000000.0);
+	double seconds = double(span.QuadPart) / double(m_Freq.QuadPart);
+	return seconds;
+}
+
+double DepotStopwatch::DurationMilliseconds() const
+{
+	return DurationSeconds() * 1000.0;
+}
+
+double DepotStopwatch::DurationMicroseconds() const
+{
+	return DurationSeconds() * 1000000.0;
 }
 
 }}}

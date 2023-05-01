@@ -1,5 +1,16 @@
 Microsoft P4VFS Release Notes
 
+Version [1.25.1.0]
+* Moving native thread pool utilites for system limits into shared location
+* Addition of native parallel directory traversal utility and new TestIterateDirectoryParallel
+  unit test to verify correctness. Implementation allows both the directory traversal, as well 
+  as the visitation, to be done across multiple threads. This is a producer/consumer pattern where 
+  the consumer can also act as a producer. This will be used for sweeping operations including
+  hydrating and reconfiguring files recursively.
+* Addition of new service setting "PoolDefaultNumberOfThreads" to customize the default number
+  of thread pool threads for concurrent operations, such as a virtual sync.
+* Native test factory now displays both skipped and executed tests, similar to Managed factory.
+
 Version [1.25.0.0]
 * Updated drivers for VS 2022 and WDK 10.0.22621.382
 

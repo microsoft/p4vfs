@@ -220,5 +220,8 @@
     <ClCompile Include="Source\ThreadPool.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Tests\TestDirectoryOperations.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

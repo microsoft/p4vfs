@@ -250,6 +250,8 @@ namespace FileCore {
 		static WString			ToString(const wchar_t* str);
 		static uint64_t			HashMd5(const void* data, size_t dataSize);
 		static uint64_t			HashMd5(std::istream& stream);
+		static uint64_t			HashMd5(const WString& s);
+		static uint64_t			HashMd5(const AString& s);
 		static AString			FormatTime(const struct tm* t, const char* fmt);
 		static WString			FormatTime(const struct tm* t, const wchar_t* fmt);
 		static AString			FormatLocalTime(time_t t, const char* fmt);

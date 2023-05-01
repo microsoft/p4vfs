@@ -23,7 +23,7 @@ namespace DirectoryOperations {
 
 	HRESULT IterateDirectoryParallel(
 		const WCHAR* folderPath, 
-		IterateDirectoryVisitor visitor, 
+		const IterateDirectoryVisitor& visitor, 
 		int32_t numThreads = -1,
 		IterateDirectoryFlags::Enum flags = IterateDirectoryFlags::None
 		);

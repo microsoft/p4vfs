@@ -39,7 +39,7 @@ struct IDP
 		HANDLE m_QueueLock;
 		HANDLE m_QueueSemaphore;
 		HANDLE m_CancelationEvent;
-		IterateDirectoryVisitor m_Visitor;
+		const IterateDirectoryVisitor* m_Visitor;
 		IterateDirectoryFlags::Enum m_Flags;
 
 		SharedContext() :
@@ -47,6 +47,7 @@ struct IDP
 			m_QueueLock(NULL),
 			m_QueueSemaphore(NULL),
 			m_CancelationEvent(NULL),
+			m_Visitor(NULL),
 			m_Flags(IterateDirectoryFlags::None)
 		{}
 	};
@@ -130,10 +131,10 @@ struct IDP
 	{
 		if (item.get())
 		{
-			if (shared->m_Visitor)
+			if (shared->m_Visitor != nullptr && *shared->m_Visitor)
 			{
 				// Execute the visitor predicate and skip deeper directory iteration if false. 
-				if (shared->m_Visitor(item->m_Path, item->m_Attributes) == false)
+				if ((*shared->m_Visitor)(item->m_Path, item->m_Attributes) == false)
 				{
 					return;
 				}
@@ -204,7 +205,7 @@ struct IDP
 	}
 };
 
-HRESULT IterateDirectoryParallel(const wchar_t* folderPath, IterateDirectoryVisitor visitor, int32_t numThreads, IterateDirectoryFlags::Enum flags)
+HRESULT IterateDirectoryParallel(const wchar_t* folderPath, const IterateDirectoryVisitor& visitor, int32_t numThreads, IterateDirectoryFlags::Enum flags)
 {
 	FileCore::AutoHandle queueLock = CreateMutex(NULL, FALSE, NULL);
 	FileCore::AutoHandle queueSemaphore = CreateSemaphore(NULL, 0, LONG_MAX, NULL);
@@ -218,7 +219,7 @@ HRESULT IterateDirectoryParallel(const wchar_t* folderPath, IterateDirectoryVisi
 	shared.m_QueueLock = queueLock.Handle();
 	shared.m_QueueSemaphore = queueSemaphore.Handle();
 	shared.m_CancelationEvent = cancelationEvent.Handle();
-	shared.m_Visitor = visitor;
+	shared.m_Visitor = &visitor;
 	shared.m_Flags = flags;
 
 	const int32_t maxThreads = ThreadPool::GetPoolMaxNumberOfThreads();

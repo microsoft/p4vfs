@@ -76,6 +76,7 @@
     <ClCompile Include="Tests\TestDepotClientCache.cpp" />
     <ClCompile Include="Tests\TestDepotOperations.cpp" />
     <ClCompile Include="Tests\TestDepotRevision.cpp" />
+    <ClCompile Include="Tests\TestDirectoryOperations.cpp" />
     <ClCompile Include="Tests\TestDriver.cpp" />
     <ClCompile Include="Tests\TestFactory.cpp" />
     <ClCompile Include="Tests\TestFileInfo.cpp" />

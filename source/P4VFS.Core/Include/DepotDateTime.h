@@ -53,9 +53,13 @@ namespace P4 {
 		void Start();
 		void Stop();
 
-		int64_t TotalSeconds() const;
-		int64_t TotalMilliseconds() const;
-		int64_t TotalMicroseconds() const;
+		int64_t TotalSeconds() const { return static_cast<int64_t>(DurationSeconds()); }
+		int64_t TotalMilliseconds() const { return static_cast<int64_t>(DurationMilliseconds()); }
+		int64_t TotalMicroseconds() const { return static_cast<int64_t>(DurationMicroseconds()); }
+
+		double DurationSeconds() const;
+		double DurationMilliseconds() const;
+		double DurationMicroseconds() const;
 
 	private:
 		LARGE_INTEGER m_Freq;

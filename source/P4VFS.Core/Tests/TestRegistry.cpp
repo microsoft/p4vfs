@@ -58,3 +58,6 @@ P4VFS_REGISTER_TEST( TestDriverUnicodeString,					10900 )
 P4VFS_REGISTER_TEST( TestFileOperationsUnicodeString,			11000 )
 P4VFS_REGISTER_TEST( TestFileOperationsOpenReparsePointFile,	11001 )
 
+// TestDirectoryOperations
+P4VFS_REGISTER_TEST( TestIterateDirectoryParallel,				12000 )
+

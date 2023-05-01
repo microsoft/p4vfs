@@ -1,7 +1,7 @@
 # Introduction 
 Microsoft Virtual File System for Perforce (**P4VFS**)
 
-The P4VFS is a Windows service that allows you to sync files from Perforce very quickly using almost no disk space. The contents of a file will be download automatically on-demand when first needed. You can seemlessly mix any use of P4VFS virtual sync with regular Perforce sync's using P4V and p4.exe.
+The P4VFS is a Windows service that allows you to sync files from Perforce quickly using almost no disk space. The contents of a file will be download automatically on-demand when first needed. You can seamlessly mix any use of P4VFS virtual sync with regular Perforce sync's using P4V and p4.exe.
 
 For example, you can use the P4VFS to perform a "virtual sync" to a Perforce filespec and it will complete relatively quickly, and the files will exist on machine as usual. However, the actual size of the files on disk will be zero, and the file contents will be downloaded on-demand during the first read operation.
 
@@ -21,9 +21,9 @@ The entire history of release notes is included with the installer.
 * Windows 8.1 (P4VFS 1.24.0.0 and earlier)
 
 # Technical Overview
-P4VFS is a Windows service, driver, and console application that allows us to sync files from Perforce immediately, and then actually download the file contents on-demand. It introduces the concept of a "Virtual" sync, where a file revision can be sync'ed from Perforce and will exist locally on disk with a correct size, but zero disk-size, until accessed. When first opened, the Windows NTFS file system will automatically download file's contents, and the file will be read as expected.
+P4VFS is a Windows service, driver, and console application that allows us to sync files from Perforce immediately, and then actually download the file contents on-demand. It introduces the concept of a "virtual" sync, where a file revision can be sync'ed from Perforce and will exist locally on disk with a correct size, but zero disk-size, until accessed. When first opened, the Windows NTFS file system will automatically download file's contents, and the file will be read as expected.
 
-The P4VFS is intended to work perfectly seamless with regular p4 and p4v usage. There is no need for special perforce configuration, special clientspecs, or any other non-sense. You can feel free to sync files immediately using **p4.exe**, or sync a zero sized "offline" file with contents on demand using **p4vfs.exe**.
+The P4VFS is intended to work perfectly seamless with regular p4 and p4v usage. There is no need for special perforce server configuration, special workspaces, or any other client settings. You can feel free to sync files immediately using **p4.exe**, or use **p4vfs.exe** to virtual sync zero sized "offline" files with contents downloaded on-demand.
 
 # Basic Usage
 The main program that you'll use to do a virtual sync, and possibly other P4VFS operations, is **p4vfs.exe**. 

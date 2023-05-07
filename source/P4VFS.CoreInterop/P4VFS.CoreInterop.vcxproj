@@ -26,6 +26,7 @@
     <ClInclude Include="Include\DriverOperationsInterop.h" />
     <ClInclude Include="Include\FileInterop.h" />
     <ClInclude Include="Include\ServiceOperationsInterop.h" />
+    <ClInclude Include="Include\SettingManagerInterop.h" />
     <ClInclude Include="Source\Pch.h" />
     <ClInclude Include="Tests\TestFactoryInterop.h" />
   </ItemGroup>
@@ -45,6 +46,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Source\ServiceOperationsInterop.cpp" />
+    <ClCompile Include="Source\SettingManagerInterop.cpp" />
     <ClCompile Include="Tests\TestFactoryInterop.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

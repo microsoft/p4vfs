@@ -69,7 +69,7 @@ MakeFileResident(
 	}
 
 	const String fileSpec = StringInfo::Format(L"%s#%u", populateInfo->depotPath.c_str(), uint32_t(populateInfo->fileRevision));
-	const FilePopulateMethod::Enum populateMethod = FilePopulateMethod::FromString(StringInfo::ToAnsi(SettingManager::StaticInstance().m_PopulateMethod.GetValue()));
+	const FilePopulateMethod::Enum populateMethod = FilePopulateMethod::FromString(StringInfo::ToAnsi(SettingManager::StaticInstance().PopulateMethod.GetValue()));
 	
 	switch (populateMethod)
 	{
@@ -252,7 +252,7 @@ IsExcludedProcessId(
 	ULONG processId
 	)
 {
-	String excludedNames = SettingManager::StaticInstance().m_ExcludedProcessNames.GetValue();
+	String excludedNames = SettingManager::StaticInstance().ExcludedProcessNames.GetValue();
 	if (excludedNames.empty() == false)
 	{
 		String processName = FileInfo::FileName(Process::GetProcessNameById(processId).c_str());

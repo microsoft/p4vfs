@@ -178,9 +178,7 @@ SettingManager& SettingManager::StaticInstance()
 
 void SettingManager::Reset()
 {
-	using namespace Microsoft::P4VFS::FileSystem;
-	using namespace Microsoft::P4VFS::P4;
-	#define SETTING_MANAGER_DEFINE_PROP(type, name, value) m_##name.Create(this, TEXT(#name), value);
+	#define SETTING_MANAGER_DEFINE_PROP(type, name, value) name##.Create(this, TEXT(#name), value);
 	SETTING_MANAGER_PROPERTIES(SETTING_MANAGER_DEFINE_PROP)
 	#undef SETTING_MANAGER_DEFINE_PROP
 }
@@ -207,6 +205,26 @@ bool SettingManager::GetProperty(const String& propertyName, SettingNode& proper
 		return true;
 	}
 	return false;
+}
+
+void SettingManager::SetProperties(const PropertyMap& propertyMap)
+{
+	AutoMutex lock(m_PropertMapMutex);
+	for (PropertyMap::const_iterator propertyIt = propertyMap.begin(); propertyIt != propertyMap.end(); ++propertyIt)
+	{
+		m_PropertMap[propertyIt->first] = propertyIt->second;
+	}
+}
+
+bool SettingManager::GetProperties(PropertyMap& propertyMap) const
+{
+	AutoMutex lock(m_PropertMapMutex);
+	propertyMap.clear();
+	for (PropertyMap::const_iterator propertyIt = m_PropertMap.begin(); propertyIt != m_PropertMap.end(); ++propertyIt)
+	{
+		propertyMap[propertyIt->first] = propertyIt->second;
+	}
+	return true;
 }
 
 }}}

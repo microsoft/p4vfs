@@ -298,7 +298,7 @@ namespace Microsoft.P4VFS.UnitTest
 
 			Extensions.SocketModel.SocketModelClient service = new Extensions.SocketModel.SocketModelClient(); 
 			Assert(service.GarbageCollect());
-			Assert(service.SetServiceSetting(nameof(ServiceSettings.ExcludedProcessNames), SettingNode.FromString(ExcludedProcessNames)));
+			Assert(service.SetServiceSetting(nameof(SettingManager.ExcludedProcessNames), SettingNode.FromString(ExcludedProcessNames)));
 		}
 
 		public void ServiceRestart()
@@ -762,8 +762,8 @@ namespace Microsoft.P4VFS.UnitTest
 
 		public void ApplyGlobal()
 		{
-			UnitTestBase.Assert(ServiceSettings.SetNode(new SettingNode(Value), Name));
-			UnitTestBase.Assert(ServiceSettings.GetJson(Name).ToString() == ServiceSettings.SettingNodeToJson(new SettingNode(Value)).ToString());
+			UnitTestBase.Assert(ServiceSettings.SetProperty(new SettingNode(Value), Name));
+			UnitTestBase.Assert(ServiceSettings.GetPropertyJson(Name).ToString() == ServiceSettings.SettingNodeToJson(new SettingNode(Value)).ToString());
 		}
 	}
 

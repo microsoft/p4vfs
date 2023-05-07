@@ -149,18 +149,18 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 			else if (msg.Type == typeof(SocketModelRequestSetServiceSetting).Name)
 			{
 				SocketModelRequestSetServiceSetting request = msg.GetData<SocketModelRequestSetServiceSetting>();
-				SocketModelReply reply = new SocketModelReply() { Success = ServiceSettings.SetNode(request.Value, request.Name) };
+				SocketModelReply reply = new SocketModelReply() { Success = ServiceSettings.SetProperty(request.Value, request.Name) };
 				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply));
 			}
 			else if (msg.Type == typeof(SocketModelRequestGetServiceSetting).Name)
 			{
 				SocketModelRequestGetServiceSetting request = msg.GetData<SocketModelRequestGetServiceSetting>();
-				SocketModelReplyGetServiceSetting reply = new SocketModelReplyGetServiceSetting() { Value = ServiceSettings.GetNode(request.Name) };
+				SocketModelReplyGetServiceSetting reply = new SocketModelReplyGetServiceSetting() { Value = ServiceSettings.GetProperty(request.Name) };
 				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply));
 			}
 			else if (msg.Type == typeof(SocketModelRequestGetServiceSettings).Name)
 			{
-				SocketModelReplyGetServiceSettings reply = new SocketModelReplyGetServiceSettings() { Settings = ServiceSettings.GetMap() };
+				SocketModelReplyGetServiceSettings reply = new SocketModelReplyGetServiceSettings() { Settings = SettingManager.GetProperties() };
 				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply));
 			}
 			else if (msg.Type == typeof(SocketModelRequestGarbageCollect).Name)

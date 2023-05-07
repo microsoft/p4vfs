@@ -87,7 +87,7 @@ namespace Microsoft.P4VFS.CodeSign
 			esrpClientArgs += $" -p \"{signPolicyFile}\"";
 			esrpClientArgs += $" -i \"{signInputFile}\"";
 			esrpClientArgs += $" -o \"{signOutputLogFile}\"";
-			esrpClientArgs += $" -l {(ServiceSettings.Verbosity == LogChannel.Verbose ? "Verbose" : "Information")}";
+			esrpClientArgs += $" -l {(SettingManagerExtensions.Verbosity == LogChannel.Verbose ? "Verbose" : "Information")}";
 			int esrpClientExitCode = ProcessInfo.ExecuteWait(esrpClientExe, esrpClientArgs, echo: true, log: true);
 
 			VirtualFileSystemLog.Info("EsrpClient exit code: {0}", esrpClientExitCode);

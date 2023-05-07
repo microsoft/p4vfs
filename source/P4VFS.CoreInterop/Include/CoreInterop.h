@@ -5,7 +5,6 @@
 #include "DriverVersion.h"
 #include "DriverTrace.h"
 #include "LogDevice.h"
-#include "SettingManager.h"
 #ifdef GetFileAttributes
 #undef GetFileAttributes
 #endif
@@ -129,104 +128,6 @@ public:
 
 	static void
 	Shutdown(
-		);
-};
-
-public ref class SettingNode
-{
-public:
-
-	SettingNode(
-		);
-
-	SettingNode(
-		System::String^ data
-		);
-
-	SettingNode(
-		System::String^ data,
-		System::String^ node
-		);
-
-	SettingNode(
-		System::String^ data,
-		array<SettingNode^>^ nodes
-		);
-
-	System::String^
-	ToString(
-		) override;
-
-	System::String^
-	ToString(
-		System::String^ defaultValue
-		);
-
-	System::Int32
-	ToInt32(
-		);
-
-	System::Int32
-	ToInt32(
-		System::Int32 defaultValue
-		);
-
-	System::Boolean
-	ToBool(
-		);
-
-	System::Boolean
-	ToBool(
-		System::Boolean defaultValue
-		);
-
-	FileCore::SettingNode
-	ToNative(
-		);
-	
-	static SettingNode^
-	FromString(
-		System::String^ value
-		);
-
-	static SettingNode^
-	FromInt32(
-		System::Int32 value
-		);
-
-	static SettingNode^
-	FromBool(
-		System::Boolean value
-		);
-
-	static SettingNode^ 
-	FromNative(
-		const FileCore::SettingNode& srcNode
-		);
-
-public:
-
-	System::String^ m_Data;
-	array<SettingNode^>^ m_Nodes;
-};
-
-public ref class SettingManager abstract sealed
-{
-public:
-
-	static void
-	Reset(
-		);
-
-	static SettingNode^ 
-	GetProperty(
-		System::String^ name
-		);
-
-	static bool
-	SetProperty(
-		System::String^ name,
-		SettingNode^ value
 		);
 };
 

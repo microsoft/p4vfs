@@ -159,7 +159,7 @@ DepotOperations::SyncVirtual(
 		Array<DepotClient> depotClientList;
 		depotClientList.push_back(depotClient);
 
-		size_t maxThreads = size_t(std::max(1, SettingManager::StaticInstance().m_MaxSyncConnections.GetValue()));
+		size_t maxThreads = size_t(std::max(1, SettingManager::StaticInstance().MaxSyncConnections.GetValue()));
 		FSyncVirtualModificationParams params(log, depotClient, resultModifications);
 
 		ThreadPool::ForEach::ExecuteImpersonated(
@@ -1104,7 +1104,7 @@ DepotOperations::ResolveDepotServerName(
 	DepotString& targetName
 	)
 {
-	const SettingNode dsc = SettingManager::StaticInstance().m_DepotServerConfig.GetNode();
+	const SettingNode dsc = SettingManager::StaticInstance().DepotServerConfig.GetNode();
 	if (StringInfo::Stricmp(dsc.Data().c_str(), L"Servers") == 0)
 	{
 		for (const SettingNode& entry : dsc.Nodes())

@@ -11,6 +11,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using Microsoft.P4VFS.Extensions;
+using Microsoft.P4VFS.CoreInterop;
 using Forms = System.Windows.Forms;
 
 namespace Microsoft.P4VFS.Monitor
@@ -58,8 +59,8 @@ namespace Microsoft.P4VFS.Monitor
 
 			_LogFolders = new string[] 
 			{
-				Environment.ExpandEnvironmentVariables(Path.Combine(ServiceSettings.FileLoggerRemoteDirectory, Environment.UserName, VirtualFileSystem.ServiceTitle)),
-				Environment.ExpandEnvironmentVariables(Path.Combine(ServiceSettings.FileLoggerLocalDirectory, VirtualFileSystem.ServiceTitle))
+				Environment.ExpandEnvironmentVariables(Path.Combine(SettingManager.FileLoggerRemoteDirectory, Environment.UserName, VirtualFileSystem.ServiceTitle)),
+				Environment.ExpandEnvironmentVariables(Path.Combine(SettingManager.FileLoggerLocalDirectory, VirtualFileSystem.ServiceTitle))
 			};
 
 			_LogFile = FindLatestLogFilePath();

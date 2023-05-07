@@ -310,8 +310,8 @@ namespace Microsoft.P4VFS.UnitTest
 		[TestMethod, Priority(5), TestRemote]
 		public void VirtualFileSystemLogTest()
 		{
-			bool lastImmediateLogging = ServiceSettings.ImmediateLogging;
-			ServiceSettings.ImmediateLogging = false;
+			bool lastImmediateLogging = SettingManager.ImmediateLogging;
+			SettingManager.ImmediateLogging = false;
 			VirtualFileSystemLog.Flush();
 			VirtualFileSystemLog.Suspend();
 
@@ -324,7 +324,7 @@ namespace Microsoft.P4VFS.UnitTest
 			VirtualFileSystemLog.Flush();
 			Assert(VirtualFileSystemLog.IsPending == false);
 			
-			ServiceSettings.ImmediateLogging = true;
+			SettingManager.ImmediateLogging = true;
 			VirtualFileSystemLog.Flush();
 			for (int i = 0; i < 4; ++i)
 			{
@@ -332,7 +332,7 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(VirtualFileSystemLog.IsPending == false);
 			}
 			
-			ServiceSettings.ImmediateLogging = false;
+			SettingManager.ImmediateLogging = false;
 			VirtualFileSystemLog.Flush();
 			VirtualFileSystemLog.Suspend();
 
@@ -344,7 +344,7 @@ namespace Microsoft.P4VFS.UnitTest
 			VirtualFileSystemLog.Flush();
 			Assert(VirtualFileSystemLog.IsPending == false);
 
-			ServiceSettings.ImmediateLogging = lastImmediateLogging;
+			SettingManager.ImmediateLogging = lastImmediateLogging;
 			VirtualFileSystemLog.Flush();
 		}
 
@@ -622,7 +622,7 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
 				string clientRoot = GetClientRoot(depotClient);
 
-				bool expectFolderTimeEqual = ServiceSettings.PopulateMethod != FilePopulateMethod.Move;
+				bool expectFolderTimeEqual = SettingManagerExtensions.PopulateMethod != FilePopulateMethod.Move;
 				string srcFile = String.Format(@"{0}\depot\gears1\Development\External\nvDXT\Lib\nvDXTlib.vc7.lib", clientRoot);
 				string srcFileFolder = System.IO.Path.GetDirectoryName(srcFile);
 
@@ -984,17 +984,17 @@ namespace Microsoft.P4VFS.UnitTest
 			Action AssertCurrentServiceSettings = () =>
 			{
 				// Test DepotServerConfig get/set
-				DepotServerConfig c0 = ServiceSettings.DepotServerConfig;
+				DepotServerConfig c0 = SettingManagerExtensions.DepotServerConfig;
 				Assert(c0 != null);
-				ServiceSettings.DepotServerConfig = c0;
-				DepotServerConfig c1 = ServiceSettings.DepotServerConfig;
+				SettingManagerExtensions.DepotServerConfig = c0;
+				DepotServerConfig c1 = SettingManagerExtensions.DepotServerConfig;
 				Assert(c1 != null);
 				Assert(JsonConvert.SerializeObject(c0) == JsonConvert.SerializeObject(c1));
 
 				// Test DepotServerConfig GetJson/SetJson
-				Newtonsoft.Json.Linq.JToken t0 = ServiceSettings.GetJson("DepotServerConfig");
-				ServiceSettings.SetJson(t0, "DepotServerConfig");
-				Newtonsoft.Json.Linq.JToken t1 = ServiceSettings.GetJson("DepotServerConfig");
+				Newtonsoft.Json.Linq.JToken t0 = ServiceSettings.GetPropertyJson("DepotServerConfig");
+				ServiceSettings.SetPropertyJson(t0, "DepotServerConfig");
+				Newtonsoft.Json.Linq.JToken t1 = ServiceSettings.GetPropertyJson("DepotServerConfig");
 				Assert(JsonConvert.SerializeObject(t0) == JsonConvert.SerializeObject(t1));
 				Assert(JsonConvert.SerializeObject(t0) == JsonConvert.SerializeObject(ServiceSettings.SettingNodeToJson(ServiceSettings.SettingNodeFromJson(t1))));
 
@@ -1020,19 +1020,19 @@ namespace Microsoft.P4VFS.UnitTest
 
 			// Add remapping entries to a DepotServerConfig for testing
 			Extensions.SocketModel.SocketModelClient client = new Extensions.SocketModel.SocketModelClient();
-			DepotServerConfig depotServerConfig = DepotServerConfig.FromNode(client.GetServiceSetting(nameof(ServiceSettings.DepotServerConfig)));
+			DepotServerConfig depotServerConfig = DepotServerConfig.FromNode(client.GetServiceSetting(nameof(SettingManagerExtensions.DepotServerConfig)));
 			List<DepotServerConfigEntry> servers = new List<DepotServerConfigEntry>(depotServerConfig.Servers ?? new DepotServerConfigEntry[0]);
 			servers.Add(new DepotServerConfigEntry { Pattern = @"^p4-localhost4([\.:].+)?$", Address = _P4Port });
 			servers.Add(new DepotServerConfigEntry { Pattern = @"^p4-blacktusk4([\.:].+)?$", Address = "p4-blacktusk:1666" });
 			depotServerConfig.Servers = servers.ToArray();
-			DepotServerConfig previousDepotServerConfig = ServiceSettings.DepotServerConfig;
-			ServiceSettings.DepotServerConfig = depotServerConfig;
-			Assert(JsonConvert.SerializeObject(ServiceSettings.DepotServerConfig) == JsonConvert.SerializeObject(depotServerConfig));
+			DepotServerConfig previousDepotServerConfig = SettingManagerExtensions.DepotServerConfig;
+			SettingManagerExtensions.DepotServerConfig = depotServerConfig;
+			Assert(JsonConvert.SerializeObject(SettingManagerExtensions.DepotServerConfig) == JsonConvert.SerializeObject(depotServerConfig));
 			AssertCurrentServiceSettings();
 
 			// Test assigning the new DepotServerConfig on the Service
-			Assert(client.SetServiceSetting(nameof(ServiceSettings.DepotServerConfig), depotServerConfig.ToNode()));
-			Assert(JsonConvert.SerializeObject(depotServerConfig) == JsonConvert.SerializeObject(DepotServerConfig.FromNode(client.GetServiceSetting(nameof(ServiceSettings.DepotServerConfig)))));
+			Assert(client.SetServiceSetting(nameof(SettingManagerExtensions.DepotServerConfig), depotServerConfig.ToNode()));
+			Assert(JsonConvert.SerializeObject(depotServerConfig) == JsonConvert.SerializeObject(DepotServerConfig.FromNode(client.GetServiceSetting(nameof(SettingManagerExtensions.DepotServerConfig)))));
 
 			// Test the local DepotServerConfig pattern matching of the host name resolving
 			Assert(DepotOperations.ResolveDepotServerName(_P4Port) == _P4Port);
@@ -1058,8 +1058,8 @@ namespace Microsoft.P4VFS.UnitTest
 				string clientRoot = GetClientRoot(depotClient);
 				
 				settings.ApplyGlobal();
-				ServiceSettings.DepotServerConfig = depotServerConfig;
-				Assert(JsonConvert.SerializeObject(ServiceSettings.DepotServerConfig) == JsonConvert.SerializeObject(depotServerConfig));
+				SettingManagerExtensions.DepotServerConfig = depotServerConfig;
+				Assert(JsonConvert.SerializeObject(SettingManagerExtensions.DepotServerConfig) == JsonConvert.SerializeObject(depotServerConfig));
 				AssertCurrentServiceSettings();
 
 				string srcFile = String.Format(@"{0}\depot\gears1\Development\Src\Core\Src\Core.cpp", clientRoot);				
@@ -1117,17 +1117,17 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(FileUtilities.GetFileLength(tempFile.LocalFilePath) == 0);
 				
 				// Testing save XML with modified settings
-				SettingNodeMap settings0 = ServiceSettings.GetMap();
-				ServiceSettings.ImmediateLogging = !ServiceSettings.ImmediateLogging;
-				ServiceSettings.Verbosity = ServiceSettings.Verbosity + 1;
-				ServiceSettings.DepotServerConfig = new DepotServerConfig{ Servers = new[]{ new DepotServerConfigEntry{ Pattern = "MyHost*", Address = "127.0.0.1:1666" }}};
+				SettingNodeMap settings0 = SettingManager.GetProperties();
+				SettingManager.ImmediateLogging = !SettingManager.ImmediateLogging;
+				SettingManagerExtensions.Verbosity = SettingManagerExtensions.Verbosity + 1;
+				SettingManagerExtensions.DepotServerConfig = new DepotServerConfig{ Servers = new[]{ new DepotServerConfigEntry{ Pattern = "MyHost*", Address = "127.0.0.1:1666" }}};
 				Assert(ServiceSettings.SaveToFile(tempFile.LocalFilePath));
 				Assert(FileUtilities.GetFileLength(tempFile.LocalFilePath) > 0);
 				
 				// Restore settings to original values and verify match
-				SettingNodeMap settings1 = ServiceSettings.GetMap();
-				Assert(ServiceSettings.SetMap(settings0));
-				SettingNodeMap settings2 = ServiceSettings.GetMap();
+				SettingNodeMap settings1 = SettingManager.GetProperties();
+				Assert(SettingManager.SetProperties(settings0));
+				SettingNodeMap settings2 = SettingManager.GetProperties();
 				string jsonSettings0 = JsonConvert.SerializeObject(settings0);
 				string jsonSettings1 = JsonConvert.SerializeObject(settings1);
 				string jsonSettings2 = JsonConvert.SerializeObject(settings2);
@@ -1137,7 +1137,7 @@ namespace Microsoft.P4VFS.UnitTest
 
 				// Testing load XML with modified settings and verify match
 				Assert(ServiceSettings.LoadFromFile(tempFile.LocalFilePath));
-				SettingNodeMap settings3 = ServiceSettings.GetMap();
+				SettingNodeMap settings3 = SettingManager.GetProperties();
 				string jsonSettings3 = JsonConvert.SerializeObject(settings3);
 				Assert(String.IsNullOrEmpty(jsonSettings3) == false);
 				Assert(jsonSettings1 == jsonSettings3);
@@ -1146,29 +1146,29 @@ namespace Microsoft.P4VFS.UnitTest
 				XmlDocument settingsDoc = new XmlDocument();
 				settingsDoc.Load(tempFile.LocalFilePath);
 				var settingsDocRemove = new Func<string, int>(s => settingsDoc.SelectNodes(".//"+s).OfType<XmlElement>().ToList().Count(n => { n.ParentNode.RemoveChild(n); return true; }));
-				Assert(settingsDocRemove("FileLoggerRemoteDirectory") == 1);
-				Assert(settingsDocRemove("ReportUsageExternally") == 1);
-				Assert(settingsDocRemove("RemoteLogging") == 1);
-				Assert(settingsDocRemove("MaxSyncConnections") == 1);
+				Assert(settingsDocRemove(nameof(SettingManager.FileLoggerRemoteDirectory)) == 1);
+				Assert(settingsDocRemove(nameof(SettingManager.ReportUsageExternally)) == 1);
+				Assert(settingsDocRemove(nameof(SettingManager.RemoteLogging)) == 1);
+				Assert(settingsDocRemove(nameof(SettingManager.MaxSyncConnections)) == 1);
 				settingsDoc.Save(tempFile.LocalFilePath);
 
 				// Testing load of partial overrides to confirm defaults and overrides
-				Assert(ServiceSettings.SetMap(settings0));
-				Assert(jsonSettings0 == JsonConvert.SerializeObject(ServiceSettings.GetMap()));
+				Assert(SettingManager.SetProperties(settings0));
+				Assert(jsonSettings0 == JsonConvert.SerializeObject(SettingManager.GetProperties()));
 				Assert(ServiceSettings.LoadFromFile(tempFile.LocalFilePath));
-				SettingNodeMap settings4 = ServiceSettings.GetMap();
+				SettingNodeMap settings4 = SettingManager.GetProperties();
 				string jsonSettings4 = JsonConvert.SerializeObject(settings4);
 				Assert(jsonSettings1 == jsonSettings4);
 
 				// Restore settings to original values and verify match
-				Assert(ServiceSettings.SetMap(settings0));
-				SettingNodeMap settings5 = ServiceSettings.GetMap();
+				Assert(SettingManager.SetProperties(settings0));
+				SettingNodeMap settings5 = SettingManager.GetProperties();
 				string jsonSettings5 = JsonConvert.SerializeObject(settings5);
 				Assert(String.IsNullOrEmpty(jsonSettings5) == false);
 				Assert(jsonSettings0 == jsonSettings5);
 			}}}
 
-			ServiceSettings.DepotServerConfig = previousDepotServerConfig;
+			SettingManagerExtensions.DepotServerConfig = previousDepotServerConfig;
 			AssertCurrentServiceSettings();
 
 			ServiceRestart();
@@ -1344,7 +1344,7 @@ namespace Microsoft.P4VFS.UnitTest
 			Assert(status.LastModifiedTime > DateTime.MinValue);
 			Assert(status.LastRequestTime > DateTime.MinValue);
 
-			SettingNodeMap defaultSettings = ServiceSettings.GetMap();
+			SettingNodeMap defaultSettings = SettingManager.GetProperties();
 			SettingNodeMap currentSettings = client.GetServiceSettings();
 			Assert(currentSettings != null);
 			Assert(JsonConvert.SerializeObject(currentSettings) != null);

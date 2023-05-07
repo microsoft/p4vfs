@@ -9,26 +9,28 @@ namespace P4VFS {
 namespace FileCore {
 
 	#define SETTING_MANAGER_PROPERTIES(_N) \
-		_N( bool,     AllowSymlinkResidencyPolicy,  false ) \
-		_N( bool,     ConsoleImmediateLogging,      true ) \
-		_N( bool,     ConsoleRemoteLogging,         false ) \
-		_N( String,   DefaultFlushType,             CSTR_ATOW(DepotFlushType::ToString(DepotFlushType::Atomic)) ) \
-		_N( String,   DepotServerConfig,            L"" ) \
-		_N( String,   FileLoggerLocalDirectory,     L"%PUBLIC%\\Public Logs\\P4VFS" ) \
-		_N( String,   FileLoggerRemoteDirectory,    L"" ) \
-		_N( bool,     ImmediateLogging,             false ) \
-		_N( int32_t,  MaxSyncConnections,           8 ) \
-		_N( String,   PopulateMethod,               CSTR_ATOW(FilePopulateMethod::ToString(FilePopulateMethod::Stream)) ) \
-		_N( bool,     RemoteLogging,                false ) \
-		_N( bool,     ReportUsageExternally,        false ) \
-		_N( bool,     SyncDefaultQuiet,             false ) \
-		_N( String,   SyncResidentPattern,          L"" ) \
-		_N( bool,     Unattended,                   false ) \
-		_N( String,   Verbosity,                    CSTR_ATOW(LogChannel::ToString(LogChannel::Info)) ) \
-		_N( String,   ExcludedProcessNames,         L"" ) \
-		_N( int32_t,  CreateFileRetryCount,         8 ) \
-		_N( int32_t,  CreateFileRetryWaitMs,        250 ) \
-		_N( int32_t,  PoolDefaultNumberOfThreads,   8 ) \
+		_N( bool,     AllowSymlinkResidencyPolicy,     false ) \
+		_N( bool,     ConsoleImmediateLogging,         true ) \
+		_N( bool,     ConsoleRemoteLogging,            false ) \
+		_N( String,   DefaultFlushType,                CSTR_ATOW(P4::DepotFlushType::ToString(P4::DepotFlushType::Atomic)) ) \
+		_N( String,   DepotServerConfig,               L"" ) \
+		_N( String,   FileLoggerLocalDirectory,        L"%PUBLIC%\\Public Logs\\P4VFS" ) \
+		_N( String,   FileLoggerRemoteDirectory,       L"" ) \
+		_N( bool,     ImmediateLogging,                false ) \
+		_N( int32_t,  MaxSyncConnections,              8 ) \
+		_N( String,   PopulateMethod,                  CSTR_ATOW(FileSystem::FilePopulateMethod::ToString(FileSystem::FilePopulateMethod::Stream)) ) \
+		_N( bool,     RemoteLogging,                   false ) \
+		_N( bool,     ReportUsageExternally,           false ) \
+		_N( bool,     SyncDefaultQuiet,                false ) \
+		_N( String,   SyncResidentPattern,             L"" ) \
+		_N( bool,     Unattended,                      false ) \
+		_N( String,   Verbosity,                       CSTR_ATOW(FileCore::LogChannel::ToString(FileCore::LogChannel::Info)) ) \
+		_N( String,   ExcludedProcessNames,            L"" ) \
+		_N( int32_t,  CreateFileRetryCount,            8 ) \
+		_N( int32_t,  CreateFileRetryWaitMs,           250 ) \
+		_N( int32_t,  PoolDefaultNumberOfThreads,      8 ) \
+		_N( int32_t,  GarbageCollectPeriodMs,          5*60*1000 ) \
+		_N( int32_t,  DepotClientCacheIdleTimeoutMs,   10*60*1000 ) \
 
 
 	class SettingManager;
@@ -144,12 +146,15 @@ namespace FileCore {
 		P4VFS_CORE_API void SetProperty(const String& propertyName, const SettingNode& propertyValue);
 		P4VFS_CORE_API bool GetProperty(const String& propertyName, SettingNode& propertyValue) const;
 
-		#define SETTING_MANAGER_DECLARE_PROP(type, name, value)  SettingProperty<type> m_##name;
+		typedef Map<String, SettingNode, StringInfo::LessInsensitive> PropertyMap;
+		P4VFS_CORE_API void SetProperties(const PropertyMap& propertyMap);
+		P4VFS_CORE_API bool GetProperties(PropertyMap& propertyMap) const;
+
+		#define SETTING_MANAGER_DECLARE_PROP(type, name, value)  SettingProperty<type> name;
 		SETTING_MANAGER_PROPERTIES(SETTING_MANAGER_DECLARE_PROP)
 		#undef SETTING_MANAGER_DECLARE_PROP
 
 	private:
-		typedef Map<String, SettingNode, StringInfo::LessInsensitive> PropertyMap;
 		PropertyMap m_PropertMap;
 		HANDLE m_PropertMapMutex;
 	};

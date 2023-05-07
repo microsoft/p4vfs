@@ -21,8 +21,8 @@ namespace FileCore {
 			Error
 		};
 
-		static AString ToString(Enum value);
-		static LogChannel::Enum FromString(const AString& value);
+		P4VFS_CORE_API static AString ToString(Enum value);
+		P4VFS_CORE_API static LogChannel::Enum FromString(const AString& value);
 	};
 
 	struct LogElement

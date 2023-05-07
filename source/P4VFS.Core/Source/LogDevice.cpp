@@ -106,14 +106,14 @@ LogDeviceFile::LogDeviceFile(const UserContext* impersonate)
 		StringInfo::WCStr(VariableUserName),
 		StringInfo::FormatLocalTime(now, L"%Y_%m_%d_%H_%M_%S").c_str());
 
-	String logLocalDirectory = SettingManager::StaticInstance().m_FileLoggerLocalDirectory.GetValue();
+	String logLocalDirectory = SettingManager::StaticInstance().FileLoggerLocalDirectory.GetValue();
 	if (logLocalDirectory.empty() == false)
 	{
 		String localDirectory = FileOperations::GetImpersonatedEnvironmentStrings(logLocalDirectory.c_str(), m_Impersonate.get());
 		m_LocalFilePath = FileInfo::FullPath(StringInfo::Format(L"%s\\%s", localDirectory.c_str(), relativeFileName.c_str()).c_str());
 	}
 
-	String logRemoteDirectory = SettingManager::StaticInstance().m_FileLoggerRemoteDirectory.GetValue();
+	String logRemoteDirectory = SettingManager::StaticInstance().FileLoggerRemoteDirectory.GetValue();
 	if (logRemoteDirectory.empty() == false)
 	{
 		m_RemoteFilePath = FileInfo::FullPath(StringInfo::Format(L"%s\\%s\\%s", logRemoteDirectory.c_str(), StringInfo::WCStr(VariableUserName), relativeFileName.c_str()).c_str());
@@ -132,7 +132,7 @@ void LogDeviceFile::WriteInternal(time_t time, LogChannel::Enum channel, const S
 		CSTR_ATOW(LogChannel::ToString(channel)), 
 		StringInfo::TrimRight(text.c_str(), L"\n").c_str());
 
-	if (m_RemoteFilePath.empty() == false && SettingManager::StaticInstance().m_RemoteLogging.GetValue())
+	if (m_RemoteFilePath.empty() == false && SettingManager::StaticInstance().RemoteLogging.GetValue())
 	{
 		if (m_HeaderWritten == false)
 		{
@@ -241,7 +241,7 @@ LogSystem::~LogSystem()
 void LogSystem::Write(const LogElement& element)
 {
 	PushLogElement(element);
-	if (SettingManager::StaticInstance().m_ImmediateLogging.GetValue())
+	if (SettingManager::StaticInstance().ImmediateLogging.GetValue())
 	{
 		Flush();
 	}
@@ -407,7 +407,7 @@ void LogSystem::WriteLogElement(const LogElement& element)
 
 bool LogSystem::IsChannelEnabled(LogChannel::Enum channel)
 {
-	return channel >= LogChannel::FromString(StringInfo::ToAnsi(SettingManager::StaticInstance().m_Verbosity.GetValue()));
+	return channel >= LogChannel::FromString(StringInfo::ToAnsi(SettingManager::StaticInstance().Verbosity.GetValue()));
 }
 
 DWORD LogSystem::WriteThreadEntry(void* data)

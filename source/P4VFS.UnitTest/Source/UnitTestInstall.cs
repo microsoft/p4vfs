@@ -227,37 +227,37 @@ namespace Microsoft.P4VFS.UnitTest
 			ServiceSettings.Reset();
 			ServiceRestart();
 
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.FileLoggerRemoteDirectory), "remote");
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.FileLoggerLocalDirectory), "local");
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.FileLoggerRemoteDirectory), "remote");
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.FileLoggerLocalDirectory), "local");
 
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.AllowSymlinkResidencyPolicy), true);
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.AllowSymlinkResidencyPolicy), false);
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.AllowSymlinkResidencyPolicy), true);
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.AllowSymlinkResidencyPolicy), true);
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.AllowSymlinkResidencyPolicy), false);
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.AllowSymlinkResidencyPolicy), true);
 
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.ReportUsageExternally), true);
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.ReportUsageExternally), false);
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.ReportUsageExternally), true);
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.ReportUsageExternally), true);
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.ReportUsageExternally), false);
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.ReportUsageExternally), true);
 
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.Verbosity), LogChannel.Debug);
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.Verbosity), LogChannel.Error);
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.Verbosity), LogChannel.Info);
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.Verbosity), LogChannel.Debug);
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.Verbosity), LogChannel.Error);
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.Verbosity), LogChannel.Info);
 
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.MaxSyncConnections), 5);
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.MaxSyncConnections), 6);
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.MaxSyncConnections), 5);
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.MaxSyncConnections), 6);
 
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.PopulateMethod), FilePopulateMethod.Copy);
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.PopulateMethod), FilePopulateMethod.Move);
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.PopulateMethod), FilePopulateMethod.Stream);
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.PopulateMethod), FilePopulateMethod.Copy);
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.PopulateMethod), FilePopulateMethod.Move);
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.PopulateMethod), FilePopulateMethod.Stream);
 
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.DefaultFlushType), DepotFlushType.Atomic);
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.DefaultFlushType), DepotFlushType.Single);
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.DefaultFlushType), DepotFlushType.Atomic);
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.DefaultFlushType), DepotFlushType.Single);
 
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.DepotServerConfig), new DepotServerConfig());
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.DepotServerConfig), new DepotServerConfig{Servers=new DepotServerConfigEntry[]{new DepotServerConfigEntry{Pattern="abc", Address="123"}}});
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.DepotServerConfig), new DepotServerConfig());
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.DepotServerConfig), new DepotServerConfig{Servers=new DepotServerConfigEntry[]{new DepotServerConfigEntry{Pattern="abc", Address="123"}}});
 
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.Unattended), true);
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.Unattended), false);
-			ServiceSettingsInstallTestProperty(nameof(ServiceSettings.Unattended), true);
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.Unattended), true);
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.Unattended), false);
+			ServiceSettingsInstallTestProperty(nameof(SettingManager.Unattended), true);
 
 			ServiceSettings.Reset();
 			ServiceRestart();
@@ -360,7 +360,7 @@ namespace Microsoft.P4VFS.UnitTest
 
 		private static void ServiceSettingsInstallTestProperty<ValueType>(string name, ValueType value)
 		{
-			PropertyInfo property = typeof(ServiceSettings).GetProperty(name, BindingFlags.GetProperty|BindingFlags.SetProperty|BindingFlags.Public|BindingFlags.Static);
+			PropertyInfo property = typeof(SettingManager).GetProperty(name, BindingFlags.GetProperty|BindingFlags.SetProperty|BindingFlags.Public|BindingFlags.Static);
 			Assert(property != null);
 			Func<ValueType> get = () => (ValueType)property.GetValue(null);
 			Action<ValueType> set = (ValueType v) => property.SetValue(null, v);

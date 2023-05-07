@@ -3,9 +3,7 @@
 using System;
 using System.Linq;
 using System.IO;
-using System.Reflection;
 using System.Xml;
-using System.Xml.Serialization;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Microsoft.P4VFS.CoreInterop;
@@ -13,27 +11,8 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.P4VFS.Extensions
 {
-	[XmlRoot("Settings", Namespace="")]
 	public static class ServiceSettings
 	{
-		public static string FileLoggerRemoteDirectory			{ get => GetString(""); set => SetString(value); } 
-		public static string FileLoggerLocalDirectory			{ get => GetString(""); set => SetString(value); } 
-		public static bool AllowSymlinkResidencyPolicy			{ get => GetBool(false); set => SetBool(value); } 
-		public static bool ReportUsageExternally				{ get => GetBool(false); set => SetBool(value); } 
-		public static bool ImmediateLogging						{ get => GetBool(false); set => SetBool(value); } 
-		public static bool ConsoleImmediateLogging				{ get => GetBool(false); set => SetBool(value); } 
-		public static LogChannel Verbosity						{ get => GetEnum(LogChannel.Info); set => SetEnum(value); } 
-		public static bool RemoteLogging						{ get => GetBool(false); set => SetBool(value); } 
-		public static bool ConsoleRemoteLogging					{ get => GetBool(false); set => SetBool(value); } 
-		public static int MaxSyncConnections					{ get => GetInt32(8); set => SetInt32(value); } 
-		public static FilePopulateMethod PopulateMethod			{ get => GetEnum(FilePopulateMethod.Stream); set => SetEnum(value); } 
-		public static DepotFlushType DefaultFlushType			{ get => GetEnum(DepotFlushType.Atomic); set => SetEnum(value); } 
-		public static DepotServerConfig DepotServerConfig		{ get => DepotServerConfig.FromNode(GetNode()); set => SetNode(value?.ToNode()); } 
-		public static string SyncResidentPattern				{ get => GetString(""); set => SetString(value); } 
-		public static bool SyncDefaultQuiet						{ get => GetBool(false); set => SetBool(value); } 
-		public static bool Unattended							{ get => GetBool(false); set => SetBool(value); } 
-		public static string ExcludedProcessNames				{ get => GetString(""); set => SetString(value); } 
-
 		public static void Reset()
 		{
 			SettingManager.Reset();
@@ -43,62 +22,32 @@ namespace Microsoft.P4VFS.Extensions
 			}
 		}
 
-		public static string GetString(string defaultValue, [CallerMemberName] string memberName = "")
+		public static TEnum GetPropertyEnum<TEnum>(TEnum defaultValue, [CallerMemberName] string memberName = "")
 		{
-			return GetNode(memberName).ToString(defaultValue);
+			return Utilities.Converters.ParseType(GetProperty(memberName).ToString(""), defaultValue).Value;
 		}
 
-		public static int GetInt32(int defaultValue, [CallerMemberName] string memberName = "")
+		public static bool SetPropertyEnum<TEnum>(TEnum value, [CallerMemberName] string memberName = "")
 		{
-			return GetNode(memberName).ToInt32(defaultValue);
+			return SetProperty(SettingNode.FromString(value.ToString()), memberName);
 		}
 
-		public static bool GetBool(bool defaultValue, [CallerMemberName] string memberName = "")
+		public static JToken GetPropertyJson([CallerMemberName] string memberName = "")
 		{
-			return GetNode(memberName).ToBool(defaultValue);
+			return SettingNodeToJson(GetProperty(memberName));
 		}
 
-		public static TEnum GetEnum<TEnum>(TEnum defaultValue, [CallerMemberName] string memberName = "")
+		public static bool SetPropertyJson(JToken value, [CallerMemberName] string memberName = "")
 		{
-			return Utilities.Converters.ParseType(GetNode(memberName).ToString(""), defaultValue).Value;
+			return SetProperty(SettingNodeFromJson(value), memberName);
 		}
 
-		public static JToken GetJson([CallerMemberName] string memberName = "")
-		{
-			return SettingNodeToJson(GetNode(memberName));
-		}
-
-		public static SettingNode GetNode([CallerMemberName] string memberName = "")
+		public static SettingNode GetProperty([CallerMemberName] string memberName = "")
 		{
 			return SettingManager.GetProperty(memberName);
 		}
 
-		public static bool SetString(string value, [CallerMemberName] string memberName = "")
-		{
-			return SetNode(SettingNode.FromString(value), memberName);
-		}
-
-		public static bool SetInt32(int value, [CallerMemberName] string memberName = "")
-		{
-			return SetNode(SettingNode.FromInt32(value), memberName);
-		}
-
-		public static bool SetBool(bool value, [CallerMemberName] string memberName = "")
-		{
-			return SetNode(SettingNode.FromBool(value), memberName);
-		}
-
-		public static bool SetEnum<TEnum>(TEnum value, [CallerMemberName] string memberName = "")
-		{
-			return SetNode(SettingNode.FromString(value.ToString()), memberName);
-		}
-
-		public static bool SetJson(JToken value, [CallerMemberName] string memberName = "")
-		{
-			return SetNode(SettingNodeFromJson(value), memberName);
-		}
-
-		public static bool SetNode(SettingNode value, [CallerMemberName] string memberName = "")
+		public static bool SetProperty(SettingNode value, [CallerMemberName] string memberName = "")
 		{
 			return SettingManager.SetProperty(memberName, value);
 		}
@@ -220,30 +169,6 @@ namespace Microsoft.P4VFS.Extensions
 			return text ?? "";
 		}
 
-		public static SettingNodeMap GetMap()
-		{
-			SettingNodeMap nodeMap = new SettingNodeMap();
-			foreach (PropertyInfo property in typeof(ServiceSettings).GetProperties(BindingFlags.Static|BindingFlags.Public|BindingFlags.GetProperty))
-			{
-				SettingNode node = GetNode(property.Name);
-				if (node != null)
-				{
-					nodeMap[property.Name] = node;
-				}
-			}
-			return nodeMap;
-		}
-
-		public static bool SetMap(SettingNodeMap nodeMap)
-		{
-			bool success = true;
-			foreach (KeyValuePair<string, SettingNode> nodeProperty in nodeMap)
-			{
-				success &= SetNode(nodeProperty.Value, nodeProperty.Key);
-			}
-			return success;
-		}
-
 		public static bool LoadFromFile(string fileName)
 		{
 			try
@@ -266,7 +191,7 @@ namespace Microsoft.P4VFS.Extensions
 							if (node != null)
 							{
 								VirtualFileSystemLog.Verbose("ServiceSettings.LoadFromFile reading {0}", SettingNodeToText(node));
-								ServiceSettings.SetNode(node.m_Nodes?.FirstOrDefault(), node.m_Data);
+								SettingManager.SetProperty(node.m_Data, node.m_Nodes?.FirstOrDefault());
 							}
 						}
 					}
@@ -287,12 +212,12 @@ namespace Microsoft.P4VFS.Extensions
 				VirtualFileSystemLog.Verbose("ServiceSettings.SaveToFile \"{0}\"", fileName);
 				XmlDocument document = new XmlDocument();
 				XmlElement settingsElement = document.AppendChild(document.CreateElement("Settings")) as XmlElement;
-				foreach (PropertyInfo property in typeof(ServiceSettings).GetProperties(BindingFlags.Static|BindingFlags.Public|BindingFlags.GetProperty))
+				foreach (KeyValuePair<string, SettingNode> property in SettingManager.GetProperties())
 				{
-					SettingNode value = ServiceSettings.GetNode(property.Name);
+					SettingNode value = property.Value;
 					if (value != null)
 					{
-						SettingNode node = new SettingNode(property.Name, new[]{ value });
+						SettingNode node = new SettingNode(property.Key, new[]{ value });
 						VirtualFileSystemLog.Verbose("ServiceSettings.SaveToFile writing {0}", SettingNodeToText(node));
 						settingsElement.AppendChild(SettingNodeToXmlElement(document, node));
 					}
@@ -312,9 +237,5 @@ namespace Microsoft.P4VFS.Extensions
 			}
 			return false;
 		}
-	}
-
-	public class SettingNodeMap : SortedDictionary<string, SettingNode>
-	{
 	}
 }

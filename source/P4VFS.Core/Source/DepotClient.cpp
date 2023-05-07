@@ -774,7 +774,7 @@ bool FDepotClient::LoginUsingInteractiveSession()
 {
 	if (HasFlag(Flags::Unattended))
 		return false;
-	if (FileCore::SettingManager::StaticInstance().m_Unattended.GetValue())
+	if (FileCore::SettingManager::StaticInstance().Unattended.GetValue())
 		return false;
 	const UserContext* context = m_P4->m_FileContext ? m_P4->m_FileContext->m_UserContext : nullptr;
 	if (FileOperations::IsSystemUserContext(context))

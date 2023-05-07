@@ -547,8 +547,8 @@ InstallReparsePointOnFile(
 		}
 	}
 
-	static const int32_t retryCount = std::min(std::max(1, FileCore::SettingManager::StaticInstance().m_CreateFileRetryCount.GetValue()), 20);
-	static const int32_t retryWaitMs = std::min(std::max(0, FileCore::SettingManager::StaticInstance().m_CreateFileRetryWaitMs.GetValue()), 5000);
+	static const int32_t retryCount = std::min(std::max(1, FileCore::SettingManager::StaticInstance().CreateFileRetryCount.GetValue()), 20);
+	static const int32_t retryWaitMs = std::min(std::max(0, FileCore::SettingManager::StaticInstance().CreateFileRetryWaitMs.GetValue()), 5000);
 
 	// Open the file for exclusive write, retrying as needed.
 	FileCore::AutoHandle hFile;

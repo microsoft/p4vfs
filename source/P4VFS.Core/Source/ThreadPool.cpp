@@ -24,7 +24,7 @@ DWORD
 GetPoolDefaultNumberOfThreads(
 	)
 {
-	int32_t settingNumThreads = FileCore::SettingManager::StaticInstance().m_PoolDefaultNumberOfThreads.GetValue();
+	int32_t settingNumThreads = FileCore::SettingManager::StaticInstance().PoolDefaultNumberOfThreads.GetValue();
 	DWORD numThreads = std::max<DWORD>(1, std::min<DWORD>(settingNumThreads, GetPoolMaxNumberOfThreads()));
 	return numThreads;
 }

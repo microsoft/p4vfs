@@ -237,8 +237,8 @@ Available commands:
 			try
 			{
 				VirtualFileSystemLog.Intitialize();
-				ServiceSettings.RemoteLogging = ServiceSettings.ConsoleRemoteLogging;
-				ServiceSettings.ImmediateLogging = ServiceSettings.ConsoleImmediateLogging;
+				SettingManager.RemoteLogging = SettingManager.ConsoleRemoteLogging;
+				SettingManager.ImmediateLogging = SettingManager.ConsoleImmediateLogging;
 				_P4Directory = Environment.CurrentDirectory;
 
 				int argIndex = 0;
@@ -278,11 +278,11 @@ Available commands:
 					}
 					else if (String.Compare(args[argIndex], "-r") == 0)
 					{
-						ServiceSettings.RemoteLogging = true;
+						SettingManager.RemoteLogging = true;
 					}
 					else if (String.Compare(args[argIndex], "-v") == 0)
 					{
-						ServiceSettings.Verbosity = LogChannel.Verbose;
+						SettingManagerExtensions.Verbosity = LogChannel.Verbose;
 					}
 					else
 					{
@@ -378,10 +378,10 @@ Available commands:
 		{
 			DepotSyncMethod syncMethod = DepotSyncMethod.Virtual;
 			SyncProtocol syncProtocol = SyncProtocol.Service | SyncProtocol.Local;
-			string syncResident = ServiceSettings.SyncResidentPattern?.Trim();
+			string syncResident = SettingManager.SyncResidentPattern?.Trim();
 			
-			DepotSyncType syncType = ServiceSettings.SyncDefaultQuiet ? DepotSyncType.Quiet : DepotSyncType.Normal;
-			DepotFlushType flushType = ServiceSettings.DefaultFlushType;
+			DepotSyncType syncType = SettingManager.SyncDefaultQuiet ? DepotSyncType.Quiet : DepotSyncType.Normal;
+			DepotFlushType flushType = SettingManagerExtensions.DefaultFlushType;
 			DepotFlushType? explicitFlush = null;
 
 			int argIndex = 0;
@@ -470,7 +470,7 @@ Available commands:
 			syncOptions.Context = new CoreInterop.UserContext { ProcessId = Process.GetCurrentProcess().Id };
 
 			if (syncType.HasFlag(DepotSyncType.Quiet))
-				ServiceSettings.Verbosity = LogChannel.Warning;
+				SettingManagerExtensions.Verbosity = LogChannel.Warning;
 
 			using (DepotClient depotClient = new DepotClient())
 			{
@@ -611,7 +611,7 @@ Available commands:
 		{
 			SyncProtocol syncProtocol = SyncProtocol.Service | SyncProtocol.Local;
 			DepotSyncMethod syncMethod = DepotSyncMethod.Regular;
-			DepotSyncType syncType = ServiceSettings.SyncDefaultQuiet ? DepotSyncType.Quiet : DepotSyncType.Normal;
+			DepotSyncType syncType = SettingManager.SyncDefaultQuiet ? DepotSyncType.Quiet : DepotSyncType.Normal;
 			string syncResident = null;
 
 			int argIndex = 0;

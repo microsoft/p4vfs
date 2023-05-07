@@ -49,6 +49,19 @@ public:
 		DWORD dwWaitHint
 		);
 
+	void
+	SrvBeginTickThread(
+		);
+
+	void
+	SrvEndTickThread(
+		);
+
+	static DWORD
+	SrvTickThreadEntry(
+		void* data
+		);
+
 	virtual bool 
 	IsDriverConnected(
 		) override;
@@ -81,6 +94,7 @@ private:
 	HANDLE							m_SrvStopEvent;
 	class ServiceListener*			m_SrvListener;
 	std::atomic<FILETIME>			m_SrvLastRequestTime;
+	HANDLE							m_SrvTickThread;
 };
 
 }}

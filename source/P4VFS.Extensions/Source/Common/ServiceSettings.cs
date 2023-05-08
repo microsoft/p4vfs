@@ -6,6 +6,7 @@ using System.IO;
 using System.Xml;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Microsoft.P4VFS.Extensions.Linq;
 using Microsoft.P4VFS.CoreInterop;
 using Newtonsoft.Json.Linq;
 
@@ -15,11 +16,20 @@ namespace Microsoft.P4VFS.Extensions
 	{
 		public static void Reset()
 		{
-			SettingManager.Reset();
-			if (LoadFromFile(VirtualFileSystem.LocalSettingsFilePath) == false)
+			HashSet<string> files = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+			Action<string> loadFile = (string path) => 
 			{
-				LoadFromFile(VirtualFileSystem.InstalledSettingsFilePath);
-			}
+				if (files.Add(Path.GetFullPath(path)))
+				{
+					LoadFromFile(path);
+				}
+			};
+
+			// This is the load order and precedenece for settings from P4VFS.Settings.xml
+			SettingManager.Reset();
+			loadFile(VirtualFileSystem.InstalledSettingsFilePath);
+			loadFile(VirtualFileSystem.AssemblySettingsFilePath);
+			loadFile(VirtualFileSystem.UserSettingsFilePath);
 		}
 
 		public static TEnum GetPropertyEnum<TEnum>(TEnum defaultValue, [CallerMemberName] string memberName = "")

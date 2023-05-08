@@ -362,6 +362,13 @@ namespace Microsoft.P4VFS.UnitTest
 		{
 			PropertyInfo property = typeof(SettingManager).GetProperty(name, BindingFlags.GetProperty|BindingFlags.SetProperty|BindingFlags.Public|BindingFlags.Static);
 			Assert(property != null);
+			if (typeof(ValueType).IsAssignableFrom(property.PropertyType) == false)
+			{
+				property = typeof(SettingManagerExtensions).GetProperty(name, BindingFlags.GetProperty|BindingFlags.SetProperty|BindingFlags.Public|BindingFlags.Static);
+				Assert(property != null);
+				Assert(typeof(ValueType).IsAssignableFrom(property.PropertyType));
+			}
+
 			Func<ValueType> get = () => (ValueType)property.GetValue(null);
 			Action<ValueType> set = (ValueType v) => property.SetValue(null, v);
 

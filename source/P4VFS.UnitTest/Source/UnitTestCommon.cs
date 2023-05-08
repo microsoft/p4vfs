@@ -1023,7 +1023,7 @@ namespace Microsoft.P4VFS.UnitTest
 			DepotServerConfig depotServerConfig = DepotServerConfig.FromNode(client.GetServiceSetting(nameof(SettingManagerExtensions.DepotServerConfig)));
 			List<DepotServerConfigEntry> servers = new List<DepotServerConfigEntry>(depotServerConfig.Servers ?? new DepotServerConfigEntry[0]);
 			servers.Add(new DepotServerConfigEntry { Pattern = @"^p4-localhost4([\.:].+)?$", Address = _P4Port });
-			servers.Add(new DepotServerConfigEntry { Pattern = @"^p4-blacktusk4([\.:].+)?$", Address = "p4-blacktusk:1666" });
+			servers.Add(new DepotServerConfigEntry { Pattern = @"^p4-contoso4([\.:].+)?$", Address = "p4-contoso:1666" });
 			depotServerConfig.Servers = servers.ToArray();
 			DepotServerConfig previousDepotServerConfig = SettingManagerExtensions.DepotServerConfig;
 			SettingManagerExtensions.DepotServerConfig = depotServerConfig;
@@ -1036,16 +1036,16 @@ namespace Microsoft.P4VFS.UnitTest
 
 			// Test the local DepotServerConfig pattern matching of the host name resolving
 			Assert(DepotOperations.ResolveDepotServerName(_P4Port) == _P4Port);
-			Assert(DepotOperations.ResolveDepotServerName("p4-blacktusk") == "p4-blacktusk");
-			Assert(DepotOperations.ResolveDepotServerName("p4-BlackTusk:1666") == "p4-BlackTusk:1666");
-			Assert(DepotOperations.ResolveDepotServerName("p4-blacktusk.corp.microsoft.com:1666") == "p4-blacktusk.corp.microsoft.com:1666");
-			Assert(DepotOperations.ResolveDepotServerName("p4-blacktusk4:1666") == "p4-blacktusk:1666");
-			Assert(DepotOperations.ResolveDepotServerName("p4-blacktusk4.zipline.local:1666") == "p4-blacktusk:1666");
-			Assert(DepotOperations.ResolveDepotServerName("p4-blacktusk4.corp.microsoft.com:1667") == "p4-blacktusk:1666");
+			Assert(DepotOperations.ResolveDepotServerName("p4-contoso") == "p4-contoso");
+			Assert(DepotOperations.ResolveDepotServerName("p4-ConToso:1666") == "p4-ConToso:1666");
+			Assert(DepotOperations.ResolveDepotServerName("p4-contoso.microsoft.com:1666") == "p4-contoso.microsoft.com:1666");
+			Assert(DepotOperations.ResolveDepotServerName("p4-contoso4:1666") == "p4-contoso:1666");
+			Assert(DepotOperations.ResolveDepotServerName("p4-contoso4.zipline.local:1666") == "p4-contoso:1666");
+			Assert(DepotOperations.ResolveDepotServerName("p4-contoso4.microsoft.com:1667") == "p4-contoso:1666");
 			Assert(DepotOperations.ResolveDepotServerName("p4-lolah:1667") == "p4-lolah:1667");
-			Assert(DepotOperations.ResolveDepotServerName("TC-P4MAIN.zipline.local:1666") == "TC-P4MAIN.zipline.local:1666");
-			Assert(DepotOperations.ResolveDepotServerName("TC-P4MAIN:1666") == "TC-P4MAIN:1666");
-			Assert(DepotOperations.ResolveDepotServerName("TC-P4MAIN") == "TC-P4MAIN");
+			Assert(DepotOperations.ResolveDepotServerName("CTO-P4MAIN.local:1666") == "CTO-P4MAIN.local:1666");
+			Assert(DepotOperations.ResolveDepotServerName("CTO-P4MAIN:1666") == "CTO-P4MAIN:1666");
+			Assert(DepotOperations.ResolveDepotServerName("CTO-P4MAIN") == "CTO-P4MAIN");
 
 			// Test the service DepotServerConfig pattern matching of the host name resolving
 			foreach (ServiceSettingsScope settings in EnumerateCommonServicePopulateSettings())
@@ -1780,6 +1780,20 @@ namespace Microsoft.P4VFS.UnitTest
 				// Verify that p4 also trusts this connection now
 				xr = ProcessInfo.ExecuteWaitOutput(P4Exe, String.Format("{0} depots", sslConfig), echo:true);
 				Assert(xr.ExitCode == 0);
+			}
+		}
+
+		[TestMethod, Priority(32), TestRemote]
+		public void DepotClientCacheIdleTimeoutTest()
+		{
+			WorkspaceReset();
+			using (DepotClient depotClient = new DepotClient())
+			{
+				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
+				string clientRoot = GetClientRoot(depotClient);
+
+				VirtualFileSystem.Sync(depotClient, "//depot/gears1/Development/Src/Core/...", null, DepotSyncType.Normal, DepotSyncMethod.Virtual);
+				Assert(ReconcilePreview("//depot/gears1/Development/Src/Core").Any() == false);
 			}
 		}
 	}

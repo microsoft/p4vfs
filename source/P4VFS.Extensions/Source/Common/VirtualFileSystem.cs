@@ -223,7 +223,12 @@ namespace Microsoft.P4VFS.Extensions
 			return success;
 		}
 
-		public static string LocalSettingsFilePath
+		public static string UserSettingsFilePath
+		{
+			get	{ return Path.GetFullPath(String.Format("{0}\\{1}", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), SettingsFile)); }
+		}
+
+		public static string AssemblySettingsFilePath
 		{
 			get	{ return Path.GetFullPath(String.Format("{0}\\{1}", Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), SettingsFile)); }
 		}

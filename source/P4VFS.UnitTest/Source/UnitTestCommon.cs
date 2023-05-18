@@ -1787,13 +1787,59 @@ namespace Microsoft.P4VFS.UnitTest
 		public void DepotClientCacheIdleTimeoutTest()
 		{
 			WorkspaceReset();
+			Func<int> getIdleConnectionCount = () =>
+			{
+				return ProcessInfo.ExecuteWaitOutput(P4Exe, String.Format("{0} monitor show -a -l", ClientConfig), echo:true).Lines
+					.Count(line => Regex.IsMatch(line, @"^(?<id>\d+)\s+(?<status>\w)\s+(?<user>\S+)\s+(?<duration>\S+)\s+(IDLE)"));
+			};
+
+			Action<DepotClient> assertSyncAndReconcile = (dc) =>
+			{
+				VirtualFileSystem.Sync(dc, "//depot/gears1/Development/Src/Core/...", null, DepotSyncType.Force, DepotSyncMethod.Virtual);
+				Assert(ReconcilePreview("//depot/gears1/Development/Src/Core").Any() == false);
+			};
+
+			Assert(getIdleConnectionCount() == 0);
 			using (DepotClient depotClient = new DepotClient())
 			{
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
-				string clientRoot = GetClientRoot(depotClient);
+				Assert(getIdleConnectionCount() == 1);
 
-				VirtualFileSystem.Sync(depotClient, "//depot/gears1/Development/Src/Core/...", null, DepotSyncType.Normal, DepotSyncMethod.Virtual);
-				Assert(ReconcilePreview("//depot/gears1/Development/Src/Core").Any() == false);
+				Extensions.SocketModel.SocketModelClient service = new Extensions.SocketModel.SocketModelClient(); 
+				Assert(service.GarbageCollect());
+				Assert(getIdleConnectionCount() == 1);
+
+				assertSyncAndReconcile(depotClient);
+				Assert(getIdleConnectionCount() > 1);
+				
+				Assert(service.GarbageCollect());
+				Assert(getIdleConnectionCount() == 1);
+
+				using (new LocalSettingScope(nameof(SettingManager.GarbageCollectPeriodMs), "100")) {
+				using (new LocalSettingScope(nameof(SettingManager.DepotClientCacheIdleTimeoutMs), "5000")) {
+				using (new DepotTempFile(VirtualFileSystem.UserSettingsFilePath))
+				{
+					Assert(ServiceSettings.SaveToFile(VirtualFileSystem.UserSettingsFilePath));
+					Assert(File.Exists(VirtualFileSystem.UserSettingsFilePath));
+
+					ServiceRestart();
+					Assert(getIdleConnectionCount() == 1);
+
+					Assert(service.GetServiceSetting(nameof(SettingManager.GarbageCollectPeriodMs)).ToInt32() == SettingManager.GarbageCollectPeriodMs);
+					Assert(service.GetServiceSetting(nameof(SettingManager.DepotClientCacheIdleTimeoutMs)).ToInt32() == SettingManager.DepotClientCacheIdleTimeoutMs);
+
+					assertSyncAndReconcile(depotClient);
+					Assert(getIdleConnectionCount() > 1);
+
+					AssertRetry(() => getIdleConnectionCount() == 1, "Waiting for GC", retryWait:500, limitWait:8000);
+				}}}
+			
+				Assert(File.Exists(VirtualFileSystem.UserSettingsFilePath) == false);
+				ServiceRestart();
+				Assert(getIdleConnectionCount() == 1);
+
+				Assert(service.GetServiceSetting(nameof(SettingManager.GarbageCollectPeriodMs)).ToInt32() == SettingManager.GarbageCollectPeriodMs);
+				Assert(service.GetServiceSetting(nameof(SettingManager.DepotClientCacheIdleTimeoutMs)).ToInt32() == SettingManager.DepotClientCacheIdleTimeoutMs);
 			}
 		}
 	}

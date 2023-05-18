@@ -729,6 +729,36 @@ namespace Microsoft.P4VFS.UnitTest
 		public uint LinesTotal { get { return LinesAdded + LinesDeleted + LinesChanged; } }
 	}
 
+	public class LocalSettingScope : IDisposable
+	{
+		public string Name { get; private set; }
+		public string Value { get; private set; }
+		public SettingNode PreviousValue { get; private set; }
+
+		public LocalSettingScope(string name, string value)
+		{
+			Name = name;
+			UnitTestBase.Assert(String.IsNullOrEmpty(Name) == false);
+			Value = value;
+			UnitTestBase.Assert(Value != null);
+
+			PreviousValue = ServiceSettings.GetProperty(Name);
+			UnitTestBase.Assert(PreviousValue.ToString() != null);
+			UnitTestBase.Assert(ServiceSettings.SetProperty(SettingNode.FromString(Value), Name));
+			UnitTestBase.Assert(ServiceSettings.GetProperty(Name).ToString() == Value);
+		}
+
+		public void Dispose()
+		{
+			UnitTestBase.Assert(ServiceSettings.SetProperty(PreviousValue, Name));
+		}
+
+		public override string ToString()
+		{
+			return String.Format("{0}={1}", Name, Value);
+		}
+	}
+
 	public class ServiceSettingScope : IDisposable
 	{
 		public string Name { get; private set; }

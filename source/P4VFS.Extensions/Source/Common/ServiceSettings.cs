@@ -19,7 +19,7 @@ namespace Microsoft.P4VFS.Extensions
 			HashSet<string> files = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
 			Action<string> loadFile = (string path) => 
 			{
-				if (files.Add(Path.GetFullPath(path)))
+				if (File.Exists(path) && files.Add(Path.GetFullPath(path)))
 				{
 					LoadFromFile(path);
 				}
@@ -29,6 +29,7 @@ namespace Microsoft.P4VFS.Extensions
 			SettingManager.Reset();
 			loadFile(VirtualFileSystem.InstalledSettingsFilePath);
 			loadFile(VirtualFileSystem.AssemblySettingsFilePath);
+			loadFile(VirtualFileSystem.PublicSettingsFilePath);
 			loadFile(VirtualFileSystem.UserSettingsFilePath);
 		}
 

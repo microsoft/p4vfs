@@ -228,6 +228,15 @@ namespace Microsoft.P4VFS.Extensions
 			get	{ return Path.GetFullPath(String.Format("{0}\\{1}", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), SettingsFile)); }
 		}
 
+		public static string PublicSettingsFilePath
+		{
+			get	
+			{ 
+				string publicProfile = Environment.GetEnvironmentVariable("PUBLIC");
+				return String.IsNullOrEmpty(publicProfile) ? String.Empty : Path.GetFullPath(String.Format("{0}\\{1}", publicProfile, SettingsFile)); 
+			}
+		}
+
 		public static string AssemblySettingsFilePath
 		{
 			get	{ return Path.GetFullPath(String.Format("{0}\\{1}", Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), SettingsFile)); }

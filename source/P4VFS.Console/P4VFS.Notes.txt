@@ -15,6 +15,18 @@ Version [1.25.1.0]
 * Addition of service tick thread for performing garbage collection on cached DepotClient 
   connections. Two new settings GarbageCollectPeriodMs & DepotClientCacheIdleTimeoutMs can be 
   configured to remove lingering (cached) connections at a certain frequency and life-time.
+* Addition of user settings file locations for allowing incremental overrides of installed settings.
+  Settings files are now loaded in order (with UserSettingsFilePath loaded last)
+    1. InstalledSettingsFilePath    - C:\Program Files\P4VFS\P4VFS.Settings.xml
+                                      This is most common installed settings file
+    2. AssemblySettingsFilePath     - <directory of p4vfs.exe or P4VFS.Service.exe>\P4VFS.Settings.xml
+                                      Primarily used for custom unit test run settings
+    3. PublicSettingsFilePath       - %PUBLIC%\P4VFS.Settings.xml
+                                      Shared user location for both p4vfs and service
+    4. UserSettingsFilePath         - %USERPROFILE%\P4VFS.Settings.xml
+                                      Different for p4vfs.exe and non-impersonated service
+* Addition of DepotClientCacheIdleTimeoutTest which verifies correct operation of service 
+  garbage collection frequency and behavior
 
 Version [1.25.0.0]
 * Updated drivers for VS 2022 and WDK 10.0.22621.382

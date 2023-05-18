@@ -58,7 +58,7 @@ namespace Microsoft.P4VFS.UnitTest
 				"dm.user.noautocreate=2", 
 				"dm.user.resetpassword=0",
 				"lbr.autocompress=1",
-				"monitor=2",
+				"monitor=10",
 				"net.parallel.submit.threads=8",
 				"net.parallel.max=8",
 				"server=2",

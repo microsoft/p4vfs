@@ -1790,18 +1790,26 @@ namespace Microsoft.P4VFS.UnitTest
 			Func<int> getIdleConnectionCount = () =>
 			{
 				return ProcessInfo.ExecuteWaitOutput(P4Exe, String.Format("{0} monitor show -a -l", ClientConfig), echo:true).Lines
-					.Count(line => Regex.IsMatch(line, @"^(?<id>\d+)\s+(?<status>\w)\s+(?<user>\S+)\s+(?<duration>\S+)\s+(IDLE)"));
+					.Count(line => Regex.IsMatch(line, @"^\s*(?<id>\d+)\s+(?<status>\w)\s+(?<user>\S+)\s+(?<duration>\S+)\s+(IDLE)"));
 			};
 
-			Action<DepotClient> assertSyncAndReconcile = (dc) =>
+			Action<Extensions.SocketModel.SocketModelClient, DepotConfig> assertSyncAndReconcile = (service, config) =>
 			{
-				VirtualFileSystem.Sync(dc, "//depot/gears1/Development/Src/Core/...", null, DepotSyncType.Force, DepotSyncMethod.Virtual);
-				Assert(ReconcilePreview("//depot/gears1/Development/Src/Core").Any() == false);
+				string depotFolder = "//depot/gears1/Development/Src/Core";
+
+				// Perform a sync through the service. We expect connections to be closed when done (not cached)
+				Assert(service.Sync(config, new DepotSyncOptions{ Files=new[]{ depotFolder+"/..." }, SyncType=DepotSyncType.Force, SyncMethod=DepotSyncMethod.Virtual }) == DepotSyncStatus.Success);
+
+				// Reconcile the folder using p4.exe. There will be one or more cached service connections
+				Assert(ReconcilePreview(depotFolder).Any() == false);
+				Assert(getIdleConnectionCount() > 1);
 			};
 
+			// There should be no idle connections from any process, including this process
 			Assert(getIdleConnectionCount() == 0);
 			using (DepotClient depotClient = new DepotClient())
 			{
+				// Open a single idle connection
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
 				Assert(getIdleConnectionCount() == 1);
 
@@ -1809,32 +1817,39 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(service.GarbageCollect());
 				Assert(getIdleConnectionCount() == 1);
 
-				assertSyncAndReconcile(depotClient);
+				// Sync and reconcile to open some cached service connections
+				assertSyncAndReconcile(service, depotClient.Config());
 				Assert(getIdleConnectionCount() > 1);
-				
+
+				// Close the idle service connections with a GC
 				Assert(service.GarbageCollect());
 				Assert(getIdleConnectionCount() == 1);
 
+				// Write a temporary PublicSettingsFilePath settings file with very short GC timeout
 				using (new LocalSettingScope(nameof(SettingManager.GarbageCollectPeriodMs), "100")) {
 				using (new LocalSettingScope(nameof(SettingManager.DepotClientCacheIdleTimeoutMs), "5000")) {
-				using (new DepotTempFile(VirtualFileSystem.UserSettingsFilePath))
+				using (new DepotTempFile(VirtualFileSystem.PublicSettingsFilePath))
 				{
-					Assert(ServiceSettings.SaveToFile(VirtualFileSystem.UserSettingsFilePath));
-					Assert(File.Exists(VirtualFileSystem.UserSettingsFilePath));
+					Assert(ServiceSettings.SaveToFile(VirtualFileSystem.PublicSettingsFilePath));
+					Assert(File.Exists(VirtualFileSystem.PublicSettingsFilePath));
 
+					// Restart the service to load our new settings
 					ServiceRestart();
 					Assert(getIdleConnectionCount() == 1);
 
 					Assert(service.GetServiceSetting(nameof(SettingManager.GarbageCollectPeriodMs)).ToInt32() == SettingManager.GarbageCollectPeriodMs);
 					Assert(service.GetServiceSetting(nameof(SettingManager.DepotClientCacheIdleTimeoutMs)).ToInt32() == SettingManager.DepotClientCacheIdleTimeoutMs);
 
-					assertSyncAndReconcile(depotClient);
+					// Sync and reconcile to open some cached service connections
+					assertSyncAndReconcile(service, depotClient.Config());
 					Assert(getIdleConnectionCount() > 1);
 
+					// Wait at least DepotClientCacheIdleTimeoutMs for the service connections to be closed
 					AssertRetry(() => getIdleConnectionCount() == 1, "Waiting for GC", retryWait:500, limitWait:8000);
 				}}}
 			
-				Assert(File.Exists(VirtualFileSystem.UserSettingsFilePath) == false);
+				// Restart the service to load base settings again
+				Assert(File.Exists(VirtualFileSystem.PublicSettingsFilePath) == false);
 				ServiceRestart();
 				Assert(getIdleConnectionCount() == 1);
 

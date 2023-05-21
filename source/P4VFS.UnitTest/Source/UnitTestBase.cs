@@ -233,6 +233,11 @@ namespace Microsoft.P4VFS.UnitTest
 			Assert(String.IsNullOrEmpty(config.Client) == false);
 			Assert(String.IsNullOrEmpty(config.User) == false);
 
+			foreach (string settingsPath in new[]{ VirtualFileSystem.UserSettingsFilePath, VirtualFileSystem.PublicSettingsFilePath })
+			{
+				Assert(File.Exists(settingsPath) == false, String.Format("User settings file not allowed for unit tests: {0}", settingsPath));
+			}
+
 			foreach (string name in new[]{DepotConstants.P4PORT, DepotConstants.P4USER, DepotConstants.P4CLIENT, DepotConstants.P4CONFIG, DepotConstants.P4TRUST, DepotConstants.P4TICKETS})
 			{
 				Environment.SetEnvironmentVariable(name, "");

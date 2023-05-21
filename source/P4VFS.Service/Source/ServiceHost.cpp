@@ -105,9 +105,9 @@ ServiceHost::SrvMain(
 		return;
 	}
 
-	SrvBeginTickThread();
 	ExtensionsInterop::InitializeServiceHost(this);
 	LogSystem::StaticInstance().Initialize();
+	SrvBeginTickThread();
 	ServiceLog::Info(TEXT("ServiceHost::SrvMain Begin"));
 
 	SrvReportStatus(SERVICE_RUNNING, NO_ERROR, 0);
@@ -118,9 +118,9 @@ ServiceHost::SrvMain(
 	}
 	
 	ServiceLog::Info(TEXT("ServiceHost::SrvMain End"));
+	SrvEndTickThread();
 	LogSystem::StaticInstance().Shutdown(0);
 	ExtensionsInterop::ShutdownServiceHost();
-	SrvEndTickThread();
 
 	CloseHandle(m_SrvStopEvent);
 	SrvReportStatus(SERVICE_STOPPED, NO_ERROR, 0);
@@ -227,7 +227,7 @@ ServiceHost::SrvTickThreadEntry(
 
 	while (WaitForSingleObject(pSrvHost->m_SrvStopEvent, tickPeriodMs()) != WAIT_OBJECT_0)
 	{
-		int64_t timeoutSeconds = std::max<int32_t>(5, FileCore::SettingManager::StaticInstance().DepotClientCacheIdleTimeoutMs.GetValue()/1000);
+		int64_t timeoutSeconds = std::max<int32_t>(1, FileCore::SettingManager::StaticInstance().DepotClientCacheIdleTimeoutMs.GetValue()/1000);
 		pSrvHost->GarbageCollect(timeoutSeconds);
 	}
 

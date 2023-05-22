@@ -1,6 +1,8 @@
 Microsoft P4VFS Release Notes
 
 Version [1.25.1.0]
+* Addition of new "hydrate" command as synonym for "resident -x". Moved the implementation into
+  C++ and now using a single fstat command instead of a files & where command.
 * Moving native thread pool utilites for system limits into shared location
 * Addition of native parallel directory traversal utility and new TestIterateDirectoryParallel
   unit test to verify correctness. Implementation allows both the directory traversal, as well 

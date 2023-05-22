@@ -230,6 +230,20 @@ namespace Microsoft.P4VFS.UnitTest
 					Assert(File.Exists(filePath));
 					Assert(IsPlaceholderFile(filePath) == filePath.StartsWith(subdirectory+"\\"));
 				}
+
+				Assert(ProcessInfo.ExecuteWait(P4vfsExe, String.Format("{0} resident -v \"{1}\\...\"", ClientConfig, directory), echo:true, log:true) == 0);
+				foreach (string filePath in directoryFiles)
+				{
+					Assert(File.Exists(filePath));
+					Assert(IsPlaceholderFile(filePath));
+				}
+
+				Assert(ProcessInfo.ExecuteWait(P4vfsExe, String.Format("{0} hydrate -x \"cs,xml\" \"{1}\\...\"", ClientConfig, directory), echo:true, log:true) == 0);
+				foreach (string filePath in directoryFiles)
+				{
+					Assert(File.Exists(filePath));
+					Assert(IsPlaceholderFile(filePath) != Regex.IsMatch(filePath, @"(\.cs|\.xml)$", RegexOptions.IgnoreCase));
+				}
 			}
 		}}
 

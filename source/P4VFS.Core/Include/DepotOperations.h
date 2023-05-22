@@ -81,6 +81,12 @@ namespace P4 {
 			const DepotSyncActionInfo& modification
 			);
 
+		static DepotSyncResult
+		Hydrate(
+			DepotClient& depotClient, 
+			const FDepotSyncOptions& syncOptions
+			);
+
 		static bool
 		InstallPlaceholderFile(
 			DepotClient& depotClient,

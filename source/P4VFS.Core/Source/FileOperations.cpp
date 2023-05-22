@@ -1180,6 +1180,32 @@ PopulateFile(
 	return PopulateFileByStream(dstFileName, srcFileStream); 
 }
 
+HRESULT
+HydrateFile(
+	const WCHAR* filePath
+	)
+{
+	if (FileCore::StringInfo::IsNullOrEmpty(filePath))
+	{
+		return HRESULT_FROM_WIN32(ERROR_INVALID_PARAMETER);
+	}
+
+	FileCore::AutoHandle hFile = CreateFile(
+										filePath,
+										GENERIC_READ,
+										FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+										NULL,
+										OPEN_EXISTING,
+										FILE_ATTRIBUTE_NORMAL,
+										NULL);
+	
+	if (hFile.IsValid() == false)
+	{
+		return HRESULT_FROM_WIN32(ERROR_INVALID_HANDLE);
+	}
+	return S_OK;
+}
+
 BOOL
 IsSessionIdToken(
 	HANDLE hToken

@@ -22,6 +22,12 @@ public:
 		DepotSyncOptions^ syncOptions
 		);
 
+	static DepotSyncResult^
+	Hydrate(
+		DepotClient^ depotClient, 
+		DepotSyncOptions^ syncOptions
+		);
+
 	static bool
 	InstallPlaceholderFile(
 		DepotClient^ depotClient,

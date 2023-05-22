@@ -73,7 +73,6 @@
     <Compile Include="Source\Common\VirtualFileSystem.cs" />
     <Compile Include="Source\Depot\DepotClientExtensions.cs" />
     <Compile Include="Source\Depot\DepotConfigExtensions.cs" />
-    <Compile Include="Source\Depot\DepotFileReference.cs" />
     <Compile Include="Source\Depot\DepotResultExtensions.cs" />
     <Compile Include="Source\Depot\DepotRevision.cs" />
     <Compile Include="Source\Depot\DepotServerConfig.cs" />

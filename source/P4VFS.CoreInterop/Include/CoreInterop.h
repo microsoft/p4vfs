@@ -164,7 +164,7 @@ public:
 
 	static System::Int32 
 	RemoveReparsePoint(
-		System::String^		path
+		System::String^		filePath
 		);
 
 	static System::Int32 
@@ -174,9 +174,14 @@ public:
 		FilePopulateMethod	populateMethod
 		);
 
+	static System::Int32 
+	HydrateFile(
+		System::String^		filePath
+		);
+
 	static System::Boolean
 	ImpersonateFileAppend(
-		System::String^		fileName,
+		System::String^		filePath,
 		System::String^		text,
 		UserContext^		context
 		);

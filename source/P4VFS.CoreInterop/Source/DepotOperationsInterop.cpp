@@ -23,6 +23,18 @@ DepotOperations::Sync(
 	return DepotSyncResult::FromNative(syncResult);
 }
 
+DepotSyncResult^
+DepotOperations::Hydrate(
+	DepotClient^ depotClient,
+	DepotSyncOptions^ syncOptions
+	)
+{
+	P4::FDepotSyncOptions options = syncOptions->ToNative();
+	P4::DepotClient client = depotClient->ToNative();
+	P4::DepotSyncResult syncResult = P4::DepotOperations::Hydrate(client, options);
+	return DepotSyncResult::FromNative(syncResult);
+}
+
 System::String^
 DepotOperations::GetHeadRevisionChangelist(
 	DepotClient^ depotClient

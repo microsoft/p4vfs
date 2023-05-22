@@ -506,6 +506,71 @@ DepotOperations::CreateSymlinkFile(
 	return status;
 }
 
+DepotSyncResult
+DepotOperations::Hydrate(
+	DepotClient& depotClient, 
+	const FDepotSyncOptions& syncOptions
+	)
+{
+	DepotStringArray hydrateSpecs = CreateFileSpecs(depotClient, syncOptions.m_Files, FDepotRevision::New<FDepotRevisionHave>(), CreateFileSpecFlags::OverrideRevison);
+	if (hydrateSpecs.size() == 0)
+	{
+		depotClient->Log(LogChannel::Error, "No files specified to hydrate");
+		return std::make_shared<FDepotSyncResult>(DepotSyncStatus::Error);
+	}
+
+	DepotResultFStat hydrateFStat = FStat(depotClient, hydrateSpecs, "", FDepotResultFStatField::DepotFile | FDepotResultFStatField::ClientFile | FDepotResultFStatField::HaveRev);
+	if (hydrateFStat->HasError())
+	{
+		depotClient->Log(LogChannel::Error, StringInfo::Format("Failed to fstat paths to hydrate: %s", hydrateFStat->GetError().c_str()));
+		return std::make_shared<FDepotSyncResult>(DepotSyncStatus::Error);
+	}
+
+	DepotSyncActionInfoArray modifications = std::make_shared<DepotSyncActionInfoArray::element_type>();
+	DepotSyncStatus::Enum status = DepotSyncStatus::Success;
+
+	for (size_t fstatNodeIndex = 0; fstatNodeIndex < hydrateFStat->NodeCount(); ++fstatNodeIndex)
+	{
+		const FDepotResultFStatNode& node = hydrateFStat->Node(fstatNodeIndex);
+		const DepotString& depotFile = node.DepotFile();
+		int32_t haveRev = node.HaveRev();
+		const DepotString& clientFile = node.ClientFile();
+		
+		if (syncOptions.m_SyncResident.empty() == false && IsFileTypeAlwaysResident(syncOptions.m_SyncResident, depotFile) == false)
+		{
+			continue;
+		}
+
+		const WString& filePath = StringInfo::ToWide(clientFile);
+		DWORD fileAttributes = FileCore::FileInfo::FileAttributes(filePath.c_str());
+		if ((fileAttributes == INVALID_FILE_ATTRIBUTES) || (fileAttributes & FILE_ATTRIBUTE_OFFLINE) == 0)
+		{
+			continue;
+		}
+
+		DepotSyncActionInfo modification = std::make_shared<FDepotSyncActionInfo>();
+		modification->m_DepotFile = depotFile;
+		modification->m_ClientFile = clientFile;
+		modification->m_Revision = FDepotRevision::New<FDepotRevisionNumber>(haveRev);
+		modification->m_SyncType = syncOptions.m_SyncType;
+
+		depotClient->Log(LogChannel::Info, StringInfo::Format("%s#%d - request hydrate as %s", depotFile.c_str(), haveRev, clientFile.c_str()));
+		if (modification->IsPreview() == false)
+		{
+			HRESULT hr = FileOperations::HydrateFile(filePath.c_str());
+			if (hr != S_OK)
+			{
+				depotClient->Log(LogChannel::Error, StringInfo::Format("Failed to hydrate file '%s' with error [%s]", clientFile.c_str(), CSTR_WTOA(StringInfo::ToString(hr))));
+				status = DepotSyncStatus::Error;
+			}
+		}
+
+		modifications->push_back(modification);
+	}
+
+	return std::make_shared<FDepotSyncResult>(status, modifications);
+}
+
 bool
 DepotOperations::InstallPlaceholderFile(
 	DepotClient& depotClient,

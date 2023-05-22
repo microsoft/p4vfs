@@ -131,10 +131,11 @@ Available commands:
               p4vfs set [SettingName|SubString]
 "},
 
-{"resident", @"
+{"resident,hydrate", @"
   resident    Modify current resident status of local files. This can be used
               to change existing files back to virtual state (zero downloaded size),
               or change files to a resident state (full downloaded size).
+  hydrate     Synonym for 'resident -r'
 
               p4vfs resident [-r -v -x <csx> -p <reg>] [file ...]
 
@@ -312,6 +313,9 @@ Available commands:
 						break;
 					case "resident":
 						status = CommandResident(cmdArgs);
+						break;
+					case "hydrate":
+						status = CommandHydrate(cmdArgs);
 						break;
 					case "populate":
 						status = CommandPopulate(cmdArgs);
@@ -697,50 +701,23 @@ Available commands:
 				}
 				else if (syncMethod == DepotSyncMethod.Regular)
 				{
-					// Only local resident supported for now.
+					DepotSyncOptions syncOptions = new DepotSyncOptions();
+					syncOptions.Files = fileArguments.ToArray();
+					syncOptions.SyncType = syncType;
+					syncOptions.SyncResident = syncResident;
 
-					IEnumerable<string> fileSpecs = DepotOperations.CreateFileSpecs(depotClient, fileArguments.ToArray(), new DepotRevisionHave().ToString(), DepotOperations.CreateFileSpecFlags.None);
-					DepotResultFiles depotResultFiles = depotClient.Files(fileSpecs);
-					if(depotResultFiles.HasError )
-					{
-						VirtualFileSystemLog.Error( depotResultFiles.ErrorText );
-						return false;
-					}
-					DepotResultWhere depotResultWhere = depotClient.Where(depotResultFiles.Nodes.Select(n => n.DepotFile));
-					if( depotResultWhere.HasError )
-					{
-						VirtualFileSystemLog.Error( depotResultWhere.ErrorText );
-						return false;
-					}
-
-					IEnumerable<DepotFileReference> depotFileReferences = depotResultFiles.Nodes.Join(
-						depotResultWhere.Nodes,
-						filesFile => filesFile.DepotFile,
-						whereFile => whereFile.DepotPath,
-						(filesFile, whereFile) => new DepotFileReference() {
-							DepotFile = filesFile.DepotFile,
-							Rev = new DepotRevisionNumber(filesFile.Rev),
-							ClientFile = whereFile.LocalPath,
-							WorkspaceFile = whereFile.WorkspacePath,
-							Change = filesFile.Change,
-							Action = filesFile.Action,
-							Type = filesFile.Type
-						}
-					);
-
-					System.Threading.Tasks.ParallelOptions fileIteratorOps = new System.Threading.Tasks.ParallelOptions() { MaxDegreeOfParallelism = 4 };
-					System.Threading.Tasks.Parallel.ForEach(depotFileReferences, fileIteratorOps, (DepotFileReference fileReference) =>
-					{
-						if (String.IsNullOrEmpty(syncResident) || Regex.IsMatch(fileReference.ClientFile, syncResident))
-						{
-							VirtualFileSystem.PopulateExistingFile(fileReference, syncType.HasFlag(DepotSyncType.Preview), VirtualFileSystemLog.Instance);
-						}
-					});
+					VirtualFileSystemLog.Verbose("Hydrating files ...");
+					DepotSyncStatus status = DepotOperations.Hydrate(depotClient, syncOptions)?.Status ?? DepotSyncStatus.Success;
+					return status == DepotSyncStatus.Success;
 				}
-
 			}
 
 			return true;
+		}
+
+		private static bool CommandHydrate(string[] args)
+		{
+			return CommandResident(new[]{"-r"}.Concat(args).ToArray());
 		}
 
 		private static bool CommandMonitor(string[] args)

@@ -741,7 +741,11 @@ namespace Microsoft.P4VFS.UnitTest
 			using (DepotClient depotClient = new DepotClient())
 			{
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
-				VirtualFileSystem.Sync(depotClient, String.Format("{0}\\...", srcFolder), new DepotRevisionChangelist(Int32.Parse(srcRevision)), DepotSyncType.Normal, DepotSyncMethod.Virtual, DepotFlushType.Atomic, srcResidentPattern);
+				Assert(VirtualFileSystem.Sync(depotClient, String.Format("{0}\\...", srcFolder), new DepotRevisionChangelist(Int32.Parse(srcRevision)), DepotSyncType.Normal, DepotSyncMethod.Virtual, DepotFlushType.Atomic, srcResidentPattern)?.Status == DepotSyncStatus.Success);
+				verifyResidentFiles(false);
+				WorkspaceReset();
+				Assert(VirtualFileSystem.Sync(depotClient, String.Format("{0}\\...", srcFolder), new DepotRevisionChangelist(Int32.Parse(srcRevision)), DepotSyncType.Normal, DepotSyncMethod.Virtual, DepotFlushType.Atomic)?.Status == DepotSyncStatus.Success);
+				Assert(DepotOperations.Hydrate(depotClient, new DepotSyncOptions{ Files=new[]{ String.Format("{0}\\...", srcFolder) }, SyncResident=srcResidentPattern })?.Status == DepotSyncStatus.Success);
 				verifyResidentFiles(false);
 			}
 

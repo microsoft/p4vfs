@@ -214,10 +214,10 @@ NativeMethods::CreateSymlinkFile(
 
 System::Int32 
 NativeMethods::RemoveReparsePoint(
-	System::String^		path
+	System::String^		filePath
 	)
 {
-	return FileOperations::RemoveReparsePoint(marshal_as_wchar(path));
+	return FileOperations::RemoveReparsePoint(marshal_as_wchar(filePath));
 }
 
 System::Int32 
@@ -230,15 +230,23 @@ NativeMethods::PopulateFile(
 	return FileOperations::PopulateFile(marshal_as_wchar(dstFile), marshal_as_wchar(srcFile), safe_cast<BYTE>(populateMethod));
 }
 
+System::Int32 
+NativeMethods::HydrateFile(
+	System::String^		filePath
+	)
+{
+	return FileOperations::HydrateFile(marshal_as_wchar(filePath));
+}
+
 System::Boolean
 NativeMethods::ImpersonateFileAppend(
-	System::String^		fileName,
+	System::String^		filePath,
 	System::String^		text,
 	UserContext^		context
 	)
 {
 	return SUCCEEDED(FileOperations::ImpersonateFileAppend(
-			marshal_as_wchar(fileName), 
+			marshal_as_wchar(filePath), 
 			marshal_as_wchar(text),
 			marshal_as_user_context(context)
 			));

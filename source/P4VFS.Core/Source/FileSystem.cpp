@@ -195,15 +195,9 @@ ResolveFileResidency(
 		return hr;
 	}
 
-	P4::DepotString targetDepotServer = P4::DepotOperations::ResolveDepotServerName(StringInfo::ToAnsi(populateInfo->depotServer.c_str()));
-	if (context.m_LogDevice)
-	{
-		context.m_LogDevice->Info(StringInfo::Format(L"ResolveFile '%s#%u' -> '%s' [%s,%s,%s] process [%d.%d]", populateInfo->depotPath.c_str(), uint32_t(populateInfo->fileRevision), filePath, CSTR_ATOW(targetDepotServer), populateInfo->depotUser.c_str(), populateInfo->depotClient.c_str(), context.ProcessId(), context.ThreadId()));
-	}
-
 	// Specify a DepotConfig that will be used as a key for similar connections
 	P4::DepotConfig config;
-	config.m_Port = targetDepotServer;
+	config.m_Port = P4::DepotOperations::ResolveDepotServerName(StringInfo::ToAnsi(populateInfo->depotServer.c_str()));
 	config.m_User = StringInfo::ToAnsi(populateInfo->depotUser.c_str());
 	config.m_Client = StringInfo::ToAnsi(populateInfo->depotClient.c_str());
 	const P4::DepotConfig& configKey = config;
@@ -238,8 +232,12 @@ ResolveFileResidency(
 
 		// This DepotClient was successfull, return it to the cache using the exact key that it was allocated with.
 		context.m_DepotClientCache->Free(configKey, client);
-
 		*fileResidencyPolicy = populateInfo->residencyPolicy;
+
+		if (context.m_LogDevice)
+		{
+			context.m_LogDevice->Info(StringInfo::Format(L"%s#%u - hydrated as %s [%s,%s,%s] process [%d.%d]", populateInfo->depotPath.c_str(), uint32_t(populateInfo->fileRevision), filePath, CSTR_ATOW(configKey.m_Port), populateInfo->depotUser.c_str(), populateInfo->depotClient.c_str(), context.ProcessId(), context.ThreadId()));
+		}
 		return S_OK;
 	}
 

@@ -132,6 +132,16 @@ namespace FileOperations {
 		);
 
 	P4VFS_CORE_API HRESULT
+	HydrateFile(
+		const WCHAR* filePath
+		);
+
+	P4VFS_CORE_API BOOL
+	IsSessionIdToken(
+		HANDLE hToken
+		);
+
+	P4VFS_CORE_API HRESULT
 	ImpersonateFileAppend(
 		const WCHAR* fileName,
 		const WCHAR* text,

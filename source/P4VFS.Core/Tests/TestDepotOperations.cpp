@@ -111,15 +111,15 @@ void TestDepotOperationsToString(const TestContext& context)
 	Assert(DepotFlushType::ToString(DepotFlushType::Atomic) == "Atomic");
 	Assert(DepotFlushType::ToString(DepotFlushType::Enum(-1)) == "");
 
-	Assert(DepotSyncAction::ToString(DepotSyncAction::Deleted) == "Deleted");
-	Assert(DepotSyncAction::ToString(DepotSyncAction::NoFilesFound) == "NoFilesFound");
-	Assert(DepotSyncAction::ToString(DepotSyncAction::Enum(-1)) == "");
+	Assert(DepotSyncActionType::ToString(DepotSyncActionType::Deleted) == "Deleted");
+	Assert(DepotSyncActionType::ToString(DepotSyncActionType::NoFilesFound) == "NoFilesFound");
+	Assert(DepotSyncActionType::ToString(DepotSyncActionType::Enum(-1)) == "");
 
-	Assert(DepotSyncOption::ToString(DepotSyncOption::FileWrite) == "FileWrite");
-	Assert(DepotSyncOption::ToString(DepotSyncOption::Enum(DepotSyncOption::FileWrite|DepotSyncOption::ClientWrite)) == "FileWrite|ClientWrite");
-	Assert(DepotSyncOption::ToString(DepotSyncOption::Enum(DepotSyncOption::FileWrite|DepotSyncOption::ClientWrite|DepotSyncOption::FileSymlink)) == "FileWrite|ClientWrite|FileSymlink");
-	Assert(DepotSyncOption::ToString(DepotSyncOption::Enum(0)) == "None");
-	Assert(DepotSyncOption::ToString(DepotSyncOption::Enum(1<<16)) == "");
+	Assert(DepotSyncActionFlags::ToString(DepotSyncActionFlags::FileWrite) == "FileWrite");
+	Assert(DepotSyncActionFlags::ToString(DepotSyncActionFlags::Enum(DepotSyncActionFlags::FileWrite|DepotSyncActionFlags::ClientWrite)) == "FileWrite|ClientWrite");
+	Assert(DepotSyncActionFlags::ToString(DepotSyncActionFlags::Enum(DepotSyncActionFlags::FileWrite|DepotSyncActionFlags::ClientWrite|DepotSyncActionFlags::FileSymlink)) == "FileWrite|ClientWrite|FileSymlink");
+	Assert(DepotSyncActionFlags::ToString(DepotSyncActionFlags::Enum(0)) == "None");
+	Assert(DepotSyncActionFlags::ToString(DepotSyncActionFlags::Enum(1<<16)) == "");
 
 	Assert(FDepotRevision::ToString(FDepotRevision::FromString("@32")) == "@32");
 	Assert(FDepotRevision::ToString(FDepotRevision::FromString("#16")) == "#16");

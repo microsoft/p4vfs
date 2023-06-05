@@ -6,6 +6,7 @@
 #include "DepotDateTime.h"
 #include "DepotResultDiff2.h"
 #include "DepotResultFStat.h"
+#include "DepotReconfig.h"
 #pragma managed(push, off)
 
 namespace Microsoft {
@@ -85,6 +86,12 @@ namespace P4 {
 		Hydrate(
 			DepotClient& depotClient, 
 			const FDepotSyncOptions& syncOptions
+			);
+
+		static bool
+		Reconfig(
+			DepotClient& depotClient, 
+			const FDepotReconfigOptions& reconfigOptions
 			);
 
 		static bool

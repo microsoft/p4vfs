@@ -7,6 +7,7 @@
 #include "DepotClientInterop.h"
 #include "DepotSyncActionInterop.h"
 #include "DepotSyncOptionsInterop.h"
+#include "DepotReconfigInterop.h"
 
 namespace Microsoft {
 namespace P4VFS {
@@ -26,6 +27,12 @@ public:
 	Hydrate(
 		DepotClient^ depotClient, 
 		DepotSyncOptions^ syncOptions
+		);
+
+	static bool
+	Reconfig(
+		DepotClient^ depotClient, 
+		DepotReconfigOptions^ reconfigOptions
 		);
 
 	static bool

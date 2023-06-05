@@ -35,6 +35,17 @@ DepotOperations::Hydrate(
 	return DepotSyncResult::FromNative(syncResult);
 }
 
+bool
+DepotOperations::Reconfig(
+	DepotClient^ depotClient, 
+	DepotReconfigOptions^ reconfigOptions
+	)
+{
+	P4::FDepotReconfigOptions options = reconfigOptions->ToNative();
+	P4::DepotClient client = depotClient->ToNative();
+	return P4::DepotOperations::Reconfig(client, options);
+}
+
 System::String^
 DepotOperations::GetHeadRevisionChangelist(
 	DepotClient^ depotClient

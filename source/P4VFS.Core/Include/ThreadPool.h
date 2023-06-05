@@ -53,7 +53,8 @@ namespace ThreadPool {
 			if (params.m_Predicate == nullptr)
 				return 0;
 
-			size_t numThreads = std::min(params.m_MaxThreads, params.m_ItemCount);
+			size_t maxThreads = params.m_MaxThreads > 0 ? params.m_MaxThreads : GetPoolDefaultNumberOfThreads();
+			size_t numThreads = std::min(maxThreads, params.m_ItemCount);
 			if (numThreads == 0)
 				return 0;
 
@@ -132,6 +133,20 @@ namespace ThreadPool {
 				CloseHandle(threads[threadIndex]);
 			}
 			return threadData.m_ItemsComplete;
+		}
+
+		template <typename ItemType, typename PredicateType>
+		static size_t Execute(
+			ItemType* items, 
+			size_t itemCount, 
+			PredicateType predicate
+			)
+		{
+			Params<ItemType> params;
+			params.m_Items = items;
+			params.m_ItemCount = itemCount;
+			params.m_Predicate = predicate;
+			return Execute(params);
 		}
 
 		template <typename ItemType, typename PredicateType>

@@ -8,26 +8,26 @@ namespace Microsoft {
 namespace P4VFS {
 namespace CoreInterop {
 
-bool FDepotSyncAction::IsError(DepotSyncAction value)
+bool FDepotSyncActionType::IsError(DepotSyncActionType value)
 {
-	return P4::DepotSyncAction::IsError(safe_cast<P4::DepotSyncAction::Enum>(value));
+	return P4::DepotSyncActionType::IsError(safe_cast<P4::DepotSyncActionType::Enum>(value));
 }
 
-bool FDepotSyncAction::IsChanged(DepotSyncAction value)
+bool FDepotSyncActionType::IsChanged(DepotSyncActionType value)
 {
-	return P4::DepotSyncAction::IsChanged(safe_cast<P4::DepotSyncAction::Enum>(value));
+	return P4::DepotSyncActionType::IsChanged(safe_cast<P4::DepotSyncActionType::Enum>(value));
 }
 
-bool FDepotSyncAction::IsLocalChanged(DepotSyncAction value)
+bool FDepotSyncActionType::IsLocalChanged(DepotSyncActionType value)
 {
-	return P4::DepotSyncAction::IsLocalChanged(safe_cast<P4::DepotSyncAction::Enum>(value));
+	return P4::DepotSyncActionType::IsLocalChanged(safe_cast<P4::DepotSyncActionType::Enum>(value));
 }
 
 DepotSyncActionInfo::DepotSyncActionInfo() :
 	DepotFile(nullptr),
 	ClientFile(nullptr),
 	Revision(nullptr),
-	SyncAction(DepotSyncAction::None)
+	SyncActionType(DepotSyncActionType::None)
 {
 }
 
@@ -37,7 +37,7 @@ P4::DepotSyncActionInfo DepotSyncActionInfo::ToNative()
 	dst->m_DepotFile = marshal_as_astring(DepotFile);
 	dst->m_ClientFile = marshal_as_astring(ClientFile);
 	dst->m_Revision = P4::FDepotRevision::FromString(marshal_as_astring(Revision));
-	dst->m_SyncAction = safe_cast<P4::DepotSyncAction::Enum>(SyncAction);
+	dst->m_SyncActionType = safe_cast<P4::DepotSyncActionType::Enum>(SyncActionType);
 	dst->m_Message = marshal_as_astring(Message);
 	return dst;
 }
@@ -51,7 +51,7 @@ DepotSyncActionInfo^ DepotSyncActionInfo::FromNative(const P4::DepotSyncActionIn
 		dst->DepotFile = gcnew System::String(src->m_DepotFile.c_str());
 		dst->ClientFile = gcnew System::String(src->m_ClientFile.c_str());
 		dst->Revision = gcnew System::String(P4::FDepotRevision::ToString(src->m_Revision).c_str());
-		dst->SyncAction = safe_cast<DepotSyncAction>(src->m_SyncAction);
+		dst->SyncActionType = safe_cast<DepotSyncActionType>(src->m_SyncActionType);
 		dst->Message = gcnew System::String(src->m_Message.c_str());
 	}
 	return dst;

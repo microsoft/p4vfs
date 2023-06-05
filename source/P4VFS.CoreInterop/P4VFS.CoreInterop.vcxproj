@@ -20,6 +20,7 @@
     <ClInclude Include="Include\DepotConfigInterop.h" />
     <ClInclude Include="Include\DepotConstantsInterop.h" />
     <ClInclude Include="Include\DepotOperationsInterop.h" />
+    <ClInclude Include="Include\DepotReconfigInterop.h" />
     <ClInclude Include="Include\DepotResultInterop.h" />
     <ClInclude Include="Include\DepotSyncActionInterop.h" />
     <ClInclude Include="Include\DepotSyncOptionsInterop.h" />
@@ -37,6 +38,7 @@
     <ClCompile Include="Source\DepotClientInterop.cpp" />
     <ClCompile Include="Source\DepotConfigInterop.cpp" />
     <ClCompile Include="Source\DepotOperationsInterop.cpp" />
+    <ClCompile Include="Source\DepotReconfigInterop.cpp" />
     <ClCompile Include="Source\DepotResultInterop.cpp" />
     <ClCompile Include="Source\DepotSyncActionInterop.cpp" />
     <ClCompile Include="Source\DepotSyncOptionsInterop.cpp" />

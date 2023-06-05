@@ -266,7 +266,7 @@ namespace Microsoft.P4VFS.UnitTest
 				{
 					DepotSyncResult syncResult = depotClient.Sync("//...#none", null, DepotSyncType.Normal);
 					Assert(syncResult?.Modifications != null);
-					Assert(syncResult.Modifications.Where(a => !FDepotSyncAction.IsError(a.SyncAction)).Any() == false);
+					Assert(syncResult.Modifications.Where(a => !FDepotSyncActionType.IsError(a.SyncActionType)).Any() == false);
 				}
 
 				Assert(String.IsNullOrEmpty(workspace?.Client) == false);

@@ -58,6 +58,7 @@ Available commands:
   set         Modify current service settings temporarily for this login session. 
   resident    Modify current resident status of local files.
   populate    Perform sync as fast as possible using quiet, single flush
+  reconfig    Modify the perforce configuration of local placeholder files.
   monitor     Launch and control the P4VFS monitor application.
   install     Install virtual file system driver and service.
   uninstall   Uninstall virtual file system driver and service.
@@ -149,6 +150,22 @@ Available commands:
               the service using a TCP Socket connection. (default behaviour)
    -x <csx>   Specify a string of comma separated file extensions to operate on.
    -p <reg>   Specify a regular expression string to match files to operate on.
+"},
+
+{"reconfig", @"
+  reconfig    Modify the perforce configuration of local placeholder files. 
+              This can be used to reconfigure existing virtual synced (placeholder) 
+              files to reference a different P4PORT or P4CLIENT. This is commonly
+              used to change files in an existing workspace to use a different 
+              perforce server endpoint (ie, a different broker or proxy server)
+              without requiring a force sync #have.
+
+              p4vfs reconfig [-n -p -c -u] [file ...]
+
+   -n         Flag previews the operation without updating the workspace.
+   -p         Set current P4PORT for existing placeholder files. Default.
+   -c         Set current P4CLIENT for existing placeholder files.
+   -u         Set current P4USER for existing placeholder files.
 "},
 
 {"monitor", @"
@@ -319,6 +336,9 @@ Available commands:
 						break;
 					case "populate":
 						status = CommandPopulate(cmdArgs);
+						break;
+					case "reconfig":
+						status = CommandReconfig(cmdArgs);
 						break;
 					case "monitor":
 						status = CommandMonitor(cmdArgs);
@@ -507,6 +527,63 @@ Available commands:
 		private static bool CommandPopulate(string[] args)
 		{
 			return CommandSync(new[]{"-q", "-m", nameof(DepotFlushType.Single)}.Concat(args).ToArray());
+		}
+
+		private static bool CommandReconfig(string[] args)
+		{
+#if false
+			ReconfigFlags reconfigFlags = ReconfigFlags.None;
+
+			int argIndex = 0;
+			for (; argIndex < args.Length; ++argIndex)
+			{
+				if (String.Compare(args[argIndex], "-n") == 0)
+				{
+					reconfigFlags |= ReconfigFlags.Preview;
+				}
+				else if (String.Compare(args[argIndex], "-t") == 0)
+				{
+					syncProtocol = SyncProtocol.Local | (syncProtocol & ~SyncProtocol.Service);
+				}
+				else if (String.Compare(args[argIndex], "-s") == 0)
+				{
+					syncProtocol = SyncProtocol.Service | (syncProtocol & ~SyncProtocol.Local);
+				}
+				else if (String.Compare(args[argIndex], "-x") == 0 && argIndex+1 < args.Length)
+				{
+					syncResident = String.Join("|", args[++argIndex].Split(',',';').Select(x => String.Format("({0}$)", Regex.Escape(x))));
+				}
+				else if (String.Compare(args[argIndex], "-p") == 0 && argIndex+1 < args.Length)
+				{
+					syncResident = args[++argIndex];
+				}
+				else if (String.Compare(args[argIndex], "-q") == 0)
+				{
+					syncType |= DepotSyncType.Quiet;
+				}
+				else if (String.Compare(args[argIndex], "-l") == 0)
+				{
+					syncType &= ~DepotSyncType.Quiet;
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			List<string> fileArguments = new List<string>(args.Skip(argIndex));
+			fileArguments.AddRange(ReadInputFileArgs());
+
+			using (DepotClient depotClient = new DepotClient())
+			{
+				if (depotClient.Connect(depotServer: _P4Port, depotClient: _P4Client, depotUser: _P4User, directoryPath: _P4Directory, depotPasswd: _P4Passwd, host: _P4Host) == false)
+				{
+					VirtualFileSystemLog.Error("Failed to connect to perforce");
+					return false;
+				}
+			}
+#endif
+			return true;
 		}
 
 		private static bool CommandInfo(string[] args)

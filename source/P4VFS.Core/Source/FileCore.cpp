@@ -1208,6 +1208,9 @@ bool FileInfo::IsReadOnly(const wchar_t* filePath)
 
 DWORD FileInfo::FileAttributes(const wchar_t* filePath)
 {
+	if (StringInfo::IsNullOrEmpty(filePath))
+		return INVALID_FILE_ATTRIBUTES;
+
 	AutoHandle hFile = CreateFile(filePath, 0, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT|FILE_FLAG_BACKUP_SEMANTICS, NULL);
 	if (hFile.Handle() == INVALID_HANDLE_VALUE)
 		return INVALID_FILE_ATTRIBUTES;

@@ -434,7 +434,17 @@ SetReparsePointOnHandle(
 	pReparseData->populatePolicy = populatePolicy;
 
 	DWORD dwSetReparseBytesReturned = 0;
-	if (DeviceIoControl(handle, FSCTL_SET_REPARSE_POINT, reparseDataBuffer.data(), DWORD(reparseDataBuffer.size()), NULL, 0, &dwSetReparseBytesReturned, NULL) == FALSE)
+	BOOL ioControlResult = DeviceIoControl(
+								handle, 
+								FSCTL_SET_REPARSE_POINT, 
+								reparseDataBuffer.data(), 
+								DWORD(reparseDataBuffer.size()), 
+								NULL, 
+								0, 
+								&dwSetReparseBytesReturned, 
+								NULL);
+								
+	if (ioControlResult == FALSE)
 	{
 		return HRESULT_FROM_WIN32(GetLastError());
 	}
@@ -464,7 +474,18 @@ SetSparseFileSizeOnHandle(
 	DWORD dwSetZeroBytesReturned = 0;
 	FILE_ZERO_DATA_INFORMATION zeroInfo = {0};
 	zeroInfo.BeyondFinalZero = fileEnd;
-	if (DeviceIoControl(handle, FSCTL_SET_ZERO_DATA, &zeroInfo, sizeof(zeroInfo), NULL, 0, &dwSetZeroBytesReturned, NULL) == FALSE)
+
+	BOOL ioControlResult = DeviceIoControl(
+								handle, 
+								FSCTL_SET_ZERO_DATA, 
+								&zeroInfo, 
+								sizeof(zeroInfo), 
+								NULL, 
+								0, 
+								&dwSetZeroBytesReturned, 
+								NULL);
+								
+	if (ioControlResult == FALSE)
 	{
 		return HRESULT_FROM_WIN32(GetLastError());
 	}
@@ -488,7 +509,18 @@ RemoveSparseFileSizeOnHandle(
 {
 	DWORD dwSetSparseBytesReturned = 0;
 	FILE_SET_SPARSE_BUFFER sparseBuffer = {0};
-	if (DeviceIoControl(handle, FSCTL_SET_SPARSE, &sparseBuffer, sizeof(sparseBuffer), NULL, 0, &dwSetSparseBytesReturned, NULL) == FALSE)
+
+	BOOL ioControlResult = DeviceIoControl(
+								handle, 
+								FSCTL_SET_SPARSE, 
+								&sparseBuffer, 
+								sizeof(sparseBuffer), 
+								NULL, 
+								0, 
+								&dwSetSparseBytesReturned, 
+								NULL);
+								
+	if (ioControlResult == FALSE)
 	{
 		return HRESULT_FROM_WIN32(GetLastError());
 	}

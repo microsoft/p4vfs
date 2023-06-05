@@ -17,6 +17,7 @@
     <ClInclude Include="Include\DepotConfig.h" />
     <ClInclude Include="Include\DepotConstants.h" />
     <ClInclude Include="Include\DepotOperations.h" />
+    <ClInclude Include="Include\DepotReconfig.h" />
     <ClInclude Include="Include\DepotResult.h" />
     <ClInclude Include="Include\DepotResultClient.h" />
     <ClInclude Include="Include\DepotResultDiff2.h" />
@@ -51,6 +52,7 @@
     <ClCompile Include="Source\DepotConfig.cpp" />
     <ClCompile Include="Source\DepotDateTime.cpp" />
     <ClCompile Include="Source\DepotOperations.cpp" />
+    <ClCompile Include="Source\DepotReconfig.cpp" />
     <ClCompile Include="Source\DepotResult.cpp" />
     <ClCompile Include="Source\DepotResultClient.cpp" />
     <ClCompile Include="Source\DepotResultFStat.cpp" />

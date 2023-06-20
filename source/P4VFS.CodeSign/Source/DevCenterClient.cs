@@ -443,7 +443,7 @@ namespace Microsoft.P4VFS.CodeSign
 				string text = token?.Value<string>("access_token");
 				if (String.IsNullOrEmpty(text))
 				{
-					throw new Exception("Failed to get dev center access token");
+					throw new Exception(String.Format("Failed to get dev center access token: {0}", token));
 				}
 
 				int expirationSeconds = token?.Value<int>("expires_in") ?? 0;

@@ -494,7 +494,9 @@ Available commands:
 			syncOptions.Context = new CoreInterop.UserContext { ProcessId = Process.GetCurrentProcess().Id };
 
 			if (syncType.HasFlag(DepotSyncType.Quiet))
+			{
 				SettingManagerExtensions.Verbosity = LogChannel.Warning;
+			}
 
 			using (DepotClient depotClient = new DepotClient())
 			{
@@ -742,6 +744,11 @@ Available commands:
 
 			List<string> fileArguments = new List<string>(args.Skip(argIndex));
 			fileArguments.AddRange(ReadInputFileArgs());
+
+			if (syncType.HasFlag(DepotSyncType.Quiet))
+			{
+				SettingManagerExtensions.Verbosity = LogChannel.Warning;
+			}
 
 			using (DepotClient depotClient = new DepotClient())
 			{

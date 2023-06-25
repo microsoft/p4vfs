@@ -96,17 +96,20 @@ DepotOperations::SyncVirtual(
 	}
 
 	depotClient->Log(LogChannel::Info, StringInfo::Format("%I64u Modification message%s to act on.", uint64_t(modifications->size()), modifications->size() ? "s" : ""));
-	concurrency::parallel_for_each(modifications->begin(), modifications->end(), [&syncOptions, primarySyncType](DepotSyncActionInfo& modification) -> void
-	{
-		modification->m_SyncType = syncOptions.m_SyncType;
-		modification->m_FlushType = syncOptions.m_FlushType;
-		modification->m_IsAlwaysResident = IsFileTypeAlwaysResident(syncOptions.m_SyncResident, modification->m_DepotFile);
-
-		if (primarySyncType & DepotSyncType::Writeable)
+	ThreadPool::ForEach::Execute(
+		modifications->data(), 
+		modifications->size(), 
+		[&syncOptions, primarySyncType](DepotSyncActionInfo& modification) -> void
 		{
-			modification->m_SyncActionFlags |= DepotSyncActionFlags::ClientClobber;
-		}
-	});
+			modification->m_SyncType = syncOptions.m_SyncType;
+			modification->m_FlushType = syncOptions.m_FlushType;
+			modification->m_IsAlwaysResident = IsFileTypeAlwaysResident(syncOptions.m_SyncResident, modification->m_DepotFile);
+
+			if (primarySyncType & DepotSyncType::Writeable)
+			{
+				modification->m_SyncActionFlags |= DepotSyncActionFlags::ClientClobber;
+			}
+		});
 
 	if (depotClient->IsFaulted())
 	{
@@ -551,11 +554,22 @@ DepotOperations::Hydrate(
 				return;
 			}
 
+			bool isAlwaysResident = false;
+			if (syncOptions.m_SyncResident.empty() == false)
+			{
+				isAlwaysResident = IsFileTypeAlwaysResident(syncOptions.m_SyncResident, depotFile);
+				if (isAlwaysResident == false)
+				{
+					return;
+				}
+			}
+
 			DepotSyncActionInfo modification = std::make_shared<FDepotSyncActionInfo>();
 			modification->m_DepotFile = depotFile;
 			modification->m_ClientFile = clientFile;
 			modification->m_Revision = FDepotRevision::New<FDepotRevisionNumber>(haveRev);
 			modification->m_SyncType = syncOptions.m_SyncType;
+			modification->m_IsAlwaysResident = isAlwaysResident;
 
 			LogDevice::WriteLine(log, LogChannel::Info, StringInfo::Format("%s#%d - request hydrate as %s", depotFile.c_str(), haveRev, clientFile.c_str()));
 			if (modification->IsPreview() == false)

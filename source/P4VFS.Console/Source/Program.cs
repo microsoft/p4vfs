@@ -163,7 +163,8 @@ Available commands:
               p4vfs reconfig [-n -p -c -u] [file ...]
 
    -n         Flag previews the operation without updating the workspace.
-   -p         Set current P4PORT for existing placeholder files. Default.
+   -p         Set current P4PORT for existing placeholder files. 
+              Default enabled unless -c or -u is specified.
    -c         Set current P4CLIENT for existing placeholder files.
    -u         Set current P4USER for existing placeholder files.
 "},
@@ -517,7 +518,7 @@ Available commands:
 				if (syncProtocol.HasFlag(SyncProtocol.Local))
 				{
 					VirtualFileSystemLog.Verbose("Performing local sync ...");
-					DepotSyncStatus status = VirtualFileSystem.Sync(depotClient, syncOptions)?.Status ?? DepotSyncStatus.Success;
+					DepotSyncStatus status = depotClient.Sync(syncOptions)?.Status ?? DepotSyncStatus.Success;
 					return status == DepotSyncStatus.Success;
 				}
 			}
@@ -533,39 +534,30 @@ Available commands:
 
 		private static bool CommandReconfig(string[] args)
 		{
-#if false
-			ReconfigFlags reconfigFlags = ReconfigFlags.None;
+			DepotReconfigFlags reconfigFlags = DepotReconfigFlags.None;
 
 			int argIndex = 0;
 			for (; argIndex < args.Length; ++argIndex)
 			{
 				if (String.Compare(args[argIndex], "-n") == 0)
 				{
-					reconfigFlags |= ReconfigFlags.Preview;
-				}
-				else if (String.Compare(args[argIndex], "-t") == 0)
-				{
-					syncProtocol = SyncProtocol.Local | (syncProtocol & ~SyncProtocol.Service);
-				}
-				else if (String.Compare(args[argIndex], "-s") == 0)
-				{
-					syncProtocol = SyncProtocol.Service | (syncProtocol & ~SyncProtocol.Local);
-				}
-				else if (String.Compare(args[argIndex], "-x") == 0 && argIndex+1 < args.Length)
-				{
-					syncResident = String.Join("|", args[++argIndex].Split(',',';').Select(x => String.Format("({0}$)", Regex.Escape(x))));
-				}
-				else if (String.Compare(args[argIndex], "-p") == 0 && argIndex+1 < args.Length)
-				{
-					syncResident = args[++argIndex];
+					reconfigFlags |= DepotReconfigFlags.Preview;
 				}
 				else if (String.Compare(args[argIndex], "-q") == 0)
 				{
-					syncType |= DepotSyncType.Quiet;
+					reconfigFlags |= DepotReconfigFlags.Quiet;
 				}
-				else if (String.Compare(args[argIndex], "-l") == 0)
+				else if (String.Compare(args[argIndex], "-p") == 0)
 				{
-					syncType &= ~DepotSyncType.Quiet;
+					reconfigFlags |= DepotReconfigFlags.P4Port;
+				}
+				else if (String.Compare(args[argIndex], "-c") == 0)
+				{
+					reconfigFlags |= DepotReconfigFlags.P4Client;
+				}
+				else if (String.Compare(args[argIndex], "-u") == 0)
+				{
+					reconfigFlags |= DepotReconfigFlags.P4User;
 				}
 				else
 				{
@@ -573,8 +565,22 @@ Available commands:
 				}
 			}
 
-			List<string> fileArguments = new List<string>(args.Skip(argIndex));
-			fileArguments.AddRange(ReadInputFileArgs());
+			if ((reconfigFlags & (DepotReconfigFlags.P4Port|DepotReconfigFlags.P4Client|DepotReconfigFlags.P4User)) == 0)
+			{
+				reconfigFlags |= DepotReconfigFlags.P4Port;
+			}
+
+			if (reconfigFlags.HasFlag(DepotReconfigFlags.Quiet))
+			{
+				SettingManagerExtensions.Verbosity = LogChannel.Warning;
+			}
+
+			List<string> files = new List<string>(args.Skip(argIndex));
+			files.AddRange(ReadInputFileArgs());
+
+			DepotReconfigOptions reconfigOptions = new DepotReconfigOptions();
+			reconfigOptions.Files = files.ToArray();
+			reconfigOptions.Flags = reconfigFlags;
 
 			using (DepotClient depotClient = new DepotClient())
 			{
@@ -583,9 +589,10 @@ Available commands:
 					VirtualFileSystemLog.Error("Failed to connect to perforce");
 					return false;
 				}
+
+				VirtualFileSystemLog.Verbose("Performing local reconfig ...");
+				return DepotOperations.Reconfig(depotClient, reconfigOptions);
 			}
-#endif
-			return true;
 		}
 
 		private static bool CommandInfo(string[] args)
@@ -778,7 +785,7 @@ Available commands:
 					if (syncProtocol.HasFlag(SyncProtocol.Local))
 					{
 						VirtualFileSystemLog.Verbose("Performing local sync ...");
-						DepotSyncStatus status = VirtualFileSystem.Sync(depotClient, syncOptions)?.Status ?? DepotSyncStatus.Success;
+						DepotSyncStatus status = depotClient.Sync(syncOptions)?.Status ?? DepotSyncStatus.Success;
 						return status == DepotSyncStatus.Success;
 					}
 

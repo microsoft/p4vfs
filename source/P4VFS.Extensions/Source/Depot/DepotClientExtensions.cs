@@ -26,14 +26,27 @@ namespace Microsoft.P4VFS.Extensions
 			return depotClient.Run(command).ToView<DepotResultViewType>();
 		}
 
-		public static DepotSyncResult Sync(this DepotClient depotClient, string files, DepotRevision revision, DepotSyncType syncType)
+		public static DepotSyncResult Sync(this DepotClient depotClient, string files, DepotRevision revision = null, DepotSyncType syncType = DepotSyncType.Normal, DepotSyncMethod syncMethod = DepotSyncMethod.Virtual, DepotFlushType flushType = DepotFlushType.Atomic, string syncResident = null)
 		{
-			return depotClient.Sync(new string[]{ files }, revision, syncType);
+			return depotClient.Sync(new string[]{ files }, revision, syncType, syncMethod, flushType, syncResident);
 		}
 
-		public static DepotSyncResult Sync(this DepotClient depotClient, IEnumerable<string> files, DepotRevision revision, DepotSyncType syncType)
+		public static DepotSyncResult Sync(this DepotClient depotClient, IEnumerable<string> files, DepotRevision revision = null, DepotSyncType syncType = DepotSyncType.Normal, DepotSyncMethod syncMethod = DepotSyncMethod.Virtual, DepotFlushType flushType = DepotFlushType.Atomic, string syncResident = null)
 		{
-			return DepotOperations.Sync(depotClient, new DepotSyncOptions{ Files=files?.ToArray(), Revision=revision?.ToString(), SyncType=syncType });
+			DepotSyncOptions syncOptions = new DepotSyncOptions();
+			syncOptions.Files = files?.ToArray();
+			syncOptions.Revision = revision?.ToString();
+			syncOptions.SyncType = syncType;
+			syncOptions.SyncMethod = syncMethod;
+			syncOptions.SyncResident = syncResident;
+			syncOptions.FlushType = flushType;
+
+			return depotClient.Sync(syncOptions);
+		}
+
+		public static DepotSyncResult Sync(this DepotClient depotClient, DepotSyncOptions syncOptions)
+		{
+			return DepotOperations.Sync(depotClient, syncOptions);
 		}
 
 		public static bool Connect(this DepotClient client, string depotServer = null, string depotClient = null, string depotUser = null, string directoryPath = null, string depotPasswd = null, string host = null)

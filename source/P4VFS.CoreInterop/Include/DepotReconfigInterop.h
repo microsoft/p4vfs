@@ -13,6 +13,7 @@ public enum class DepotReconfigFlags : System::Int32
 {
 	None		= P4::DepotReconfigFlags::None,
 	Preview		= P4::DepotReconfigFlags::Preview,
+	Quiet		= P4::DepotReconfigFlags::Quiet,
 	P4Port		= P4::DepotReconfigFlags::P4Port,
 	P4Client	= P4::DepotReconfigFlags::P4Client,
 	P4User		= P4::DepotReconfigFlags::P4User,

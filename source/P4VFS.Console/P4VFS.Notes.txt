@@ -35,7 +35,8 @@ Version [1.25.1.0]
   This is commonly used to change files in an existing workspace to use a different 
   perforce server endpoint (ie, a different broker or proxy server) without requiring a 
   force sync #have
-* Fixing bug where resident command doesn't correctly support quiet logging (#23)
+* Fixing bug where resident command doesn't correctly support quiet logging (#23). Additional
+  unit test to verify -q option works correctly for commands that support it.
 
 Version [1.25.0.0] 2023/03/23
 * Updated drivers for VS 2022 and WDK 10.0.22621.382

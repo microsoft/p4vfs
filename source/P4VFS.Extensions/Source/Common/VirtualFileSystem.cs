@@ -274,31 +274,6 @@ namespace Microsoft.P4VFS.Extensions
 			return new VersionDescriptor(major, minor, build, revision);
 		}
 
-		public static DepotSyncResult Sync(
-			DepotClient depotClient, 
-			string files, 
-			DepotRevision revision = null, 
-			DepotSyncType syncType = DepotSyncType.Normal, 
-			DepotSyncMethod syncMethod = DepotSyncMethod.Virtual, 
-			DepotFlushType flushType = DepotFlushType.Atomic,  
-			string syncResident = null)
-		{
-			DepotSyncOptions syncOptions = new DepotSyncOptions();
-			syncOptions.Files = new string[] { files };
-			syncOptions.Revision = revision?.ToString();
-			syncOptions.SyncType = syncType;
-			syncOptions.SyncMethod = syncMethod;
-			syncOptions.SyncResident = syncResident;
-			syncOptions.FlushType = flushType;
-
-			return Sync(depotClient, syncOptions);
-		}
-
-		public static DepotSyncResult Sync(DepotClient depotClient, DepotSyncOptions syncOptions)
-		{
-			return DepotOperations.Sync(depotClient, syncOptions);
-		}
-
 		public static FilePopulateInfo QueryFilePopulateInfo(string physicalFilePath)
 		{
 			FilePopulateInfo populateInfo = NativeMethods.GetFilePopulateInfo(physicalFilePath);

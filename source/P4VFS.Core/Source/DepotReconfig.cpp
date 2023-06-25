@@ -12,6 +12,7 @@ DepotString DepotReconfigFlags::ToString(DepotReconfigFlags::Enum value)
 	DepotString result;
 	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotReconfigFlags, None);
 	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotReconfigFlags, Preview);
+	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotReconfigFlags, Quiet);
 	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotReconfigFlags, P4Port);
 	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotReconfigFlags, P4Client);
 	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotReconfigFlags, P4User);

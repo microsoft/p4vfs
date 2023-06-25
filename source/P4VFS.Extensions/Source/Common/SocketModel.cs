@@ -197,7 +197,7 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 						return new SocketModelReplySync{ Status = DepotSyncStatus.Error };
 					}
 
-					DepotSyncResult result = VirtualFileSystem.Sync(depotClient, request.SyncOptions);
+					DepotSyncResult result = depotClient.Sync(request.SyncOptions);
 					DepotSyncStatus status = result != null ? result.Status : DepotSyncStatus.Success;
 					return new SocketModelReplySync{ Status = status };
 				}

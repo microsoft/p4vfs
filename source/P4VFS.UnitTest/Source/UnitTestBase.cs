@@ -259,7 +259,7 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(String.IsNullOrEmpty(root) == false);
 				Assert(depotClient.Opened().Count == 0 || depotClient.Run("revert", new[]{ "-k", "//..." }).HasError == false);
 
-				VirtualFileSystem.Sync(depotClient, "//...", new DepotRevisionNone(), DepotSyncType.Force|DepotSyncType.Quiet, DepotSyncMethod.Regular);
+				depotClient.Sync("//...", new DepotRevisionNone(), DepotSyncType.Force|DepotSyncType.Quiet, DepotSyncMethod.Regular);
 				AssertLambda(() => FileUtilities.DeleteDirectoryAndFiles(root));
 				AssertRetry(() => Directory.Exists(root) == false, String.Format("directory exists {0}", root));
 				if (depotClient.GetHeadRevisionChangelist() != null)

@@ -46,7 +46,10 @@ namespace P4 {
 		}
 
 		template <typename RevType, typename... ArgTypes>
-		P4VFS_CORE_API static DepotRevision New(ArgTypes&&... args);
+		static DepotRevision New(ArgTypes&&... args)
+		{
+			return std::make_shared<RevType>(std::forward<ArgTypes>(args)...);
+		}
 
 		P4VFS_CORE_API static DepotString ToString(const DepotRevision& revision);
 

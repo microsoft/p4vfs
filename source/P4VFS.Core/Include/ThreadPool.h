@@ -7,7 +7,15 @@
 
 namespace Microsoft {
 namespace P4VFS {
-namespace FileCore {
+namespace ThreadPool {
+
+	DWORD
+	GetPoolMaxNumberOfThreads(
+		);
+
+	DWORD
+	GetPoolDefaultNumberOfThreads(
+		);
 
 	struct ForEach
 	{
@@ -29,7 +37,7 @@ namespace FileCore {
 			size_t m_ItemCount;
 			ItemType* m_Items;
 			HANDLE m_CancelationEvent;
-			LogDevice* m_Log;
+			FileCore::LogDevice* m_Log;
 			std::function<void(ItemType&)> m_Predicate;
 			std::function<bool()> m_Initialize;
 			std::function<bool()> m_Shutdown;
@@ -45,7 +53,8 @@ namespace FileCore {
 			if (params.m_Predicate == nullptr)
 				return 0;
 
-			size_t numThreads = std::min(params.m_MaxThreads, params.m_ItemCount);
+			size_t maxThreads = params.m_MaxThreads > 0 ? params.m_MaxThreads : GetPoolDefaultNumberOfThreads();
+			size_t numThreads = std::min(maxThreads, params.m_ItemCount);
 			if (numThreads == 0)
 				return 0;
 
@@ -128,6 +137,20 @@ namespace FileCore {
 
 		template <typename ItemType, typename PredicateType>
 		static size_t Execute(
+			ItemType* items, 
+			size_t itemCount, 
+			PredicateType predicate
+			)
+		{
+			Params<ItemType> params;
+			params.m_Items = items;
+			params.m_ItemCount = itemCount;
+			params.m_Predicate = predicate;
+			return Execute(params);
+		}
+
+		template <typename ItemType, typename PredicateType>
+		static size_t Execute(
 			size_t maxThreads, 
 			ItemType* items, 
 			size_t itemCount, 
@@ -172,7 +195,7 @@ namespace FileCore {
 			ItemType* items, 
 			size_t itemCount, 
 			HANDLE cancelationEvent, 
-			const UserContext* context,
+			const FileCore::UserContext* context,
 			PredicateType predicate
 			)
 		{
@@ -193,6 +216,5 @@ namespace FileCore {
 			return Execute(params);
 		}
 	};
-
 }}}
 #pragma managed(pop)

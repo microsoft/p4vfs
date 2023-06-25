@@ -11,6 +11,7 @@
 #pragma warning(disable: 26451) // Arithmetic overflow: Using operator '%operator%' on a %size1% byte value and then casting the result to a %size2% byte value
 #pragma warning(disable: 26495)	// Variable '%variable%' is uninitialized. Always initialize a member variable
 #pragma warning(disable: 26812) // Prefer 'enum class' over 'enum'
+#pragma warning(disable: 26813) // Use 'bitwise and' to check if a flag is set.
 
 #include <SDKDDKVer.h>
 

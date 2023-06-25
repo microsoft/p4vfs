@@ -55,7 +55,7 @@ Commands:
 			try
 			{
 				VirtualFileSystemLog.Intitialize();
-				ServiceSettings.ImmediateLogging = true;
+				SettingManager.ImmediateLogging = true;
 				bool noLogo = false;
 				string username = null;
 				SecureString password = null;
@@ -66,7 +66,7 @@ Commands:
 					if (String.Compare(args[argIndex], "-b") == 0)
 						System.Diagnostics.Debugger.Launch();
 					else if (String.Compare(args[argIndex], "-v") == 0)
-						ServiceSettings.Verbosity = LogChannel.Verbose;
+						SettingManagerExtensions.Verbosity = LogChannel.Verbose;
 					else if (String.Compare(args[argIndex], "-u") == 0 && argIndex+1 < args.Length)
 						username = args[++argIndex];
 					else if (String.Compare(args[argIndex], "-p") == 0 && argIndex+1 < args.Length)
@@ -89,7 +89,7 @@ Commands:
 						password = CodeSignUtilities.ReadConsolePassword(String.Format("Enter Password for {0}: ", username));
 					}
 					List<string> runasArgs = new List<string>();
-					if (ServiceSettings.Verbosity == LogChannel.Verbose)
+					if (SettingManagerExtensions.Verbosity == LogChannel.Verbose)
 					{
 						runasArgs.Add("-v");
 					}

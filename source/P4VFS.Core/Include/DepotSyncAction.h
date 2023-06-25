@@ -36,7 +36,7 @@ namespace P4 {
 		P4VFS_CORE_API static DepotString ToString(Enum value);
 	};
 
-	struct DepotSyncAction
+	struct DepotSyncActionType
 	{
 		enum Enum
 		{
@@ -64,7 +64,7 @@ namespace P4 {
 		P4VFS_CORE_API static Enum FromString(const DepotString& value);
 	};
 
-	struct DepotSyncOption
+	struct DepotSyncActionFlags
 	{
 		enum Enum
 		{
@@ -91,8 +91,8 @@ namespace P4 {
 		DepotString m_ClientFile;
 		int64_t m_FileSize;
 		DepotRevision m_Revision;
-		DepotSyncAction::Enum m_SyncAction;
-		DepotSyncOption::Enum m_SyncOptions;
+		DepotSyncActionType::Enum m_SyncActionType;
+		DepotSyncActionFlags::Enum m_SyncActionFlags;
 		DepotSyncType::Enum m_SyncType;
 		DepotFlushType::Enum m_FlushType;
 		int64_t m_DiskFileSize;
@@ -146,6 +146,6 @@ namespace P4 {
 	typedef std::shared_ptr<FDepotSyncResult> DepotSyncResult;
 
 	DEFINE_ENUM_FLAG_OPERATORS(DepotSyncType::Enum);
-	DEFINE_ENUM_FLAG_OPERATORS(DepotSyncOption::Enum);
+	DEFINE_ENUM_FLAG_OPERATORS(DepotSyncActionFlags::Enum);
 	DEFINE_ENUM_FLAG_OPERATORS(DepotSyncStatus::Enum);
 }}}

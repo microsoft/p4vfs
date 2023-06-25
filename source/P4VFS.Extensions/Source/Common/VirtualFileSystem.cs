@@ -223,7 +223,21 @@ namespace Microsoft.P4VFS.Extensions
 			return success;
 		}
 
-		public static string LocalSettingsFilePath
+		public static string UserSettingsFilePath
+		{
+			get	{ return Path.GetFullPath(String.Format("{0}\\{1}", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), SettingsFile)); }
+		}
+
+		public static string PublicSettingsFilePath
+		{
+			get	
+			{ 
+				string publicProfile = Environment.GetEnvironmentVariable("PUBLIC");
+				return String.IsNullOrEmpty(publicProfile) ? String.Empty : Path.GetFullPath(String.Format("{0}\\{1}", publicProfile, SettingsFile)); 
+			}
+		}
+
+		public static string AssemblySettingsFilePath
 		{
 			get	{ return Path.GetFullPath(String.Format("{0}\\{1}", Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), SettingsFile)); }
 		}
@@ -260,74 +274,6 @@ namespace Microsoft.P4VFS.Extensions
 			return new VersionDescriptor(major, minor, build, revision);
 		}
 
-		public static DepotSyncResult Sync(
-			DepotClient depotClient, 
-			string files, 
-			DepotRevision revision = null, 
-			DepotSyncType syncType = DepotSyncType.Normal, 
-			DepotSyncMethod syncMethod = DepotSyncMethod.Virtual, 
-			DepotFlushType flushType = DepotFlushType.Atomic,  
-			string syncResident = null)
-		{
-			DepotSyncOptions syncOptions = new DepotSyncOptions();
-			syncOptions.Files = new string[] { files };
-			syncOptions.Revision = revision?.ToString();
-			syncOptions.SyncType = syncType;
-			syncOptions.SyncMethod = syncMethod;
-			syncOptions.SyncResident = syncResident;
-			syncOptions.FlushType = flushType;
-
-			return Sync(depotClient, syncOptions);
-		}
-
-		public static DepotSyncResult Sync(DepotClient depotClient, DepotSyncOptions syncOptions)
-		{
-			return DepotOperations.Sync(depotClient, syncOptions);
-		}
-
-		public static bool PopulateExistingFile(DepotClient depotClient, string clientFile, bool preview = false, LogDevice log = null)
-		{
-			DepotResultFStat.Node fstatNode = depotClient.FStat(new string[] { clientFile }, "", DepotResultFStat.FieldType.DepotFile | DepotResultFStat.FieldType.HaveRev)[0];
-			if (fstatNode == null)
-			{
-				log?.Error("File not in client view {0}", clientFile);
-				return false;
-			}
-
-			DepotFileReference fileReference = new DepotFileReference()
-			{
-				DepotFile = fstatNode.DepotFile,
-				Rev = new DepotRevisionNumber(fstatNode.HaveRev),
-				ClientFile = clientFile,
-			};
-			return PopulateExistingFile(fileReference, preview, log);
-		}
-
-		public static bool PopulateExistingFile(DepotFileReference fileReference, bool preview = false, LogDevice log = null)
-		{
-			if (File.Exists(fileReference.ClientFile) && FileUtilities.GetAttributes(fileReference.ClientFile).HasFlag(FileAttributes.Offline))
-			{
-				log?.Info("{0}#{1} - downloaded as {2}", fileReference.DepotFile, fileReference.Rev, fileReference.ClientFile);
-				if (preview)
-				{
-					return true;
-				}
-				try
-				{
-					using (File.Open(fileReference.ClientFile, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Write | FileShare.Delete))
-					{
-						return true;
-					}
-				}
-				catch (IOException e)
-				{
-					log?.Error("Failed to populate {0}#{1} -> {2} ({3})", fileReference.DepotFile, fileReference.Rev, fileReference, e.Message);
-					return false;
-				}
-			}
-			return false;
-		}
-
 		public static FilePopulateInfo QueryFilePopulateInfo(string physicalFilePath)
 		{
 			FilePopulateInfo populateInfo = NativeMethods.GetFilePopulateInfo(physicalFilePath);
@@ -350,18 +296,6 @@ namespace Microsoft.P4VFS.Extensions
 
 			VirtualFileSystemLog.Info("QueryFilePopulateInfo: {0}", physicalFilePath);
 			return populateInfo;
-		}
-
-		private static bool IsFileTypeAlwaysResident(string syncResident, string depotFile)
-		{
-			try	
-			{ 
-				return String.IsNullOrEmpty(depotFile) == false && 
-					   String.IsNullOrEmpty(syncResident) == false && 
-					   Regex.IsMatch(depotFile, syncResident, RegexOptions.IgnoreCase); 
-			} 
-			catch {}
-			return false;
 		}
 	}
 

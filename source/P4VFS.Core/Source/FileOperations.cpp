@@ -434,7 +434,17 @@ SetReparsePointOnHandle(
 	pReparseData->populatePolicy = populatePolicy;
 
 	DWORD dwSetReparseBytesReturned = 0;
-	if (DeviceIoControl(handle, FSCTL_SET_REPARSE_POINT, reparseDataBuffer.data(), DWORD(reparseDataBuffer.size()), NULL, 0, &dwSetReparseBytesReturned, NULL) == FALSE)
+	BOOL ioControlResult = DeviceIoControl(
+								handle, 
+								FSCTL_SET_REPARSE_POINT, 
+								reparseDataBuffer.data(), 
+								DWORD(reparseDataBuffer.size()), 
+								NULL, 
+								0, 
+								&dwSetReparseBytesReturned, 
+								NULL);
+								
+	if (ioControlResult == FALSE)
 	{
 		return HRESULT_FROM_WIN32(GetLastError());
 	}
@@ -464,7 +474,18 @@ SetSparseFileSizeOnHandle(
 	DWORD dwSetZeroBytesReturned = 0;
 	FILE_ZERO_DATA_INFORMATION zeroInfo = {0};
 	zeroInfo.BeyondFinalZero = fileEnd;
-	if (DeviceIoControl(handle, FSCTL_SET_ZERO_DATA, &zeroInfo, sizeof(zeroInfo), NULL, 0, &dwSetZeroBytesReturned, NULL) == FALSE)
+
+	BOOL ioControlResult = DeviceIoControl(
+								handle, 
+								FSCTL_SET_ZERO_DATA, 
+								&zeroInfo, 
+								sizeof(zeroInfo), 
+								NULL, 
+								0, 
+								&dwSetZeroBytesReturned, 
+								NULL);
+								
+	if (ioControlResult == FALSE)
 	{
 		return HRESULT_FROM_WIN32(GetLastError());
 	}
@@ -488,7 +509,18 @@ RemoveSparseFileSizeOnHandle(
 {
 	DWORD dwSetSparseBytesReturned = 0;
 	FILE_SET_SPARSE_BUFFER sparseBuffer = {0};
-	if (DeviceIoControl(handle, FSCTL_SET_SPARSE, &sparseBuffer, sizeof(sparseBuffer), NULL, 0, &dwSetSparseBytesReturned, NULL) == FALSE)
+
+	BOOL ioControlResult = DeviceIoControl(
+								handle, 
+								FSCTL_SET_SPARSE, 
+								&sparseBuffer, 
+								sizeof(sparseBuffer), 
+								NULL, 
+								0, 
+								&dwSetSparseBytesReturned, 
+								NULL);
+								
+	if (ioControlResult == FALSE)
 	{
 		return HRESULT_FROM_WIN32(GetLastError());
 	}
@@ -547,8 +579,8 @@ InstallReparsePointOnFile(
 		}
 	}
 
-	static const int32_t retryCount = std::min(std::max(1, FileCore::SettingManager::StaticInstance().m_CreateFileRetryCount.GetValue()), 20);
-	static const int32_t retryWaitMs = std::min(std::max(0, FileCore::SettingManager::StaticInstance().m_CreateFileRetryWaitMs.GetValue()), 5000);
+	static const int32_t retryCount = std::min(std::max(1, FileCore::SettingManager::StaticInstance().CreateFileRetryCount.GetValue()), 20);
+	static const int32_t retryWaitMs = std::min(std::max(0, FileCore::SettingManager::StaticInstance().CreateFileRetryWaitMs.GetValue()), 5000);
 
 	// Open the file for exclusive write, retrying as needed.
 	FileCore::AutoHandle hFile;
@@ -1178,6 +1210,32 @@ PopulateFile(
 	)
 {
 	return PopulateFileByStream(dstFileName, srcFileStream); 
+}
+
+HRESULT
+HydrateFile(
+	const WCHAR* filePath
+	)
+{
+	if (FileCore::StringInfo::IsNullOrEmpty(filePath))
+	{
+		return HRESULT_FROM_WIN32(ERROR_INVALID_PARAMETER);
+	}
+
+	FileCore::AutoHandle hFile = CreateFile(
+										filePath,
+										GENERIC_READ,
+										FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+										NULL,
+										OPEN_EXISTING,
+										FILE_ATTRIBUTE_NORMAL,
+										NULL);
+	
+	if (hFile.IsValid() == false)
+	{
+		return HRESULT_FROM_WIN32(ERROR_INVALID_HANDLE);
+	}
+	return S_OK;
 }
 
 BOOL

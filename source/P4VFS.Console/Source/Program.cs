@@ -58,6 +58,7 @@ Available commands:
   set         Modify current service settings temporarily for this login session. 
   resident    Modify current resident status of local files.
   populate    Perform sync as fast as possible using quiet, single flush
+  reconfig    Modify the perforce configuration of local placeholder files.
   monitor     Launch and control the P4VFS monitor application.
   install     Install virtual file system driver and service.
   uninstall   Uninstall virtual file system driver and service.
@@ -131,10 +132,11 @@ Available commands:
               p4vfs set [SettingName|SubString]
 "},
 
-{"resident", @"
+{"resident,hydrate", @"
   resident    Modify current resident status of local files. This can be used
               to change existing files back to virtual state (zero downloaded size),
               or change files to a resident state (full downloaded size).
+  hydrate     Synonym for 'resident -r'
 
               p4vfs resident [-r -v -x <csx> -p <reg>] [file ...]
 
@@ -148,6 +150,23 @@ Available commands:
               the service using a TCP Socket connection. (default behaviour)
    -x <csx>   Specify a string of comma separated file extensions to operate on.
    -p <reg>   Specify a regular expression string to match files to operate on.
+"},
+
+{"reconfig", @"
+  reconfig    Modify the perforce configuration of local placeholder files. 
+              This can be used to reconfigure existing virtual synced (placeholder) 
+              files to reference a different P4PORT or P4CLIENT. This is commonly
+              used to change files in an existing workspace to use a different 
+              perforce server endpoint (ie, a different broker or proxy server)
+              without requiring a force sync #have.
+
+              p4vfs reconfig [-n -p -c -u] [file ...]
+
+   -n         Flag previews the operation without updating the workspace.
+   -p         Set current P4PORT for existing placeholder files. 
+              Default enabled unless -c or -u is specified.
+   -c         Set current P4CLIENT for existing placeholder files.
+   -u         Set current P4USER for existing placeholder files.
 "},
 
 {"monitor", @"
@@ -237,8 +256,8 @@ Available commands:
 			try
 			{
 				VirtualFileSystemLog.Intitialize();
-				ServiceSettings.RemoteLogging = ServiceSettings.ConsoleRemoteLogging;
-				ServiceSettings.ImmediateLogging = ServiceSettings.ConsoleImmediateLogging;
+				SettingManager.RemoteLogging = SettingManager.ConsoleRemoteLogging;
+				SettingManager.ImmediateLogging = SettingManager.ConsoleImmediateLogging;
 				_P4Directory = Environment.CurrentDirectory;
 
 				int argIndex = 0;
@@ -278,11 +297,11 @@ Available commands:
 					}
 					else if (String.Compare(args[argIndex], "-r") == 0)
 					{
-						ServiceSettings.RemoteLogging = true;
+						SettingManager.RemoteLogging = true;
 					}
 					else if (String.Compare(args[argIndex], "-v") == 0)
 					{
-						ServiceSettings.Verbosity = LogChannel.Verbose;
+						SettingManagerExtensions.Verbosity = LogChannel.Verbose;
 					}
 					else
 					{
@@ -313,8 +332,14 @@ Available commands:
 					case "resident":
 						status = CommandResident(cmdArgs);
 						break;
+					case "hydrate":
+						status = CommandHydrate(cmdArgs);
+						break;
 					case "populate":
 						status = CommandPopulate(cmdArgs);
+						break;
+					case "reconfig":
+						status = CommandReconfig(cmdArgs);
 						break;
 					case "monitor":
 						status = CommandMonitor(cmdArgs);
@@ -378,10 +403,10 @@ Available commands:
 		{
 			DepotSyncMethod syncMethod = DepotSyncMethod.Virtual;
 			SyncProtocol syncProtocol = SyncProtocol.Service | SyncProtocol.Local;
-			string syncResident = ServiceSettings.SyncResidentPattern?.Trim();
+			string syncResident = SettingManager.SyncResidentPattern?.Trim();
 			
-			DepotSyncType syncType = ServiceSettings.SyncDefaultQuiet ? DepotSyncType.Quiet : DepotSyncType.Normal;
-			DepotFlushType flushType = ServiceSettings.DefaultFlushType;
+			DepotSyncType syncType = SettingManager.SyncDefaultQuiet ? DepotSyncType.Quiet : DepotSyncType.Normal;
+			DepotFlushType flushType = SettingManagerExtensions.DefaultFlushType;
 			DepotFlushType? explicitFlush = null;
 
 			int argIndex = 0;
@@ -470,7 +495,9 @@ Available commands:
 			syncOptions.Context = new CoreInterop.UserContext { ProcessId = Process.GetCurrentProcess().Id };
 
 			if (syncType.HasFlag(DepotSyncType.Quiet))
-				ServiceSettings.Verbosity = LogChannel.Warning;
+			{
+				SettingManagerExtensions.Verbosity = LogChannel.Warning;
+			}
 
 			using (DepotClient depotClient = new DepotClient())
 			{
@@ -491,7 +518,7 @@ Available commands:
 				if (syncProtocol.HasFlag(SyncProtocol.Local))
 				{
 					VirtualFileSystemLog.Verbose("Performing local sync ...");
-					DepotSyncStatus status = VirtualFileSystem.Sync(depotClient, syncOptions)?.Status ?? DepotSyncStatus.Success;
+					DepotSyncStatus status = depotClient.Sync(syncOptions)?.Status ?? DepotSyncStatus.Success;
 					return status == DepotSyncStatus.Success;
 				}
 			}
@@ -503,6 +530,69 @@ Available commands:
 		private static bool CommandPopulate(string[] args)
 		{
 			return CommandSync(new[]{"-q", "-m", nameof(DepotFlushType.Single)}.Concat(args).ToArray());
+		}
+
+		private static bool CommandReconfig(string[] args)
+		{
+			DepotReconfigFlags reconfigFlags = DepotReconfigFlags.None;
+
+			int argIndex = 0;
+			for (; argIndex < args.Length; ++argIndex)
+			{
+				if (String.Compare(args[argIndex], "-n") == 0)
+				{
+					reconfigFlags |= DepotReconfigFlags.Preview;
+				}
+				else if (String.Compare(args[argIndex], "-q") == 0)
+				{
+					reconfigFlags |= DepotReconfigFlags.Quiet;
+				}
+				else if (String.Compare(args[argIndex], "-p") == 0)
+				{
+					reconfigFlags |= DepotReconfigFlags.P4Port;
+				}
+				else if (String.Compare(args[argIndex], "-c") == 0)
+				{
+					reconfigFlags |= DepotReconfigFlags.P4Client;
+				}
+				else if (String.Compare(args[argIndex], "-u") == 0)
+				{
+					reconfigFlags |= DepotReconfigFlags.P4User;
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			if ((reconfigFlags & (DepotReconfigFlags.P4Port|DepotReconfigFlags.P4Client|DepotReconfigFlags.P4User)) == 0)
+			{
+				reconfigFlags |= DepotReconfigFlags.P4Port;
+			}
+
+			if (reconfigFlags.HasFlag(DepotReconfigFlags.Quiet))
+			{
+				SettingManagerExtensions.Verbosity = LogChannel.Warning;
+			}
+
+			List<string> files = new List<string>(args.Skip(argIndex));
+			files.AddRange(ReadInputFileArgs());
+
+			DepotReconfigOptions reconfigOptions = new DepotReconfigOptions();
+			reconfigOptions.Files = files.ToArray();
+			reconfigOptions.Flags = reconfigFlags;
+
+			using (DepotClient depotClient = new DepotClient())
+			{
+				if (depotClient.Connect(depotServer: _P4Port, depotClient: _P4Client, depotUser: _P4User, directoryPath: _P4Directory, depotPasswd: _P4Passwd, host: _P4Host) == false)
+				{
+					VirtualFileSystemLog.Error("Failed to connect to perforce");
+					return false;
+				}
+
+				VirtualFileSystemLog.Verbose("Performing local reconfig ...");
+				return DepotOperations.Reconfig(depotClient, reconfigOptions);
+			}
 		}
 
 		private static bool CommandInfo(string[] args)
@@ -611,7 +701,7 @@ Available commands:
 		{
 			SyncProtocol syncProtocol = SyncProtocol.Service | SyncProtocol.Local;
 			DepotSyncMethod syncMethod = DepotSyncMethod.Regular;
-			DepotSyncType syncType = ServiceSettings.SyncDefaultQuiet ? DepotSyncType.Quiet : DepotSyncType.Normal;
+			DepotSyncType syncType = SettingManager.SyncDefaultQuiet ? DepotSyncType.Quiet : DepotSyncType.Normal;
 			string syncResident = null;
 
 			int argIndex = 0;
@@ -662,6 +752,11 @@ Available commands:
 			List<string> fileArguments = new List<string>(args.Skip(argIndex));
 			fileArguments.AddRange(ReadInputFileArgs());
 
+			if (syncType.HasFlag(DepotSyncType.Quiet))
+			{
+				SettingManagerExtensions.Verbosity = LogChannel.Warning;
+			}
+
 			using (DepotClient depotClient = new DepotClient())
 			{
 				if (depotClient.Connect(depotServer: _P4Port, depotClient: _P4Client, depotUser: _P4User, directoryPath: _P4Directory, depotPasswd: _P4Passwd, host: _P4Host) == false)
@@ -690,57 +785,30 @@ Available commands:
 					if (syncProtocol.HasFlag(SyncProtocol.Local))
 					{
 						VirtualFileSystemLog.Verbose("Performing local sync ...");
-						DepotSyncStatus status = VirtualFileSystem.Sync(depotClient, syncOptions)?.Status ?? DepotSyncStatus.Success;
+						DepotSyncStatus status = depotClient.Sync(syncOptions)?.Status ?? DepotSyncStatus.Success;
 						return status == DepotSyncStatus.Success;
 					}
 
 				}
 				else if (syncMethod == DepotSyncMethod.Regular)
 				{
-					// Only local resident supported for now.
+					DepotSyncOptions syncOptions = new DepotSyncOptions();
+					syncOptions.Files = fileArguments.ToArray();
+					syncOptions.SyncType = syncType;
+					syncOptions.SyncResident = syncResident;
 
-					IEnumerable<string> fileSpecs = DepotOperations.CreateFileSpecs(depotClient, fileArguments.ToArray(), new DepotRevisionHave().ToString(), DepotOperations.CreateFileSpecFlags.None);
-					DepotResultFiles depotResultFiles = depotClient.Files(fileSpecs);
-					if(depotResultFiles.HasError )
-					{
-						VirtualFileSystemLog.Error( depotResultFiles.ErrorText );
-						return false;
-					}
-					DepotResultWhere depotResultWhere = depotClient.Where(depotResultFiles.Nodes.Select(n => n.DepotFile));
-					if( depotResultWhere.HasError )
-					{
-						VirtualFileSystemLog.Error( depotResultWhere.ErrorText );
-						return false;
-					}
-
-					IEnumerable<DepotFileReference> depotFileReferences = depotResultFiles.Nodes.Join(
-						depotResultWhere.Nodes,
-						filesFile => filesFile.DepotFile,
-						whereFile => whereFile.DepotPath,
-						(filesFile, whereFile) => new DepotFileReference() {
-							DepotFile = filesFile.DepotFile,
-							Rev = new DepotRevisionNumber(filesFile.Rev),
-							ClientFile = whereFile.LocalPath,
-							WorkspaceFile = whereFile.WorkspacePath,
-							Change = filesFile.Change,
-							Action = filesFile.Action,
-							Type = filesFile.Type
-						}
-					);
-
-					System.Threading.Tasks.ParallelOptions fileIteratorOps = new System.Threading.Tasks.ParallelOptions() { MaxDegreeOfParallelism = 4 };
-					System.Threading.Tasks.Parallel.ForEach(depotFileReferences, fileIteratorOps, (DepotFileReference fileReference) =>
-					{
-						if (String.IsNullOrEmpty(syncResident) || Regex.IsMatch(fileReference.ClientFile, syncResident))
-						{
-							VirtualFileSystem.PopulateExistingFile(fileReference, syncType.HasFlag(DepotSyncType.Preview), VirtualFileSystemLog.Instance);
-						}
-					});
+					VirtualFileSystemLog.Verbose("Hydrating files ...");
+					DepotSyncStatus status = DepotOperations.Hydrate(depotClient, syncOptions)?.Status ?? DepotSyncStatus.Success;
+					return status == DepotSyncStatus.Success;
 				}
-
 			}
 
 			return true;
+		}
+
+		private static bool CommandHydrate(string[] args)
+		{
+			return CommandResident(new[]{"-r"}.Concat(args).ToArray());
 		}
 
 		private static bool CommandMonitor(string[] args)

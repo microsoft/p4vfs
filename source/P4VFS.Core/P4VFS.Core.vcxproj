@@ -17,6 +17,7 @@
     <ClInclude Include="Include\DepotConfig.h" />
     <ClInclude Include="Include\DepotConstants.h" />
     <ClInclude Include="Include\DepotOperations.h" />
+    <ClInclude Include="Include\DepotReconfig.h" />
     <ClInclude Include="Include\DepotResult.h" />
     <ClInclude Include="Include\DepotResultClient.h" />
     <ClInclude Include="Include\DepotResultDiff2.h" />
@@ -28,6 +29,7 @@
     <ClInclude Include="Include\DepotSyncAction.h" />
     <ClInclude Include="Include\DepotSyncOptions.h" />
     <ClInclude Include="Include\DepotDateTime.h" />
+    <ClInclude Include="Include\DirectoryOperations.h" />
     <ClInclude Include="Include\DriverOperations.h" />
     <ClInclude Include="Include\FileAssert.h" />
     <ClInclude Include="Include\FileContext.h" />
@@ -50,6 +52,7 @@
     <ClCompile Include="Source\DepotConfig.cpp" />
     <ClCompile Include="Source\DepotDateTime.cpp" />
     <ClCompile Include="Source\DepotOperations.cpp" />
+    <ClCompile Include="Source\DepotReconfig.cpp" />
     <ClCompile Include="Source\DepotResult.cpp" />
     <ClCompile Include="Source\DepotResultClient.cpp" />
     <ClCompile Include="Source\DepotResultFStat.cpp" />
@@ -57,6 +60,7 @@
     <ClCompile Include="Source\DepotRevision.cpp" />
     <ClCompile Include="Source\DepotSyncAction.cpp" />
     <ClCompile Include="Source\DepotSyncOptions.cpp" />
+    <ClCompile Include="Source\DirectoryOperations.cpp" />
     <ClCompile Include="Source\DriverOperations.cpp" />
     <ClCompile Include="Source\FileAssert.cpp" />
     <ClCompile Include="Source\FileCore.cpp" />
@@ -69,10 +73,12 @@
     </ClCompile>
     <ClCompile Include="Source\ServiceOperations.cpp" />
     <ClCompile Include="Source\SettingManager.cpp" />
+    <ClCompile Include="Source\ThreadPool.cpp" />
     <ClCompile Include="Tests\TestDepotClient.cpp" />
     <ClCompile Include="Tests\TestDepotClientCache.cpp" />
     <ClCompile Include="Tests\TestDepotOperations.cpp" />
     <ClCompile Include="Tests\TestDepotRevision.cpp" />
+    <ClCompile Include="Tests\TestDirectoryOperations.cpp" />
     <ClCompile Include="Tests\TestDriver.cpp" />
     <ClCompile Include="Tests\TestFactory.cpp" />
     <ClCompile Include="Tests\TestFileInfo.cpp" />

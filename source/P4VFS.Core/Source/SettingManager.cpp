@@ -161,13 +161,13 @@ template SettingPropertyScope<String>;
 
 SettingManager::SettingManager()
 {
-	m_Mutex = CreateMutex(NULL, FALSE, NULL);
+	m_PropertMapMutex = CreateMutex(NULL, FALSE, NULL);
 	Reset();
 }
 
 SettingManager::~SettingManager()
 {
-	SafeCloseHandle(m_Mutex);
+	SafeCloseHandle(m_PropertMapMutex);
 }
 
 SettingManager& SettingManager::StaticInstance()
@@ -178,30 +178,26 @@ SettingManager& SettingManager::StaticInstance()
 
 void SettingManager::Reset()
 {
-	AutoMutex lock(m_Mutex);
-
-	using namespace Microsoft::P4VFS::FileSystem;
-	using namespace Microsoft::P4VFS::P4;
-	#define SETTING_MANAGER_DEFINE_PROP(type, name, value) m_##name.Create(this, TEXT(#name), value);
+	#define SETTING_MANAGER_DEFINE_PROP(type, name, value) name##.Create(this, TEXT(#name), value);
 	SETTING_MANAGER_PROPERTIES(SETTING_MANAGER_DEFINE_PROP)
 	#undef SETTING_MANAGER_DEFINE_PROP
 }
 
 bool SettingManager::HasProperty(const String& propertyName)
 {
-	AutoMutex lock(m_Mutex);
+	AutoMutex lock(m_PropertMapMutex);
 	return m_PropertMap.find(propertyName) != m_PropertMap.end();
 }
 
 void SettingManager::SetProperty(const String& propertyName, const SettingNode& propertyValue)
 {
-	AutoMutex lock(m_Mutex);
+	AutoMutex lock(m_PropertMapMutex);
 	m_PropertMap[propertyName] = propertyValue;
 }
 
 bool SettingManager::GetProperty(const String& propertyName, SettingNode& propertyValue) const
 {
-	AutoMutex lock(m_Mutex);
+	AutoMutex lock(m_PropertMapMutex);
 	PropertyMap::const_iterator propIt = m_PropertMap.find(propertyName);
 	if (propIt != m_PropertMap.end())
 	{
@@ -209,6 +205,26 @@ bool SettingManager::GetProperty(const String& propertyName, SettingNode& proper
 		return true;
 	}
 	return false;
+}
+
+void SettingManager::SetProperties(const PropertyMap& propertyMap)
+{
+	AutoMutex lock(m_PropertMapMutex);
+	for (PropertyMap::const_iterator propertyIt = propertyMap.begin(); propertyIt != propertyMap.end(); ++propertyIt)
+	{
+		m_PropertMap[propertyIt->first] = propertyIt->second;
+	}
+}
+
+bool SettingManager::GetProperties(PropertyMap& propertyMap) const
+{
+	AutoMutex lock(m_PropertMapMutex);
+	propertyMap.clear();
+	for (PropertyMap::const_iterator propertyIt = m_PropertMap.begin(); propertyIt != m_PropertMap.end(); ++propertyIt)
+	{
+		propertyMap[propertyIt->first] = propertyIt->second;
+	}
+	return true;
 }
 
 }}}

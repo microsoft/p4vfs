@@ -124,7 +124,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Scripts\RestartPerforceServer.bat" />
-    <None Include="Scripts\StatusMonitor.py" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource\ServerHistory.xml" />

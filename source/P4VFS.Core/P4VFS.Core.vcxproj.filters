@@ -102,6 +102,12 @@
     <ClInclude Include="Include\DepotConstants.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="Include\DirectoryOperations.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\DepotReconfig.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource\Core.rc">
@@ -210,6 +216,18 @@
     </ClCompile>
     <ClCompile Include="Tests\TestFileOperations.cpp">
       <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DirectoryOperations.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ThreadPool.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Tests\TestDirectoryOperations.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DepotReconfig.cpp">
+      <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -20,12 +20,14 @@
     <ClInclude Include="Include\DepotConfigInterop.h" />
     <ClInclude Include="Include\DepotConstantsInterop.h" />
     <ClInclude Include="Include\DepotOperationsInterop.h" />
+    <ClInclude Include="Include\DepotReconfigInterop.h" />
     <ClInclude Include="Include\DepotResultInterop.h" />
     <ClInclude Include="Include\DepotSyncActionInterop.h" />
     <ClInclude Include="Include\DepotSyncOptionsInterop.h" />
     <ClInclude Include="Include\DriverOperationsInterop.h" />
     <ClInclude Include="Include\FileInterop.h" />
     <ClInclude Include="Include\ServiceOperationsInterop.h" />
+    <ClInclude Include="Include\SettingManagerInterop.h" />
     <ClInclude Include="Source\Pch.h" />
     <ClInclude Include="Tests\TestFactoryInterop.h" />
   </ItemGroup>
@@ -36,6 +38,7 @@
     <ClCompile Include="Source\DepotClientInterop.cpp" />
     <ClCompile Include="Source\DepotConfigInterop.cpp" />
     <ClCompile Include="Source\DepotOperationsInterop.cpp" />
+    <ClCompile Include="Source\DepotReconfigInterop.cpp" />
     <ClCompile Include="Source\DepotResultInterop.cpp" />
     <ClCompile Include="Source\DepotSyncActionInterop.cpp" />
     <ClCompile Include="Source\DepotSyncOptionsInterop.cpp" />
@@ -45,6 +48,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Source\ServiceOperationsInterop.cpp" />
+    <ClCompile Include="Source\SettingManagerInterop.cpp" />
     <ClCompile Include="Tests\TestFactoryInterop.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

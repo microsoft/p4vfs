@@ -96,17 +96,20 @@ DepotOperations::SyncVirtual(
 	}
 
 	depotClient->Log(LogChannel::Info, StringInfo::Format("%I64u Modification message%s to act on.", uint64_t(modifications->size()), modifications->size() ? "s" : ""));
-	concurrency::parallel_for_each(modifications->begin(), modifications->end(), [&syncOptions, primarySyncType](DepotSyncActionInfo& modification) -> void
-	{
-		modification->m_SyncType = syncOptions.m_SyncType;
-		modification->m_FlushType = syncOptions.m_FlushType;
-		modification->m_IsAlwaysResident = IsFileTypeAlwaysResident(syncOptions.m_SyncResident, modification->m_DepotFile);
-
-		if (primarySyncType & DepotSyncType::Writeable)
+	ThreadPool::ForEach::Execute(
+		modifications->data(), 
+		modifications->size(), 
+		[&syncOptions, primarySyncType](DepotSyncActionInfo& modification) -> void
 		{
-			modification->m_SyncOptions |= DepotSyncOption::ClientClobber;
-		}
-	});
+			modification->m_SyncType = syncOptions.m_SyncType;
+			modification->m_FlushType = syncOptions.m_FlushType;
+			modification->m_IsAlwaysResident = IsFileTypeAlwaysResident(syncOptions.m_SyncResident, modification->m_DepotFile);
+
+			if (primarySyncType & DepotSyncType::Writeable)
+			{
+				modification->m_SyncActionFlags |= DepotSyncActionFlags::ClientClobber;
+			}
+		});
 
 	if (depotClient->IsFaulted())
 	{
@@ -121,7 +124,7 @@ DepotOperations::SyncVirtual(
 		residentModifications.reserve(modifications->size());
 		for (const DepotSyncActionInfo& modification : *modifications)
 		{
-			if ((modification->m_SyncOptions & DepotSyncOption::FileSymlink) == 0 && modification->m_IsAlwaysResident)
+			if ((modification->m_SyncActionFlags & DepotSyncActionFlags::FileSymlink) == 0 && modification->m_IsAlwaysResident)
 			{
 				residentModifications.push_back(modification);
 			}
@@ -159,10 +162,10 @@ DepotOperations::SyncVirtual(
 		Array<DepotClient> depotClientList;
 		depotClientList.push_back(depotClient);
 
-		size_t maxThreads = size_t(std::max(1, SettingManager::StaticInstance().m_MaxSyncConnections.GetValue()));
+		size_t maxThreads = size_t(std::max(1, SettingManager::StaticInstance().MaxSyncConnections.GetValue()));
 		FSyncVirtualModificationParams params(log, depotClient, resultModifications);
 
-		ForEach::ExecuteImpersonated(
+		ThreadPool::ForEach::ExecuteImpersonated(
 			maxThreads, 
 			modifications->data(), 
 			modifications->size(), 
@@ -267,7 +270,7 @@ DepotOperations::SyncVirtualModification(
 	)
 {
 	if ((modification->m_IsAlwaysResident == false) && 
-		(modification->m_SyncOptions & DepotSyncOption::FileSymlink) == 0 &&
+		(modification->m_SyncActionFlags & DepotSyncActionFlags::FileSymlink) == 0 &&
 		(modification->m_FlushType == DepotFlushType::Single))
 	{
 		ApplyVirtualModification(DepotClient(), params.m_Config, modification, params.m_Log);
@@ -326,12 +329,12 @@ DepotOperations::ApplyVirtualModification(
 	LogDevice* log = modification->m_SubActions.size() > 0 ? &memoryLog : parentLog;
 
 	// We only handle the Added, Updated, or Deleted events from Perforce
-	switch (modification->m_SyncAction)
+	switch (modification->m_SyncActionType)
 	{
-		case DepotSyncAction::Added:
-		case DepotSyncAction::Updated:
-		case DepotSyncAction::Refreshed:
-		case DepotSyncAction::Replaced:
+		case DepotSyncActionType::Added:
+		case DepotSyncActionType::Updated:
+		case DepotSyncActionType::Refreshed:
+		case DepotSyncActionType::Replaced:
 		{
 			if (modification->m_IsAlwaysResident)
 			{
@@ -381,7 +384,7 @@ DepotOperations::ApplyVirtualModification(
 			}
 			break;
 		}
-		case DepotSyncAction::Deleted:
+		case DepotSyncActionType::Deleted:
 		{
 			LogDevice::WriteLine(log, LogChannel::Info, StringInfo::Format("%s%s - deleted as %s", modification->m_DepotFile.c_str(), FDepotRevision::ToString(modification->m_Revision).c_str(), modification->m_ClientFile.c_str()));
 
@@ -412,7 +415,7 @@ DepotOperations::ApplyVirtualModification(
 			}
 			break;
 		}
-		case DepotSyncAction::OpenedNotChanged:
+		case DepotSyncActionType::OpenedNotChanged:
 		{
 			DepotStopwatch timer(DepotStopwatch::Init::Start);
 			SyncCommand(depotClient, DepotStringArray{ modification->m_DepotFile }, modification->m_Revision, DepotSyncType::Flush | DepotSyncType::IgnoreOutput | DepotSyncType::Quiet);
@@ -420,49 +423,49 @@ DepotOperations::ApplyVirtualModification(
 			LogDevice::WriteLine(log, LogChannel::Warning, StringInfo::Format("%s - is opened and not being changed", modification->ToFileSpecString().c_str()));
 			break;
 		}
-		case DepotSyncAction::UpToDate:
+		case DepotSyncActionType::UpToDate:
 		{
 			LogDevice::WriteLine(log, LogChannel::Info, StringInfo::Format("File up-to-date %s", modification->ToFileSpecString().c_str()));
 			break;
 		}
-		case DepotSyncAction::NoFilesFound:
+		case DepotSyncActionType::NoFilesFound:
 		{
 			LogDevice::WriteLine(log, LogChannel::Error, StringInfo::Format("No file at that changelist number %s", modification->ToFileSpecString().c_str()));
 			break;
 		}
-		case DepotSyncAction::NoFileAtRevision:
+		case DepotSyncActionType::NoFileAtRevision:
 		{
 			LogDevice::WriteLine(log, LogChannel::Error, StringInfo::Format("No file at that revision %s", modification->ToFileSpecString().c_str()));
 			break;
 		}
-		case DepotSyncAction::InvalidPattern:
+		case DepotSyncActionType::InvalidPattern:
 		{
 			LogDevice::WriteLine(log, LogChannel::Error, StringInfo::Format("No such file %s", modification->ToFileSpecString().c_str()));
 			break;
 		}
-		case DepotSyncAction::NotInClientView:
+		case DepotSyncActionType::NotInClientView:
 		{
 			LogDevice::WriteLine(log, LogChannel::Error, StringInfo::Format("File not in client view %s", modification->ToFileSpecString().c_str()));
 			break;
 		}
-		case DepotSyncAction::CantClobber:
+		case DepotSyncActionType::CantClobber:
 		{
 			LogDevice::WriteLine(log, LogChannel::Error, StringInfo::Format("Can't clobber writable file %s", modification->m_ClientFile.c_str()));
 			break;
 		}
-		case DepotSyncAction::NeedsResolve:
+		case DepotSyncActionType::NeedsResolve:
 		{
 			LogDevice::WriteLine(log, LogChannel::Error, StringInfo::Format("... %s - must resolve %s before submitting", modification->m_DepotFile.c_str(), FDepotRevision::ToString(modification->m_Revision).c_str()));
 			break;
 		}
-		case DepotSyncAction::GenericError:
+		case DepotSyncActionType::GenericError:
 		{
 			LogDevice::WriteLine(log, LogChannel::Error, modification->m_Message.c_str());
 			break;
 		}
 		default:
 		{
-			LogDevice::WriteLine(log, LogChannel::Error, StringInfo::Format("Unsupported sync action: %s", DepotSyncAction::ToString(modification->m_SyncAction).c_str()));
+			LogDevice::WriteLine(log, LogChannel::Error, StringInfo::Format("Unsupported sync action: %s", DepotSyncActionType::ToString(modification->m_SyncActionType).c_str()));
 			break;
 		}
 	}
@@ -506,6 +509,171 @@ DepotOperations::CreateSymlinkFile(
 	return status;
 }
 
+DepotSyncResult
+DepotOperations::Hydrate(
+	DepotClient& depotClient, 
+	const FDepotSyncOptions& syncOptions
+	)
+{
+	DepotStringArray hydrateSpecs = CreateFileSpecs(depotClient, syncOptions.m_Files, FDepotRevision::New<FDepotRevisionHave>(), CreateFileSpecFlags::OverrideRevison);
+	if (hydrateSpecs.size() == 0)
+	{
+		depotClient->Log(LogChannel::Error, "No files specified to hydrate");
+		return std::make_shared<FDepotSyncResult>(DepotSyncStatus::Error);
+	}
+
+	DepotResultFStat hydrateFStat = FStat(depotClient, hydrateSpecs, "", FDepotResultFStatField::DepotFile | FDepotResultFStatField::ClientFile | FDepotResultFStatField::HaveRev);
+	if (hydrateFStat->HasError())
+	{
+		depotClient->Log(LogChannel::Error, StringInfo::Format("Failed to fstat paths to hydrate: %s", hydrateFStat->GetError().c_str()));
+		return std::make_shared<FDepotSyncResult>(DepotSyncStatus::Error);
+	}
+
+	DepotSyncActionInfoArray modifications = std::make_shared<DepotSyncActionInfoArray::element_type>();
+	DepotSyncStatus::Enum status = DepotSyncStatus::Success;
+
+	if (hydrateFStat->NodeCount() > 0)
+	{
+		LogDevice* log = depotClient->Log();
+		FileCore::AutoHandle modificationsMutex = CreateMutex(NULL, FALSE, NULL);
+
+		ThreadPool::ForEach::Execute(
+			hydrateFStat->TagList().data(),
+			hydrateFStat->TagList().size(), 
+			[log, &syncOptions, &status, &modifications, &modificationsMutex](const DepotResultTag& hydrateFStatTag) -> void
+		{
+			const FDepotResultFStatNode node = FDepotResultNode::Create<FDepotResultFStatNode>(hydrateFStatTag);
+			const int32_t haveRev = node.HaveRev();
+			const DepotString& depotFile = node.DepotFile();
+			const DepotString& clientFile = node.ClientFile();
+			const WString& filePath = StringInfo::ToWide(clientFile);
+
+			DWORD fileAttributes = FileCore::FileInfo::FileAttributes(filePath.c_str());
+			if ((fileAttributes == INVALID_FILE_ATTRIBUTES) || (fileAttributes & FILE_ATTRIBUTE_OFFLINE) == 0)
+			{
+				return;
+			}
+
+			bool isAlwaysResident = false;
+			if (syncOptions.m_SyncResident.empty() == false)
+			{
+				isAlwaysResident = IsFileTypeAlwaysResident(syncOptions.m_SyncResident, depotFile);
+				if (isAlwaysResident == false)
+				{
+					return;
+				}
+			}
+
+			DepotSyncActionInfo modification = std::make_shared<FDepotSyncActionInfo>();
+			modification->m_DepotFile = depotFile;
+			modification->m_ClientFile = clientFile;
+			modification->m_Revision = FDepotRevision::New<FDepotRevisionNumber>(haveRev);
+			modification->m_SyncType = syncOptions.m_SyncType;
+			modification->m_IsAlwaysResident = isAlwaysResident;
+
+			LogDevice::WriteLine(log, LogChannel::Info, StringInfo::Format("%s#%d - request hydrate as %s", depotFile.c_str(), haveRev, clientFile.c_str()));
+			if (modification->IsPreview() == false)
+			{
+				HRESULT hr = FileOperations::HydrateFile(filePath.c_str());
+				if (hr != S_OK)
+				{
+					LogDevice::WriteLine(log, LogChannel::Error, StringInfo::Format("Failed to hydrate file '%s' with error [%s]", clientFile.c_str(), CSTR_WTOA(StringInfo::ToString(hr))));
+					status = DepotSyncStatus::Error;
+				}
+			}
+
+			AutoMutex modificationsLock(modificationsMutex.Handle());
+			modifications->push_back(modification);
+		});
+	}
+
+	return std::make_shared<FDepotSyncResult>(status, modifications);
+}
+
+bool
+DepotOperations::Reconfig(
+	DepotClient& depotClient, 
+	const FDepotReconfigOptions& reconfigOptions
+	)
+{
+	DepotStringArray reconfigSpecs = CreateFileSpecs(depotClient, reconfigOptions.m_Files, FDepotRevision::New<FDepotRevisionHave>(), CreateFileSpecFlags::OverrideRevison);
+	if (reconfigSpecs.size() == 0)
+	{
+		depotClient->Log(LogChannel::Error, "No files specified to reconfig");
+		return false;
+	}
+
+	DepotResultFStat reconfigFStat = FStat(depotClient, reconfigSpecs, "", FDepotResultFStatField::DepotFile | FDepotResultFStatField::ClientFile | FDepotResultFStatField::FileSize);
+	if (reconfigFStat->HasError())
+	{
+		depotClient->Log(LogChannel::Error, StringInfo::Format("Failed to fstat paths to reconfig: %s", reconfigFStat->GetError().c_str()));
+		return false;
+	}
+
+	bool status = true;
+
+	if (reconfigFStat->NodeCount() > 0)
+	{
+		LogDevice* log = depotClient->Log();
+		const DepotConfig depotConfig = depotClient->Config();
+
+		ThreadPool::ForEach::Execute(
+			reconfigFStat->TagList().data(),
+			reconfigFStat->TagList().size(), 
+			[log, depotConfig, &reconfigOptions, &status](const DepotResultTag& reconfigFStatTag) -> void
+		{
+			const FDepotResultFStatNode node = FDepotResultNode::Create<FDepotResultFStatNode>(reconfigFStatTag);			
+			const DepotString& depotFile = node.DepotFile();
+			const DepotString& clientFile = node.ClientFile();
+			const WString& filePath = StringInfo::ToWide(clientFile);
+			const int64_t fileSize = node.FileSize();
+
+			DWORD fileAttributes = FileCore::FileInfo::FileAttributes(filePath.c_str());
+			if ((fileAttributes == INVALID_FILE_ATTRIBUTES) || (fileAttributes & FILE_ATTRIBUTE_OFFLINE) == 0)
+			{
+				return;
+			}
+
+			FileCore::GAllocPtr<P4VFS_REPARSE_DATA_2> reparseData;
+			HRESULT hr = FileOperations::GetFileReparseData(filePath.c_str(), reparseData);
+			if (FAILED(hr) || reparseData.get() == nullptr)
+			{
+				return;
+			}
+			
+			const DepotString reconfigPort = reconfigOptions.m_Flags & DepotReconfigFlags::P4Port ? depotConfig.m_Port : StringInfo::ToAnsi(reparseData->depotServer.c_str());
+			const DepotString reconfigClient = reconfigOptions.m_Flags & DepotReconfigFlags::P4Client ? depotConfig.m_Client : StringInfo::ToAnsi(reparseData->depotClient.c_str());
+			const DepotString reconfigUser = reconfigOptions.m_Flags & DepotReconfigFlags::P4User ? depotConfig.m_User : StringInfo::ToAnsi(reparseData->depotUser.c_str());
+
+			LogDevice::WriteLine(log, LogChannel::Info, StringInfo::Format("%s#%d - reconfig as %s [%s %s %s]", depotFile.c_str(), int32_t(reparseData->fileRevision), clientFile.c_str(), reconfigPort.c_str(), reconfigClient.c_str(), reconfigUser.c_str()));
+			if ((reconfigOptions.m_Flags & DepotReconfigFlags::Preview) == 0)
+			{
+				hr = FileOperations::InstallReparsePointOnFile(
+					P4VFS_VER_MAJOR,
+					P4VFS_VER_MINOR,
+					P4VFS_VER_BUILD,
+					filePath.c_str(),
+					P4VFS_RESIDENCY_POLICY_RESIDENT,
+					reparseData->fileRevision,
+					fileSize,
+					fileAttributes & FILE_ATTRIBUTE_READONLY,
+					CSTR_ATOW(depotFile),
+					CSTR_ATOW(reconfigPort),
+					CSTR_ATOW(reconfigClient),
+					CSTR_ATOW(reconfigUser));
+
+				if (hr != S_OK)
+				{
+					LogDevice::WriteLine(log, LogChannel::Error, StringInfo::Format("Failed to reconfig file '%s' with error [%s]", clientFile.c_str(), CSTR_WTOA(StringInfo::ToString(hr))));
+					status = false;
+				}
+			}
+		});
+	}
+
+	return status;
+}
+
 bool
 DepotOperations::InstallPlaceholderFile(
 	DepotClient& depotClient,
@@ -518,7 +686,7 @@ DepotOperations::InstallPlaceholderFile(
 		return true;
 	}
 
-	if (modification->m_SyncOptions & DepotSyncOption::FileSymlink)
+	if (modification->m_SyncActionFlags & DepotSyncActionFlags::FileSymlink)
 	{
 		return CreateSymlinkFile(depotClient, modification);
 	}
@@ -794,7 +962,7 @@ DepotOperations::SyncCommand(
 
 	for (const DepotSyncActionInfo& modification : *modifications)
 	{
-		if (modification->m_SyncAction == DepotSyncAction::OpenedNotChanged && 
+		if (modification->m_SyncActionType == DepotSyncActionType::OpenedNotChanged && 
 			modification->m_DepotFile.empty() == false)
 		{
 			if (FDepotResultFStatNode* fstatNode = Algo::Find(openedHeadDepotFiles, modification->m_DepotFile))
@@ -809,7 +977,7 @@ DepotOperations::SyncCommand(
 		DepotStringArray identicalHaveDepotFiles;
 		for (const DepotSyncActionInfo& modification : *modifications)
 		{
-			if (DepotSyncAction::IsLocalChanged(modification->m_SyncAction) && 
+			if (DepotSyncActionType::IsLocalChanged(modification->m_SyncActionType) && 
 				modification->m_DepotFile.empty() == false && 
 				diffDepotFiles.find(modification->m_DepotFile) == diffDepotFiles.end())
 			{
@@ -830,24 +998,34 @@ DepotOperations::SyncCommand(
 		}
 	}
 
-	DepotSyncOption::Enum commonOptions = DepotSyncOption::None;
+	DepotSyncActionFlags::Enum commonSyncActionFlags = DepotSyncActionFlags::None;
 	FDepotResultClientOption::Enum clientOptions = depotClient->Client()->OptionFlags();
 	if (clientOptions & FDepotResultClientOption::Clobber)
-		commonOptions |= DepotSyncOption::ClientClobber;
+	{
+		commonSyncActionFlags |= DepotSyncActionFlags::ClientClobber;
+	}
 	if (clientOptions & FDepotResultClientOption::AllWrite)
-		commonOptions |= DepotSyncOption::ClientWrite;
+	{
+		commonSyncActionFlags |= DepotSyncActionFlags::ClientWrite;
+	}
 
 	for (const DepotSyncActionInfo& modification : *modifications)
 	{
 		modification->m_SyncType = syncType;
-		modification->m_SyncOptions = commonOptions;
+		modification->m_SyncActionFlags = commonSyncActionFlags;
 
 		if (Algo::Contains(writeableHeadDepotFiles, modification->m_DepotFile))
-			modification->m_SyncOptions |= DepotSyncOption::FileWrite;
+		{
+			modification->m_SyncActionFlags |= DepotSyncActionFlags::FileWrite;
+		}
 		if (Algo::Contains(writeableHaveDepotFiles, modification->m_DepotFile))
-			modification->m_SyncOptions |= DepotSyncOption::HaveFileWrite;
+		{
+			modification->m_SyncActionFlags |= DepotSyncActionFlags::HaveFileWrite;
+		}
 		if (Algo::Contains(symlinkDepotFiles, modification->m_DepotFile))
-			modification->m_SyncOptions |= DepotSyncOption::FileSymlink;
+		{
+			modification->m_SyncActionFlags |= DepotSyncActionFlags::FileSymlink;
+		}
 	}
 	return modifications;
 }
@@ -1104,7 +1282,7 @@ DepotOperations::ResolveDepotServerName(
 	DepotString& targetName
 	)
 {
-	const SettingNode dsc = SettingManager::StaticInstance().m_DepotServerConfig.GetNode();
+	const SettingNode dsc = SettingManager::StaticInstance().DepotServerConfig.GetNode();
 	if (StringInfo::Stricmp(dsc.Data().c_str(), L"Servers") == 0)
 	{
 		for (const SettingNode& entry : dsc.Nodes())

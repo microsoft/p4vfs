@@ -46,24 +46,6 @@ DepotRevision FDepotRevision::FromString(const DepotString& text)
 	return nullptr;
 }
 
-template <typename RevType, typename... ArgTypes>
-DepotRevision FDepotRevision::New(ArgTypes&&... args)
-{
-	return std::make_shared<RevType>(std::forward<ArgTypes>(args)...);
-}
-
-template P4VFS_CORE_API DepotRevision FDepotRevision::New<FDepotRevisionRange>();
-template P4VFS_CORE_API DepotRevision FDepotRevision::New<FDepotRevisionRange>(const DepotRevision&, const DepotRevision&);
-template P4VFS_CORE_API DepotRevision FDepotRevision::New<FDepotRevisionDate>(int&&);
-template P4VFS_CORE_API DepotRevision FDepotRevision::New<FDepotRevisionNumber>(int&&);
-template P4VFS_CORE_API DepotRevision FDepotRevision::New<FDepotRevisionNow>();
-template P4VFS_CORE_API DepotRevision FDepotRevision::New<FDepotRevisionNone>();
-template P4VFS_CORE_API DepotRevision FDepotRevision::New<FDepotRevisionChangelist>(int&&);
-template P4VFS_CORE_API DepotRevision FDepotRevision::New<FDepotRevisionHave>();
-template P4VFS_CORE_API DepotRevision FDepotRevision::New<FDepotRevisionHead>();
-template P4VFS_CORE_API DepotRevision FDepotRevision::New<FDepotRevisionLabel>();
-template P4VFS_CORE_API DepotRevision FDepotRevision::New<FDepotRevisionLabel>(const DepotString&);
-
 DepotString FDepotRevision::ToString() const
 {
 	return DepotString();

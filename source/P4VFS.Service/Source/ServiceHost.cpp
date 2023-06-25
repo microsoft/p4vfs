@@ -9,6 +9,7 @@
 #include "FileOperations.h"
 #include "FileCore.h"
 #include "FileAssert.h"
+#include "SettingManager.h"
 
 using namespace Microsoft::P4VFS::ExtensionsInterop;
 using namespace Microsoft::P4VFS::FileCore;
@@ -48,7 +49,8 @@ ServiceHost::ServiceHost() :
 	m_SrvStatusHandle(NULL),
 	m_SrvStopEvent(NULL),
 	m_SrvListener(NULL),
-	m_SrvLastRequestTime({0})
+	m_SrvLastRequestTime({0}),
+	m_SrvTickThread(NULL)
 {
 	Assert(s_instance == nullptr);
 	s_instance = this;
@@ -105,6 +107,7 @@ ServiceHost::SrvMain(
 
 	ExtensionsInterop::InitializeServiceHost(this);
 	LogSystem::StaticInstance().Initialize();
+	SrvBeginTickThread();
 	ServiceLog::Info(TEXT("ServiceHost::SrvMain Begin"));
 
 	SrvReportStatus(SERVICE_RUNNING, NO_ERROR, 0);
@@ -115,6 +118,7 @@ ServiceHost::SrvMain(
 	}
 	
 	ServiceLog::Info(TEXT("ServiceHost::SrvMain End"));
+	SrvEndTickThread();
 	LogSystem::StaticInstance().Shutdown(0);
 	ExtensionsInterop::ShutdownServiceHost();
 
@@ -161,16 +165,73 @@ ServiceHost::SrvReportStatus(
 	m_SrvStatus.dwWaitHint = dwWaitHint;
 
 	if (dwCurrentState == SERVICE_START_PENDING)
+	{
 		m_SrvStatus.dwControlsAccepted = 0;
+	}
 	else 
+	{
 		m_SrvStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP;
+	}
 
 	if ((dwCurrentState == SERVICE_RUNNING) || (dwCurrentState == SERVICE_STOPPED))
+	{
 		m_SrvStatus.dwCheckPoint = 0;
+	}
 	else 
+	{
 		m_SrvStatus.dwCheckPoint = ++dwCheckPoint;
+	}
 
 	SetServiceStatus(m_SrvStatusHandle, &m_SrvStatus);
+}
+
+void
+ServiceHost::SrvBeginTickThread(
+	)
+{
+	if (m_SrvTickThread != NULL)
+	{
+		ServiceLog::Error(TEXT("ServiceHost::SrvBeginTickThread already created"));
+	}
+
+	m_SrvTickThread = CreateThread(NULL, 0, &SrvTickThreadEntry, this, 0, NULL);
+	if (m_SrvTickThread == NULL)
+	{
+		ServiceLog::Error(StringInfo::Format(TEXT("ServiceHost::SrvBeginTickThread Failed to CreateThread [%s]"), StringInfo::ToString(HRESULT_FROM_WIN32(GetLastError())).c_str()).c_str());
+	}
+}
+
+void
+ServiceHost::SrvEndTickThread(
+	)
+{
+	if (m_SrvTickThread != NULL)
+	{
+		WaitForSingleObject(m_SrvTickThread, INFINITE);
+		SafeCloseHandle(m_SrvTickThread);
+	}
+}
+
+DWORD
+ServiceHost::SrvTickThreadEntry(
+	void* data
+	)
+{
+	ServiceHost* pSrvHost = reinterpret_cast<ServiceHost*>(data);
+	Assert(pSrvHost != nullptr);
+	
+	auto tickPeriodMs = []() -> DWORD 
+	{ 
+		return static_cast<DWORD>(std::max<int32_t>(1000, FileCore::SettingManager::StaticInstance().GarbageCollectPeriodMs.GetValue())); 
+	};
+
+	while (WaitForSingleObject(pSrvHost->m_SrvStopEvent, tickPeriodMs()) != WAIT_OBJECT_0)
+	{
+		int64_t timeoutSeconds = std::max<int32_t>(1, FileCore::SettingManager::StaticInstance().DepotClientCacheIdleTimeoutMs.GetValue()/1000);
+		pSrvHost->GarbageCollect(timeoutSeconds);
+	}
+
+	return 0;
 }
 
 bool 

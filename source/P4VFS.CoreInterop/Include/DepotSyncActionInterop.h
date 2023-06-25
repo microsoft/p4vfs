@@ -25,42 +25,42 @@ public enum class DepotFlushType : System::Int32
 	Atomic			= P4::DepotFlushType::Atomic,
 };
 
-public enum class DepotSyncAction : System::Int32
+public enum class DepotSyncActionType : System::Int32
 {
-	None				= P4::DepotSyncAction::None,
-	Added				= P4::DepotSyncAction::Added,
-	Deleted				= P4::DepotSyncAction::Deleted,
-	Updated				= P4::DepotSyncAction::Updated,
-	Refreshed			= P4::DepotSyncAction::Refreshed,
-	Replaced			= P4::DepotSyncAction::Replaced,
-	UpToDate			= P4::DepotSyncAction::UpToDate,
-	NoFilesFound		= P4::DepotSyncAction::NoFilesFound,
-	NoFileAtRevision	= P4::DepotSyncAction::NoFileAtRevision,
-	InvalidPattern		= P4::DepotSyncAction::InvalidPattern,
-	NotInClientView		= P4::DepotSyncAction::NotInClientView,
-	OpenedNotChanged	= P4::DepotSyncAction::OpenedNotChanged,
-	CantClobber			= P4::DepotSyncAction::CantClobber,
-	NeedsResolve		= P4::DepotSyncAction::NeedsResolve,
-	GenericError		= P4::DepotSyncAction::GenericError,
+	None				= P4::DepotSyncActionType::None,
+	Added				= P4::DepotSyncActionType::Added,
+	Deleted				= P4::DepotSyncActionType::Deleted,
+	Updated				= P4::DepotSyncActionType::Updated,
+	Refreshed			= P4::DepotSyncActionType::Refreshed,
+	Replaced			= P4::DepotSyncActionType::Replaced,
+	UpToDate			= P4::DepotSyncActionType::UpToDate,
+	NoFilesFound		= P4::DepotSyncActionType::NoFilesFound,
+	NoFileAtRevision	= P4::DepotSyncActionType::NoFileAtRevision,
+	InvalidPattern		= P4::DepotSyncActionType::InvalidPattern,
+	NotInClientView		= P4::DepotSyncActionType::NotInClientView,
+	OpenedNotChanged	= P4::DepotSyncActionType::OpenedNotChanged,
+	CantClobber			= P4::DepotSyncActionType::CantClobber,
+	NeedsResolve		= P4::DepotSyncActionType::NeedsResolve,
+	GenericError		= P4::DepotSyncActionType::GenericError,
 };
 
-public value class FDepotSyncAction
+public value class FDepotSyncActionType
 {
 public:
-	static bool IsError(DepotSyncAction value);
-	static bool IsChanged(DepotSyncAction value);
-	static bool IsLocalChanged(DepotSyncAction value);
+	static bool IsError(DepotSyncActionType value);
+	static bool IsChanged(DepotSyncActionType value);
+	static bool IsLocalChanged(DepotSyncActionType value);
 };
 
 [System::FlagsAttribute]
-public enum class DepotSyncOption : System::Int32
+public enum class DepotSyncActionFlags : System::Int32
 {
-	None				= P4::DepotSyncOption::None,
-	FileWrite			= P4::DepotSyncOption::FileWrite,
-	HaveFileWrite		= P4::DepotSyncOption::HaveFileWrite,
-	ClientWrite			= P4::DepotSyncOption::ClientWrite,
-	ClientClobber		= P4::DepotSyncOption::ClientClobber,
-	FileSymlink			= P4::DepotSyncOption::FileSymlink,
+	None				= P4::DepotSyncActionFlags::None,
+	FileWrite			= P4::DepotSyncActionFlags::FileWrite,
+	HaveFileWrite		= P4::DepotSyncActionFlags::HaveFileWrite,
+	ClientWrite			= P4::DepotSyncActionFlags::ClientWrite,
+	ClientClobber		= P4::DepotSyncActionFlags::ClientClobber,
+	FileSymlink			= P4::DepotSyncActionFlags::FileSymlink,
 };
 
 public ref class DepotSyncActionInfo
@@ -74,7 +74,7 @@ public:
 	System::String^ DepotFile;
 	System::String^ ClientFile;
 	System::String^ Revision;
-	DepotSyncAction SyncAction;
+	DepotSyncActionType SyncActionType;
 	System::String^ Message;
 };
 

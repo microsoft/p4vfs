@@ -397,6 +397,12 @@ struct StringInfoInternal
 		errno_t err = _gmtime64_s(&stm, &t);
 		return err ? StringInfo::Traits::Type<CharType>::TString() : FormatTime<CharType>(&stm, fmt);
 	}
+
+	template <typename CharType>
+	static uint64_t HashMd5(const CharType* s, size_t length)
+	{
+		return StringInfo::HashMd5(s, length*sizeof(CharType));
+	}
 };
 
 const WString& StringInfo::EmptyW()
@@ -1051,6 +1057,16 @@ uint64_t StringInfo::HashMd5(std::istream& stream)
 	return totalSize ? checksum : 0;
 }
 
+uint64_t StringInfo::HashMd5(const WString& s)
+{
+	return StringInfoInternal::HashMd5(s.c_str(), s.length());
+}
+
+uint64_t StringInfo::HashMd5(const AString& s)
+{
+	return StringInfoInternal::HashMd5(s.c_str(), s.length());
+}
+
 AString StringInfo::FormatTime(const struct tm* t, const char* fmt)
 {
 	return StringInfoInternal::FormatTime(t, fmt);
@@ -1192,6 +1208,9 @@ bool FileInfo::IsReadOnly(const wchar_t* filePath)
 
 DWORD FileInfo::FileAttributes(const wchar_t* filePath)
 {
+	if (StringInfo::IsNullOrEmpty(filePath))
+		return INVALID_FILE_ATTRIBUTES;
+
 	AutoHandle hFile = CreateFile(filePath, 0, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT|FILE_FLAG_BACKUP_SEMANTICS, NULL);
 	if (hFile.Handle() == INVALID_HANDLE_VALUE)
 		return INVALID_FILE_ATTRIBUTES;

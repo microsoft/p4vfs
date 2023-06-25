@@ -28,98 +28,98 @@ DepotString DepotFlushType::ToString(DepotFlushType::Enum value)
 	return DepotString();
 }
 
-bool DepotSyncAction::IsError(DepotSyncAction::Enum value)
+bool DepotSyncActionType::IsError(DepotSyncActionType::Enum value)
 {
 	switch (value)
 	{
-		case DepotSyncAction::None:
-		case DepotSyncAction::NoFileAtRevision:
-		case DepotSyncAction::InvalidPattern:
-		case DepotSyncAction::NotInClientView:
-		case DepotSyncAction::NoFilesFound:
-		case DepotSyncAction::UpToDate:
-		case DepotSyncAction::GenericError:
+		case DepotSyncActionType::None:
+		case DepotSyncActionType::NoFileAtRevision:
+		case DepotSyncActionType::InvalidPattern:
+		case DepotSyncActionType::NotInClientView:
+		case DepotSyncActionType::NoFilesFound:
+		case DepotSyncActionType::UpToDate:
+		case DepotSyncActionType::GenericError:
 			return true;
 	}
 	return false;
 }
 
-bool DepotSyncAction::IsChanged(DepotSyncAction::Enum value)
+bool DepotSyncActionType::IsChanged(DepotSyncActionType::Enum value)
 {
 	switch (value)
 	{
-		case DepotSyncAction::Added:
-		case DepotSyncAction::Deleted:
-		case DepotSyncAction::Updated:
-		case DepotSyncAction::Refreshed:
-		case DepotSyncAction::Replaced:
+		case DepotSyncActionType::Added:
+		case DepotSyncActionType::Deleted:
+		case DepotSyncActionType::Updated:
+		case DepotSyncActionType::Refreshed:
+		case DepotSyncActionType::Replaced:
 			return true;
 	}
 	return false;
 }
 
-bool DepotSyncAction::IsLocalChanged(DepotSyncAction::Enum value)
+bool DepotSyncActionType::IsLocalChanged(DepotSyncActionType::Enum value)
 {
 	switch (value)
 	{
-		case DepotSyncAction::Added:
-		case DepotSyncAction::Updated:
-		case DepotSyncAction::Refreshed:
-		case DepotSyncAction::Replaced:
+		case DepotSyncActionType::Added:
+		case DepotSyncActionType::Updated:
+		case DepotSyncActionType::Refreshed:
+		case DepotSyncActionType::Replaced:
 			return true;
 	}
 	return false;
 }
 
-DepotString DepotSyncAction::ToString(DepotSyncAction::Enum value)
+DepotString DepotSyncActionType::ToString(DepotSyncActionType::Enum value)
 {
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncAction, None);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncAction, Added);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncAction, Deleted);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncAction, Updated);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncAction, Refreshed);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncAction, Replaced);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncAction, UpToDate);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncAction, NoFilesFound);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncAction, NoFileAtRevision);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncAction, InvalidPattern);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncAction, NotInClientView);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncAction, OpenedNotChanged);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncAction, CantClobber);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncAction, NeedsResolve);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncAction, GenericError);
+	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, None);
+	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, Added);
+	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, Deleted);
+	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, Updated);
+	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, Refreshed);
+	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, Replaced);
+	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, UpToDate);
+	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, NoFilesFound);
+	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, NoFileAtRevision);
+	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, InvalidPattern);
+	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, NotInClientView);
+	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, OpenedNotChanged);
+	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, CantClobber);
+	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, NeedsResolve);
+	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, GenericError);
 	return DepotString();
 }
 
-DepotSyncAction::Enum DepotSyncAction::FromString(const DepotString& value)
+DepotSyncActionType::Enum DepotSyncActionType::FromString(const DepotString& value)
 {
-	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncAction, None);
-	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncAction, Added);
-	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncAction, Deleted);
-	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncAction, Updated);
-	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncAction, Refreshed);
-	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncAction, Replaced);
-	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncAction, UpToDate);
-	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncAction, NoFilesFound);
-	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncAction, NoFileAtRevision);
-	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncAction, InvalidPattern);
-	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncAction, NotInClientView);
-	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncAction, OpenedNotChanged);
-	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncAction, CantClobber);
-	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncAction, NeedsResolve);
-	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncAction, GenericError);
-	return DepotSyncAction::None;
+	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncActionType, None);
+	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncActionType, Added);
+	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncActionType, Deleted);
+	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncActionType, Updated);
+	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncActionType, Refreshed);
+	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncActionType, Replaced);
+	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncActionType, UpToDate);
+	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncActionType, NoFilesFound);
+	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncActionType, NoFileAtRevision);
+	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncActionType, InvalidPattern);
+	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncActionType, NotInClientView);
+	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncActionType, OpenedNotChanged);
+	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncActionType, CantClobber);
+	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncActionType, NeedsResolve);
+	P4VFS_STRING_TO_ENUM_RETURN(value, DepotSyncActionType, GenericError);
+	return DepotSyncActionType::None;
 }
 
-DepotString DepotSyncOption::ToString(DepotSyncOption::Enum value)
+DepotString DepotSyncActionFlags::ToString(DepotSyncActionFlags::Enum value)
 {
 	DepotString result;
-	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncOption, None);
-	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncOption, FileWrite);
-	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncOption, HaveFileWrite);
-	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncOption, ClientWrite);
-	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncOption, ClientClobber);
-	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncOption, FileSymlink);
+	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncActionFlags, None);
+	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncActionFlags, FileWrite);
+	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncActionFlags, HaveFileWrite);
+	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncActionFlags, ClientWrite);
+	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncActionFlags, ClientClobber);
+	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncActionFlags, FileSymlink);
 	return result;
 }
 
@@ -128,8 +128,8 @@ FDepotSyncActionInfo::FDepotSyncActionInfo() :
 	m_ClientFile(),
 	m_FileSize(0),
 	m_Revision(),
-	m_SyncAction(DepotSyncAction::None),
-	m_SyncOptions(DepotSyncOption::None),
+	m_SyncActionType(DepotSyncActionType::None),
+	m_SyncActionFlags(DepotSyncActionFlags::None),
 	m_SyncType(DepotSyncType::Normal),
 	m_FlushType(DepotFlushType::Atomic),
 	m_DiskFileSize(0),
@@ -157,14 +157,14 @@ bool FDepotSyncActionInfo::CanModifyWritableFile() const
 {
 	if (m_SyncType & DepotSyncType::Force)
 		return true;
-	if (m_SyncOptions & (DepotSyncOption::ClientClobber | DepotSyncOption::ClientWrite | DepotSyncOption::FileWrite | DepotSyncOption::HaveFileWrite | DepotSyncOption::FileSymlink))
+	if (m_SyncActionFlags & (DepotSyncActionFlags::ClientClobber | DepotSyncActionFlags::ClientWrite | DepotSyncActionFlags::FileWrite | DepotSyncActionFlags::HaveFileWrite | DepotSyncActionFlags::FileSymlink))
 		return true;
 	return false;
 }
 
 bool FDepotSyncActionInfo::CanSetWritableFile() const
 {
-	if (m_SyncOptions & (DepotSyncOption::ClientWrite | DepotSyncOption::FileWrite))
+	if (m_SyncActionFlags & (DepotSyncActionFlags::ClientWrite | DepotSyncActionFlags::FileWrite))
 		return true;
 	return false;
 }
@@ -201,21 +201,21 @@ DepotSyncActionInfo FDepotSyncActionInfo::FromInfoOutput(const DepotString& info
 
 		if (std::regex_search(fileRevAction.c_str(), match, rx.m_ActionOpened))
 		{
-			info->m_SyncAction = DepotSyncAction::OpenedNotChanged;
+			info->m_SyncActionType = DepotSyncActionType::OpenedNotChanged;
 		}
 		else if (std::regex_search(fileRevAction.c_str(), match, rx.m_ActionDeleted))
 		{
-			info->m_SyncAction = DepotSyncAction::Deleted;
+			info->m_SyncActionType = DepotSyncActionType::Deleted;
 			info->m_ClientFile = match[1];
 		}
 		else if (std::regex_search(fileRevAction.c_str(), match, rx.m_ActionAdded))
 		{
-			info->m_SyncAction = DepotSyncAction::Added;
+			info->m_SyncActionType = DepotSyncActionType::Added;
 			info->m_ClientFile = match[1];
 		}
 		else if (std::regex_search(fileRevAction.c_str(), match, rx.m_ActionUpdated))
 		{
-			info->m_SyncAction = DepotSyncAction::Updated;
+			info->m_SyncActionType = DepotSyncActionType::Updated;
 			info->m_ClientFile = match[1];
 		}
 	}
@@ -223,10 +223,10 @@ DepotSyncActionInfo FDepotSyncActionInfo::FromInfoOutput(const DepotString& info
 	{
 		info->m_DepotFile = match[2];
 		info->m_Revision = FDepotRevision::FromString(match[4]);
-		info->m_SyncAction = DepotSyncAction::NeedsResolve;
+		info->m_SyncActionType = DepotSyncActionType::NeedsResolve;
 	}
 
-	if (info->m_SyncAction == DepotSyncAction::None)
+	if (info->m_SyncActionType == DepotSyncActionType::None)
 	{
 		if (log != nullptr)
 			log->Error(StringInfo::Format("Failed to parse DepotSyncActionInfo InfoOutput '%s'", infoText.c_str()));
@@ -238,9 +238,9 @@ DepotSyncActionInfo FDepotSyncActionInfo::FromInfoOutput(const DepotString& info
 DepotSyncActionInfo FDepotSyncActionInfo::FromTaggedOutput(const FDepotResultTag& tag, FileCore::LogDevice* log)
 {
 	const DepotString& action = tag.GetValue("action");
-	DepotSyncAction::Enum syncAction = DepotSyncAction::FromString(action);
+	DepotSyncActionType::Enum syncAction = DepotSyncActionType::FromString(action);
 	
-	if (syncAction == DepotSyncAction::None)
+	if (syncAction == DepotSyncActionType::None)
 	{
 		if (log != nullptr)
 			log->Error(StringInfo::Format("Failed to parse action tag '%s'", action.c_str()));
@@ -249,7 +249,7 @@ DepotSyncActionInfo FDepotSyncActionInfo::FromTaggedOutput(const FDepotResultTag
 
 	DepotSyncActionInfo info = std::make_shared<FDepotSyncActionInfo>();
 
-	info->m_SyncAction = syncAction;
+	info->m_SyncActionType = syncAction;
 	info->m_Revision = FDepotRevision::New<FDepotRevisionNumber>(tag.GetValueInt32("rev"));
 	info->m_ClientFile = tag.GetValue("clientFile");
 	info->m_DepotFile = tag.GetValue("depotFile");
@@ -283,33 +283,33 @@ DepotSyncActionInfo FDepotSyncActionInfo::FromErrorOutput(const DepotString& err
 
 		if (std::regex_search(fileRevAction.c_str(), match, rx.m_ActionNoFileAtRevision))
 		{
-			info->m_SyncAction = DepotSyncAction::NoFileAtRevision;
+			info->m_SyncActionType = DepotSyncActionType::NoFileAtRevision;
 		}
 		else if (std::regex_search(fileRevAction.c_str(), match, rx.m_ActionInvalidPattern))
 		{
-			info->m_SyncAction = DepotSyncAction::InvalidPattern;
+			info->m_SyncActionType = DepotSyncActionType::InvalidPattern;
 		}
 		else if (std::regex_search(fileRevAction.c_str(), match, rx.m_ActionNotInClientView))
 		{
-			info->m_SyncAction = DepotSyncAction::NotInClientView;
+			info->m_SyncActionType = DepotSyncActionType::NotInClientView;
 		}
 		else if (std::regex_search(fileRevAction.c_str(), match, rx.m_ActionNoFilesFound))
 		{
-			info->m_SyncAction = DepotSyncAction::NoFilesFound;
+			info->m_SyncActionType = DepotSyncActionType::NoFilesFound;
 		}
 		else if (std::regex_search(fileRevAction.c_str(), match, rx.m_ActionUpToDate))
 		{
-			info->m_SyncAction = DepotSyncAction::UpToDate;
+			info->m_SyncActionType = DepotSyncActionType::UpToDate;
 		}
 	}
 	else if (std::regex_search(errorText.c_str(), match, rx.m_ActionCantClobber))
 	{
 		info->m_ClientFile = match[1];
-		info->m_SyncAction = DepotSyncAction::CantClobber;
+		info->m_SyncActionType = DepotSyncActionType::CantClobber;
 	}
 	else
 	{
-		info->m_SyncAction = DepotSyncAction::GenericError;
+		info->m_SyncActionType = DepotSyncActionType::GenericError;
 	}
 	return info;
 }
@@ -320,7 +320,7 @@ DepotString FDepotSyncActionInfo::ToString() const
 		m_DepotFile.c_str(), 
 		m_ClientFile.c_str(), 
 		FDepotRevision::ToString(m_Revision).c_str(), 
-		DepotSyncAction::ToString(m_SyncAction).c_str());
+		DepotSyncActionType::ToString(m_SyncActionType).c_str());
 }
 
 DepotString FDepotSyncActionInfo::ToFileSpecString() const

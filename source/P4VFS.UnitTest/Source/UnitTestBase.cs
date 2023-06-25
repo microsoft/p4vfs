@@ -233,6 +233,11 @@ namespace Microsoft.P4VFS.UnitTest
 			Assert(String.IsNullOrEmpty(config.Client) == false);
 			Assert(String.IsNullOrEmpty(config.User) == false);
 
+			foreach (string settingsPath in new[]{ VirtualFileSystem.UserSettingsFilePath, VirtualFileSystem.PublicSettingsFilePath })
+			{
+				Assert(File.Exists(settingsPath) == false, String.Format("User settings file not allowed for unit tests: {0}", settingsPath));
+			}
+
 			foreach (string name in new[]{DepotConstants.P4PORT, DepotConstants.P4USER, DepotConstants.P4CLIENT, DepotConstants.P4CONFIG, DepotConstants.P4TRUST, DepotConstants.P4TICKETS})
 			{
 				Environment.SetEnvironmentVariable(name, "");
@@ -254,14 +259,14 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(String.IsNullOrEmpty(root) == false);
 				Assert(depotClient.Opened().Count == 0 || depotClient.Run("revert", new[]{ "-k", "//..." }).HasError == false);
 
-				VirtualFileSystem.Sync(depotClient, "//...", new DepotRevisionNone(), DepotSyncType.Force|DepotSyncType.Quiet, DepotSyncMethod.Regular);
+				depotClient.Sync("//...", new DepotRevisionNone(), DepotSyncType.Force|DepotSyncType.Quiet, DepotSyncMethod.Regular);
 				AssertLambda(() => FileUtilities.DeleteDirectoryAndFiles(root));
 				AssertRetry(() => Directory.Exists(root) == false, String.Format("directory exists {0}", root));
 				if (depotClient.GetHeadRevisionChangelist() != null)
 				{
 					DepotSyncResult syncResult = depotClient.Sync("//...#none", null, DepotSyncType.Normal);
 					Assert(syncResult?.Modifications != null);
-					Assert(syncResult.Modifications.Where(a => !FDepotSyncAction.IsError(a.SyncAction)).Any() == false);
+					Assert(syncResult.Modifications.Where(a => !FDepotSyncActionType.IsError(a.SyncActionType)).Any() == false);
 				}
 
 				Assert(String.IsNullOrEmpty(workspace?.Client) == false);
@@ -298,7 +303,7 @@ namespace Microsoft.P4VFS.UnitTest
 
 			Extensions.SocketModel.SocketModelClient service = new Extensions.SocketModel.SocketModelClient(); 
 			Assert(service.GarbageCollect());
-			Assert(service.SetServiceSetting(nameof(ServiceSettings.ExcludedProcessNames), SettingNode.FromString(ExcludedProcessNames)));
+			Assert(service.SetServiceSetting(nameof(SettingManager.ExcludedProcessNames), SettingNode.FromString(ExcludedProcessNames)));
 		}
 
 		public void ServiceRestart()
@@ -729,6 +734,36 @@ namespace Microsoft.P4VFS.UnitTest
 		public uint LinesTotal { get { return LinesAdded + LinesDeleted + LinesChanged; } }
 	}
 
+	public class LocalSettingScope : IDisposable
+	{
+		public string Name { get; private set; }
+		public string Value { get; private set; }
+		public SettingNode PreviousValue { get; private set; }
+
+		public LocalSettingScope(string name, string value)
+		{
+			Name = name;
+			UnitTestBase.Assert(String.IsNullOrEmpty(Name) == false);
+			Value = value;
+			UnitTestBase.Assert(Value != null);
+
+			PreviousValue = ServiceSettings.GetProperty(Name);
+			UnitTestBase.Assert(PreviousValue.ToString() != null);
+			UnitTestBase.Assert(ServiceSettings.SetProperty(SettingNode.FromString(Value), Name));
+			UnitTestBase.Assert(ServiceSettings.GetProperty(Name).ToString() == Value);
+		}
+
+		public void Dispose()
+		{
+			UnitTestBase.Assert(ServiceSettings.SetProperty(PreviousValue, Name));
+		}
+
+		public override string ToString()
+		{
+			return String.Format("{0}={1}", Name, Value);
+		}
+	}
+
 	public class ServiceSettingScope : IDisposable
 	{
 		public string Name { get; private set; }
@@ -762,8 +797,8 @@ namespace Microsoft.P4VFS.UnitTest
 
 		public void ApplyGlobal()
 		{
-			UnitTestBase.Assert(ServiceSettings.SetNode(new SettingNode(Value), Name));
-			UnitTestBase.Assert(ServiceSettings.GetJson(Name).ToString() == ServiceSettings.SettingNodeToJson(new SettingNode(Value)).ToString());
+			UnitTestBase.Assert(ServiceSettings.SetProperty(new SettingNode(Value), Name));
+			UnitTestBase.Assert(ServiceSettings.GetPropertyJson(Name).ToString() == ServiceSettings.SettingNodeToJson(new SettingNode(Value)).ToString());
 		}
 	}
 

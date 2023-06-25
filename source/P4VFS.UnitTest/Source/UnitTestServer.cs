@@ -54,14 +54,15 @@ namespace Microsoft.P4VFS.UnitTest
 			AssertRetry(() => ProcessInfo.ExecuteWait(P4Exe, String.Format("-p {0} info", _P4Port)) == 0);
 
 			string[] serverConfigVariables = new[] {
+				"auth.sso.allow.passwd=1",
 				"dm.user.noautocreate=2", 
 				"dm.user.resetpassword=0",
 				"lbr.autocompress=1",
+				"monitor=10",
 				"net.parallel.submit.threads=8",
 				"net.parallel.max=8",
 				"server=2",
 				"submit.unlocklocked=1",
-				"auth.sso.allow.passwd=1",
 			};
 			foreach (string configVariable in serverConfigVariables)
 			{
@@ -376,12 +377,15 @@ namespace Microsoft.P4VFS.UnitTest
 		[TestMethod, Priority(1), TestExplicit]
 		public void GenerateServerHistoryTest()
 		{
-			// Private settings from TheCoalition for recipe history generation. 
-			// Only TheCoalition will run this test to generate the ServerHistory.xml
-			string recipeUser = "northamerica\\gfwlblds";
-			string recipePort = "p4-blacktusk:1666";
-			string recipeClient = "gfwlblds-vfs-depot";
+			// Private settings for recipe history generation. Enter before running once.
+			string recipeUser = "";
+			string recipePort = "";
+			string recipeClient = "";
 			int recipeMaxPath = 135;
+
+			Assert(!String.IsNullOrEmpty(recipeUser));
+			Assert(!String.IsNullOrEmpty(recipePort));
+			Assert(!String.IsNullOrEmpty(recipeClient));
 
 			ServerWorkspaceReset();
 			

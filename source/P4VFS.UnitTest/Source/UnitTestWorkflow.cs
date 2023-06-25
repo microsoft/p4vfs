@@ -230,6 +230,20 @@ namespace Microsoft.P4VFS.UnitTest
 					Assert(File.Exists(filePath));
 					Assert(IsPlaceholderFile(filePath) == filePath.StartsWith(subdirectory+"\\"));
 				}
+
+				Assert(ProcessInfo.ExecuteWait(P4vfsExe, String.Format("{0} resident -v \"{1}\\...\"", ClientConfig, directory), echo:true, log:true) == 0);
+				foreach (string filePath in directoryFiles)
+				{
+					Assert(File.Exists(filePath));
+					Assert(IsPlaceholderFile(filePath));
+				}
+
+				Assert(ProcessInfo.ExecuteWait(P4vfsExe, String.Format("{0} hydrate -x \"cs,xml\" \"{1}\\...\"", ClientConfig, directory), echo:true, log:true) == 0);
+				foreach (string filePath in directoryFiles)
+				{
+					Assert(File.Exists(filePath));
+					Assert(IsPlaceholderFile(filePath) != Regex.IsMatch(filePath, @"(\.cs|\.xml)$", RegexOptions.IgnoreCase));
+				}
 			}
 		}}
 
@@ -331,7 +345,7 @@ namespace Microsoft.P4VFS.UnitTest
 			}
 		}
 
-		[TestMethod, Priority(9)]
+		[TestMethod, Priority(9), TestRemote]
 		public void SyncStatusTest()
 		{
 			var AssertFileSyncStatus = new Action<string,string,bool>((string depotSpec, string syncOption, bool valid) =>
@@ -350,6 +364,53 @@ namespace Microsoft.P4VFS.UnitTest
 				AssertFileSyncStatus("//depot/gears1/WarGame/Localization/INT/Human_Myrrah_Dialog.int#1", syncOption, true);
 				WorkspaceReset();
 				AssertFileSyncStatus("//depot/gears1/WarGame/Localization/INT/Human_Myrrah_Dialog.int#256", syncOption, false);
+			}
+		}
+
+		[TestMethod, Priority(10), TestRemote]
+		public void QuiteCommandTest()
+		{
+			using (DepotClient depotClient = new DepotClient()) 
+			{
+				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
+				DepotConfig depotConfig = depotClient.Config();
+				Assert(depotConfig != null);
+
+				foreach (bool quiet in new[]{ false, true })
+				{
+					WorkspaceReset();
+					string depotFile = "//depot/gears1/Development/Src/Core/Src/Core.cpp";
+					string clientFile = depotClient.Where(depotFile).Nodes.First().LocalPath;
+					string quietOption = quiet ? "-q" : "";
+					
+					foreach (string syncOption in new[]{ "-t", "-s" })
+					{
+						ProcessInfo.ExecuteResultOutput syncOutput = ProcessInfo.ExecuteWaitOutput(P4vfsExe, String.Format("{0} sync -f {1} {2} {3}", depotConfig, quietOption, syncOption, depotFile), echo:true);
+						Assert(syncOutput.ExitCode == 0);
+						Assert(syncOutput.Lines.Any(line => line.StartsWith(depotFile)) != quiet);
+						Assert(File.Exists(clientFile) && IsPlaceholderFile(clientFile));
+					}
+
+					ProcessInfo.ExecuteResultOutput reconfigOutput = ProcessInfo.ExecuteWaitOutput(P4vfsExe, String.Format("{0} reconfig {1} {2}", depotConfig, quietOption, depotFile), echo:true);
+					Assert(reconfigOutput.ExitCode == 0);
+					Assert(reconfigOutput.Lines.Any(line => line.StartsWith(depotFile)) != quiet);
+					Assert(File.Exists(clientFile) && IsPlaceholderFile(clientFile));
+
+					ProcessInfo.ExecuteResultOutput hydrateOutput = ProcessInfo.ExecuteWaitOutput(P4vfsExe, String.Format("{0} hydrate {1} {2}", depotConfig, quietOption, depotFile), echo:true);
+					Assert(hydrateOutput.ExitCode == 0);
+					Assert(hydrateOutput.Lines.Any(line => line.StartsWith(depotFile)) != quiet);
+					Assert(File.Exists(clientFile) && IsPlaceholderFile(clientFile) == false);
+					Assert(ReconcilePreview(Path.GetDirectoryName(clientFile)).Any() == false);
+
+					foreach (string residentOption in new[]{ "-t", "-s" })
+					{
+						ProcessInfo.ExecuteResultOutput residentOutput = ProcessInfo.ExecuteWaitOutput(P4vfsExe, String.Format("{0} resident -v {1} {2} {3}", depotConfig, quietOption, residentOption, depotFile), echo:true);
+						Assert(residentOutput.ExitCode == 0);
+						Assert(residentOutput.Lines.Any(line => line.StartsWith(depotFile)) != quiet);
+						Assert(File.Exists(clientFile) && IsPlaceholderFile(clientFile));
+						Assert(ReconcilePreview(Path.GetDirectoryName(clientFile)).Any() == false);
+					}
+				}
 			}
 		}
 	}

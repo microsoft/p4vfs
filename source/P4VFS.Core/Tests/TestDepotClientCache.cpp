@@ -93,7 +93,7 @@ void TestDepotClientCacheCommon(const TestContext& context)
 
 	// Allocation of various invalid configurations
 	{
-		SettingPropertyScope<bool> unattended(SettingManager::StaticInstance().m_Unattended, true);
+		SettingPropertyScope<bool> unattended(SettingManager::StaticInstance().Unattended, true);
 
 		// A valid user & port with invalid clientspec will allocate connected and logged in, with uncreated client
 		DepotConfig brokenConfig = config[0];

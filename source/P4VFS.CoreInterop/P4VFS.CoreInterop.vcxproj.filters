@@ -62,6 +62,12 @@
     <ClInclude Include="Include\DepotSyncOptionsInterop.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="Include\SettingManagerInterop.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\DepotReconfigInterop.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\AssemblyInfo.cpp">
@@ -101,6 +107,12 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\DepotSyncOptionsInterop.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\SettingManagerInterop.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DepotReconfigInterop.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

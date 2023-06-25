@@ -19,5 +19,15 @@ namespace Microsoft.P4VFS.Extensions.Linq
 			}
 			return count;
 		}
+
+		public static bool AddUnique<TSource>(this IList<TSource> collection, TSource item, IEqualityComparer<TSource> comparer = null)
+		{
+			if (collection.Contains(item, comparer ?? EqualityComparer<TSource>.Default))
+			{
+				collection.Add(item);
+				return true;
+			}
+			return false;
+		}
 	}
 }

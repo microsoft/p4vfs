@@ -1,5 +1,8 @@
 Microsoft P4VFS Release Notes
 
+Version [1.26.0.0]
+* Driver using officially allocated FSFilter HSM altitude of 189700
+
 Version [1.25.1.0]
 * Addition of new "hydrate" command as synonym for "resident -x". Moved the implementation into
   C++ and now using a single fstat command instead of a files & where command.

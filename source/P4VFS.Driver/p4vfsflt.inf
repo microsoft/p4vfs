@@ -91,5 +91,5 @@ DriverName              = "p4vfsflt"
 DiskId1                 = "P4VFS Device Installation Disk"
 DefaultInstance         = "P4VFS Instance"
 Instance1.Name          = "P4VFS Instance"
-Instance1.Altitude      = "191024"
+Instance1.Altitude      = "189700"
 Instance1.Flags         = 0x0           ; Allow all attachments

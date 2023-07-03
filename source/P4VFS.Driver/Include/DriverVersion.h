@@ -3,8 +3,8 @@
 #pragma once
 
 #define P4VFS_VER_MAJOR					1			// Increment this number almost never
-#define P4VFS_VER_MINOR					25			// Increment this number whenever the driver changes
-#define P4VFS_VER_BUILD					1			// Increment this number when a major user mode change has been made
+#define P4VFS_VER_MINOR					26			// Increment this number whenever the driver changes
+#define P4VFS_VER_BUILD					0			// Increment this number when a major user mode change has been made
 #define P4VFS_VER_REVISION				0			// Increment this number when we rebuild with any change
 
 #define P4VFS_VER_STRINGIZE_EX(v)		L#v

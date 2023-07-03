@@ -415,7 +415,7 @@ namespace Microsoft.P4VFS.UnitTest
 			using (DepotClient depotClient = new DepotClient())
 			{
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User, depotPasswd:depotPasswd));
-				Assert(depotClient.Login(depotPasswd));
+				Assert(depotClient.Login((_) => depotPasswd));
 			}
 		}
 

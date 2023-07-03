@@ -8,6 +8,9 @@ namespace Microsoft {
 namespace P4VFS {
 namespace P4 {
 
+	typedef std::function<DepotString(const DepotString&)> FDepotClientPromptCallback;
+	typedef std::shared_ptr<FDepotClientPromptCallback> DepotClientPromptCallback;
+
 	struct DepotCommand
 	{
 		struct Flags { enum Enum {
@@ -28,8 +31,8 @@ namespace P4 {
 		DepotString m_Name;
 		DepotStringArray m_Args;
 		DepotString m_Input;
-		DepotString m_Prompt;
 		Flags::Enum m_Flags;
+		DepotClientPromptCallback m_Prompt;
 	};
 
 	struct IDepotClientCommand

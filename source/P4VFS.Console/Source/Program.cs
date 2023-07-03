@@ -1016,7 +1016,7 @@ Available commands:
 				using (DepotClient depotClient = new DepotClient())
 				{
 					depotClient.Unattended = true;
-					return depotClient.Connect(_P4Port, _P4Client, _P4User, _P4Directory, _P4Passwd, _P4Host) && depotClient.Login(_P4Passwd);
+					return depotClient.Connect(_P4Port, _P4Client, _P4User, _P4Directory, _P4Passwd, _P4Host) && depotClient.Login((_) => _P4Passwd);
 				}
 			};
 

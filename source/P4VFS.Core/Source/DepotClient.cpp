@@ -275,14 +275,9 @@ public:
 		m_Result->OnStreamStat(this, TagList().back());
 	}
 
-	virtual void Prompt(const StrPtr& msg, StrBuf& rsp, int noEcho, Error* e) override
+	virtual void Prompt(const StrPtr& msg, StrBuf& rsp, int noEcho, Error* e)
 	{
-		rsp = m_Command->m_Prompt.c_str();
-	}
-
-	virtual void Prompt(const StrPtr& msg, StrBuf& rsp, int noEcho, int noOutput, Error* e) override
-	{
-		rsp = m_Command->m_Prompt.c_str();
+		rsp = m_Client->OnPromptCallback(m_Command, msg.Text()).c_str();
 	}
 
 	virtual void ErrorPause(char* errBuf, Error* e) override
@@ -382,8 +377,8 @@ struct FDepotClient::Api
 	DepotTimer m_AccessTime;
 	FileContext* m_FileContext;
 	Flags::Enum m_Flags;
-	FOnErrorCallback* m_OnErrorCallback;
-	FOnMessageCallback* m_OnMessageCallback;
+	DepotClientLogCallback m_OnErrorCallback;
+	DepotClientLogCallback m_OnMessageCallback;
 };
 
 FDepotClient::FDepotClient(FileContext* context)
@@ -391,8 +386,8 @@ FDepotClient::FDepotClient(FileContext* context)
 	m_P4 = new FDepotClient::Api();
 	m_P4->m_FileContext = context;
 	m_P4->m_Flags = Flags::None;
-	m_P4->m_OnErrorCallback = nullptr;
-	m_P4->m_OnMessageCallback = nullptr;
+	m_P4->m_OnErrorCallback.reset();
+	m_P4->m_OnMessageCallback.reset();
 }
 
 FDepotClient::~FDepotClient()
@@ -451,7 +446,9 @@ bool FDepotClient::Connect(const DepotConfig& config)
 	if (HasFlag(Flags::DisableLogin) == false && IsLoginRequired())
 	{
 		if (Login() == false)
+		{
 			return false;
+		}
 	}
 	
 	if (m_P4->m_Connection.get() == nullptr)
@@ -504,7 +501,9 @@ bool FDepotClient::IsConnectedClient()
 bool FDepotClient::IsLoginRequired()
 {
 	if (!IsConnected())
+	{
 		return false;
+	}
 
 	m_P4->m_Connection = Client();
 	if (m_P4->m_Connection->HasErrorRegex("use the 'p4 trust' command"))
@@ -515,19 +514,22 @@ bool FDepotClient::IsLoginRequired()
 
 	m_P4->m_Config.Apply(m_P4->m_Connection->Config());
 	if (m_P4->m_Connection->Access().empty() == false)
+	{
 		return false;
+	}
 
 	if (Run("login", DepotStringArray{"-s"})->HasError() == false)
+	{
 		return false;
-
+	}
 	return true;
 }
 
-bool FDepotClient::Login(const DepotString& passwd)
+bool FDepotClient::Login(DepotClientPromptCallback prompt)
 {
 	DepotCommand cmd;
 	cmd.m_Name = "login";
-	cmd.m_Prompt = passwd;
+	cmd.m_Prompt = prompt;
 	return Run(cmd)->HasError() == false;
 }
 
@@ -575,7 +577,9 @@ DepotString FDepotClient::GetTicketsFilePath() const
 	if (envTicketsPath.empty() == false)
 	{
 		if (FileInfo::CreateWritableFile(envTicketsPath.c_str()))
+		{
 			return StringInfo::ToAnsi(FileInfo::FullPath(envTicketsPath.c_str()));
+		}
 	}
 
 	const WString profileFolder = GetEnvImpersonatedW(DepotConstants::USERPROFILE);
@@ -583,7 +587,9 @@ DepotString FDepotClient::GetTicketsFilePath() const
 	{
 		WString profileTicketsPath = FileInfo::FullPath(StringInfo::Format(L"%s\\p4tickets.txt", profileFolder.c_str()).c_str());
 		if (FileInfo::CreateWritableFile(profileTicketsPath.c_str()))
+		{
 			return StringInfo::ToAnsi(profileTicketsPath);
+		}
 	}
 
 	wchar_t userName[512] = {0};
@@ -592,7 +598,9 @@ DepotString FDepotClient::GetTicketsFilePath() const
 	{
 		WString userTicketsPath = StringInfo::Format(L"C:\\Users\\%s\\p4tickets.txt", userName);
 		if (FileInfo::CreateWritableFile(userTicketsPath.c_str()))
+		{
 			return StringInfo::ToAnsi(userTicketsPath);
+		}
 	}
 
 	// Absolute last resort... this may be the service profile folder
@@ -600,7 +608,9 @@ DepotString FDepotClient::GetTicketsFilePath() const
 	if (ExpandEnvironmentStrings(L"%USERPROFILE%\\p4tickets.txt", currentProfileFolder, _countof(currentProfileFolder)) != 0)
 	{
 		if (FileInfo::CreateWritableFile(currentProfileFolder))
+		{
 			return StringInfo::ToAnsi(currentProfileFolder);
+		}
 	}
 	return DepotString();
 }
@@ -611,7 +621,9 @@ DepotString FDepotClient::GetTrustFilePath() const
 	if (envTrustPath.empty() == false)
 	{
 		if (FileInfo::CreateWritableFile(envTrustPath.c_str()))
+		{
 			return StringInfo::ToAnsi(FileInfo::FullPath(envTrustPath.c_str()));
+		}
 	}
 
 	const WString profileFolder = GetEnvImpersonatedW(DepotConstants::USERPROFILE);
@@ -619,7 +631,9 @@ DepotString FDepotClient::GetTrustFilePath() const
 	{
 		WString profileTicketsPath = FileInfo::FullPath(StringInfo::Format(L"%s\\p4trust.txt", profileFolder.c_str()).c_str());
 		if (FileInfo::CreateWritableFile(profileTicketsPath.c_str()))
+		{
 			return StringInfo::ToAnsi(profileTicketsPath);
+		}
 	}
 
 	wchar_t userName[512] = {0};
@@ -628,7 +642,9 @@ DepotString FDepotClient::GetTrustFilePath() const
 	{
 		WString userTicketsPath = StringInfo::Format(L"C:\\Users\\%s\\p4trust.txt", userName);
 		if (FileInfo::CreateWritableFile(userTicketsPath.c_str()))
+		{
 			return StringInfo::ToAnsi(userTicketsPath);
+		}
 	}
 
 	// Absolute last resort... this may be the service profile folder
@@ -636,7 +652,9 @@ DepotString FDepotClient::GetTrustFilePath() const
 	if (ExpandEnvironmentStrings(L"%USERPROFILE%\\p4trust.txt", currentProfileFolder, _countof(currentProfileFolder)) != 0)
 	{
 		if (FileInfo::CreateWritableFile(currentProfileFolder))
+		{
 			return StringInfo::ToAnsi(currentProfileFolder);
+		}
 	}
 	return DepotString();
 }
@@ -644,18 +662,24 @@ DepotString FDepotClient::GetTrustFilePath() const
 DepotString FDepotClient::GetClientOwnerUserName(const DepotString& clientName, const DepotString& portName)
 {
 	if (StringInfo::IsNullOrEmpty(clientName.c_str()))
+	{
 		return DepotString();
+	}
 
 	Array<DepotString> tickets;
 	if (FileInfo::ReadFileLines(StringInfo::AtoW(GetTicketsFilePath()), tickets) == false)
+	{
 		return DepotString();
+	}
 
 	std::set<DepotString> depotUsers;
 	for (const DepotString& line : tickets)
 	{
 		std::match_results<const char*> match;
 		if (std::regex_search(line.c_str(), match, std::regex("=\\s*(.+?)\\s*:")))
+		{
 			depotUsers.insert(match[1]);
+		}
 	}
 
 	for (const DepotString& depotUser : depotUsers)
@@ -669,10 +693,14 @@ DepotString FDepotClient::GetClientOwnerUserName(const DepotString& clientName, 
 		localConfig.m_Port = portName;
 		localConfig.m_User = depotUser;
 		if (localClient.Connect(localConfig) == false)
+		{
 			continue;
+		}
 		DepotString ownerName = localClient.Client()->Owner();
 		if (ownerName.empty() == false)
+		{
 			return ownerName;
+		}
 	}
 	return DepotString(); 
 }
@@ -680,16 +708,22 @@ DepotString FDepotClient::GetClientOwnerUserName(const DepotString& clientName, 
 DepotString FDepotClient::GetHostName() const
 {
 	if (m_P4->m_Config.m_Host.empty() == false)
+	{
 		return m_P4->m_Config.m_Host;
+	}
 
 	DepotString envHostName = GetEnvImpersonated(DepotConstants::P4HOST);
 	if (envHostName.empty() == false)
+	{
 		return envHostName;
+	}
 
 	char strHostName[1024] = {0};
 	DWORD dwHostNameLen = _countof(strHostName)-1;
  	if (GetComputerNameA(strHostName, &dwHostNameLen))
+	{
 		return strHostName;
+	}
 
 	return GetEnv(DepotConstants::COMPUTERNAME);
 }
@@ -697,100 +731,137 @@ DepotString FDepotClient::GetHostName() const
 bool FDepotClient::Login()
 {
 	if (LoginUsingConfig())
+	{
 		return true;
-	if (LoginUsingSSO())
-		return true;
+	}
 	if (LoginUsingClientOwner())
+	{
 		return true;
-	if (LoginUsingImpersonation())
-		return true;
+	}
 	if (LoginUsingInteractiveSession())
+	{
 		return true;
+	}
 	return false;
 }
 
 bool FDepotClient::LoginUsingConfig()
 {
-	if (m_P4->m_Config.m_Passwd.empty())
-		return false;
-	if (Login(m_P4->m_Config.m_Passwd) == false)
-		return false;
-	if (IsLoginRequired())
-		return false;
-	return true;
-}
+	std::unique_ptr<DepotClientImpersonationScope> impersonationScope;
+	if (HasFlag(Flags::Unimpersonated) == false)
+	{
+		impersonationScope = std::make_unique<DepotClientImpersonationScope>(*this);
+	}
 
-bool FDepotClient::LoginUsingSSO()
-{
-	const DepotString loginSSO = GetEnvImpersonated(DepotConstants::P4LOGINSSO);
-	if (loginSSO.empty())
+	DepotClientPromptCallback prompt = std::make_shared<FDepotClientPromptCallback>([this](const DepotString& message) -> DepotString
+	{
+		if (StringInfo::Contains(message.c_str(), "password", StringInfo::SearchCase::Insensitive))
+		{
+			return m_P4->m_Config.m_Passwd;
+		}
+		return DepotString();
+	});
+
+	if (Login(prompt) == false)
+	{
 		return false;
-	if (SetEnv(DepotConstants::P4LOGINSSO, loginSSO.c_str()) == false)
-		return false;
-	if (Login("") == false)
-		return false;
+	}
+
+	impersonationScope.reset();
 	if (IsLoginRequired())
+	{
 		return false;
+	}
 	return true;
 }
 
 bool FDepotClient::LoginUsingClientOwner()
 {
 	if (IsConnected() == false)
+	{
 		return false;
+	}
+
 	DepotString ownerUserName = GetClientOwnerUserName(m_P4->m_Config.m_Client, m_P4->m_Config.m_Port);
 	if (ownerUserName.empty() || ownerUserName == m_P4->m_Config.m_User)
+	{
 		return false;
+	}
+
 	m_P4->m_ClientApi->Final(m_P4->m_Error.get());
 	if (HasError())
+	{
 		return false;
+	}
+
 	m_P4->m_Config.m_User = ownerUserName;
 	m_P4->m_Config.m_Passwd.clear();
 	m_P4->m_ClientApi->SetUser(m_P4->m_Config.m_User.c_str());
 	m_P4->m_ClientApi->SetPassword(m_P4->m_Config.m_Passwd.c_str());
 	m_P4->m_ClientApi->Init(m_P4->m_Error.get());
 	if (HasError())
+	{
 		return false;
-	if (IsLoginRequired())
-		return false;
-	return true;
-}
+	}
 
-bool FDepotClient::LoginUsingImpersonation()
-{
-	if (HasFlag(Flags::Unimpersonated))
-		return false;
-	const DepotString passwd = GetEnvImpersonated(DepotConstants::P4PASSWD);
-	if (passwd.empty())
-		return false;
-	if (Login(passwd) == false)
-		return false;
 	if (IsLoginRequired())
+	{
 		return false;
+	}
 	return true;
 }
 
 bool FDepotClient::LoginUsingInteractiveSession()
 {
 	if (HasFlag(Flags::Unattended))
+	{
 		return false;
+	}
+
 	if (FileCore::SettingManager::StaticInstance().Unattended.GetValue())
+	{
 		return false;
-	const UserContext* context = m_P4->m_FileContext ? m_P4->m_FileContext->m_UserContext : nullptr;
+	}
+
+	const UserContext* context = GetUserContext();
 	if (FileOperations::IsSystemUserContext(context))
+	{
 		return false;
+	}
+
 	DepotResult ticket = Run("login", DepotStringArray{"-s"});
 	if (ticket->HasError() == false)
+	{
 		return true;
+	}
+
 	if (ticket->HasErrorRegex("user .+ doesn't exist"))
+	{
 		return false;
-	DepotString passwd;
-	if (OnRequestPassword(passwd) == false)
+	}
+
+	DepotClientPromptCallback prompt = std::make_shared<FDepotClientPromptCallback>([this](const DepotString& message) -> DepotString
+	{
+		if (StringInfo::Contains(message.c_str(), "password", StringInfo::SearchCase::Insensitive))
+		{
+			DepotString passwd;
+			if (RequestInteractivePassword(passwd))
+			{
+				return passwd;
+			}
+		}
+		return DepotString();
+	});
+
+	if (Login(prompt) == false)
+	{
 		return false;
-	if (Login(passwd) == false)
-		return false;
+	}
+
 	if (IsLoginRequired())
+	{
 		return false;
+	}
 	return true;
 }
 
@@ -829,7 +900,7 @@ void FDepotClient::Run(const DepotCommand& cmd, FDepotResult& result)
 	result.OnComplete();
 }
 
-bool FDepotClient::OnRequestPassword(DepotString& passwd)
+bool FDepotClient::RequestInteractivePassword(DepotString& passwd)
 {
 	WString output;
 	UserContext* context = m_P4->m_FileContext ? m_P4->m_FileContext->m_UserContext : nullptr;
@@ -856,18 +927,27 @@ void FDepotClient::OnErrorPause(const char* message)
 
 void FDepotClient::OnErrorCallback(LogChannel::Enum channel, const char* severity, const char* text)
 {
-	if (m_P4->m_OnErrorCallback && *m_P4->m_OnErrorCallback)
+	if (m_P4->m_OnErrorCallback.get() && *m_P4->m_OnErrorCallback.get())
 	{
-		(*m_P4->m_OnErrorCallback)(channel, severity, text);
+		(*m_P4->m_OnErrorCallback.get())(channel, severity, text);
 	}
 }
 
 void FDepotClient::OnMessageCallback(LogChannel::Enum channel, const char* severity, const char* text)
 {
-	if (m_P4->m_OnMessageCallback && *m_P4->m_OnMessageCallback)
+	if (m_P4->m_OnMessageCallback.get() && *m_P4->m_OnMessageCallback.get())
 	{
-		(*m_P4->m_OnMessageCallback)(channel, severity, text);
+		(*m_P4->m_OnMessageCallback.get())(channel, severity, text);
 	}
+}
+
+DepotString FDepotClient::OnPromptCallback(const DepotCommand* command, const char* message)
+{
+	if (command && command->m_Prompt.get() && *command->m_Prompt.get())
+	{
+		return (*command->m_Prompt.get())(message ? message : "");
+	}
+	return DepotString();
 }
 
 LogDevice* FDepotClient::Log()
@@ -986,12 +1066,12 @@ WString FDepotClient::GetEnvImpersonatedW(const char* name) const
 	return WString();
 }
 
-void FDepotClient::SetErrorCallback(FOnErrorCallback* callback)
+void FDepotClient::SetErrorCallback(DepotClientLogCallback callback)
 {
 	m_P4->m_OnErrorCallback = callback;
 }
 
-void FDepotClient::SetMessageCallback(FOnMessageCallback* callback)
+void FDepotClient::SetMessageCallback(DepotClientLogCallback callback)
 {
 	m_P4->m_OnMessageCallback = callback;
 }
@@ -1066,6 +1146,30 @@ bool DepotTunable::IsSet(const DepotString& name)
 bool DepotTunable::IsKnown(const DepotString& name)
 {
 	return !!p4tunable.IsKnown(name.c_str());
+}
+
+DepotClientImpersonationScope::DepotClientImpersonationScope(FDepotClient& client) :
+	m_status(S_OK),
+	m_impersonated(false)
+{
+	UserContext* context = client.GetUserContext();
+	if (FileOperations::IsCurrentProcessUserContext(context) == false)
+	{
+		m_status = FileOperations::ImpersonateLoggedOnUser(context);
+		if (SUCCEEDED(m_status))
+		{
+			m_impersonated = true;
+		}
+	}
+}
+
+DepotClientImpersonationScope::~DepotClientImpersonationScope()
+{
+	if (m_impersonated)
+	{
+		m_status = RevertToSelf() ? S_OK : HRESULT_FROM_WIN32(GetLastError());
+		m_impersonated = false;
+	}
 }
 
 }}}

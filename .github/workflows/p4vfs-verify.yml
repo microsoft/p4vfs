@@ -25,12 +25,23 @@ permissions:
   contents: read
 
 jobs:
+  setup:
+    runs-on: ${{matrix.os}}
+    outputs:
+      matrix: ${{ steps.configure.outputs.matrix }}
+    steps:
+      - id: configure
+        run: |
+          echo "::set-output name=matrix::$input"
+        env:
+          input: ${{ env.BUILD_CONFIGURATIONS }}
+
   build:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
         os: [windows-latest]
-        configuration: ${{ fromJSON(vars.BUILD_CONFIGURATIONS) }}
+        configuration: ${{ fromJSON(needs.setup.outputs.matrix) }}
 
     steps:
     - name: Set image info in env

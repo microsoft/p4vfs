@@ -30,7 +30,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-        configuration: ${{fromJSON(env.BUILD_CONFIGURATIONS)}}
+        configuration: ${{ fromJSON( ${{ env.BUILD_CONFIGURATIONS }} ) }}
 
     steps:
     - name: Set image info in env

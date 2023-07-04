@@ -31,7 +31,7 @@ jobs:
       matrix: ${{ steps.configure.outputs.matrix }}
     steps:
       - id: configure
-        run: echo "matrix=$env:BUILD_CONFIGURATIONS"
+        run: echo "matrix=$env:BUILD_CONFIGURATIONS" >> $GITHUB_OUTPUT
 
   build:
     runs-on: ${{matrix.os}}

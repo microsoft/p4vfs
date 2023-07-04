@@ -31,9 +31,7 @@ jobs:
       matrix: ${{ steps.configure.outputs.matrix }}
     steps:
       - id: configure
-        run: echo "matrix=$input"
-        env:
-          input: ${{ env.BUILD_CONFIGURATIONS }}
+        run: echo "matrix=$env:BUILD_CONFIGURATIONS"
 
   build:
     runs-on: ${{matrix.os}}

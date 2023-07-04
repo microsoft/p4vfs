@@ -15,6 +15,7 @@ on:
 env:
   SOLUTION_FILE_PATH: source/P4VFS.sln
   BUILD_PLATFORM: x64
+  BUILD_CONFIGURATIONS: '[Debug, Release]'
 
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -29,7 +30,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-        configuration: [Debug, Release]
+        configuration: ${{fromJSON(env.BUILD_CONFIGURATIONS)}}
 
     steps:
     - name: Set image info in env

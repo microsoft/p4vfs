@@ -26,7 +26,7 @@ permissions:
 
 jobs:
   setup:
-    runs-on: ${{matrix.os}}
+    runs-on: [windows-latest]
     outputs:
       matrix: ${{ steps.configure.outputs.matrix }}
     steps:

@@ -15,7 +15,6 @@ on:
 env:
   SOLUTION_FILE_PATH: source/P4VFS.sln
   BUILD_PLATFORM: x64
-  BUILD_CONFIGURATIONS: '[Debug, Release]'
 
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -25,21 +24,12 @@ permissions:
   contents: read
 
 jobs:
-  setup:
-    runs-on: [windows-latest]
-    outputs:
-      matrix: '[Debug, Release]'
-    steps:
-      - id: configure
-        run: echo "matrix=$env:BUILD_CONFIGURATIONS" >> $GITHUB_OUTPUT
-
   build:
     runs-on: ${{matrix.os}}
-    needs: setup
     strategy:
       matrix:
         os: [windows-latest]
-        configuration: ${{ fromJSON("[Debug, Release]") }}
+        configuration: [Debug, Release]
 
     steps:
     - name: Set image info in env

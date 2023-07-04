@@ -28,7 +28,7 @@ jobs:
   setup:
     runs-on: [windows-latest]
     outputs:
-      matrix: ${{ steps.configure.outputs.matrix }}
+      matrix: '[Debug, Release]'
     steps:
       - id: configure
         run: echo "matrix=$env:BUILD_CONFIGURATIONS" >> $GITHUB_OUTPUT

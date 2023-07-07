@@ -554,6 +554,18 @@ namespace Microsoft.P4VFS.UnitTest
 			return serviceClient.GetServiceStatus()?.LastRequestTime ?? DateTime.MinValue;
 		}
 
+		public int GetServiceIdleConnectionCount()
+		{
+			return ProcessInfo.ExecuteWaitOutput(P4Exe, String.Format("{0} monitor show -a -l", ClientConfig), echo:true).Lines
+				.Count(line => Regex.IsMatch(line, @"^\s*(?<id>\d+)\s+(?<status>\w)\s+(?<user>\S+)\s+(?<duration>\S+)\s+(IDLE)"));
+		}
+
+		public bool ServiceGarbageCollect()
+		{
+			Extensions.SocketModel.SocketModelClient service = new Extensions.SocketModel.SocketModelClient(); 
+			return service.GarbageCollect();
+		}
+
 		public FileDifferenceSummary DiffAgainstWorkspace(string fileSpec)
 		{
 			FileDifferenceSummary summary = new FileDifferenceSummary();	

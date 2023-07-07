@@ -531,12 +531,15 @@ namespace Microsoft.P4VFS.UnitTest
 
 		public static string GetUserP4Passwd(string username)
 		{
-			return LoadServerRecipeXmlDocument()
+			string passwd = LoadServerRecipeXmlDocument()
 				.SelectNodes("./server/user")
 				.OfType<XmlElement>()
 				.Where(u => u.GetAttribute("name") == username)
 				.Select(u => u.GetAttribute("password"))
-				.FirstOrDefault() ?? DefaultP4Passwd;
+				.FirstOrDefault()?.NullIfEmpty() ?? DefaultP4Passwd;
+			
+			Assert(String.IsNullOrEmpty(passwd) == false);
+			return passwd;
 		}
 
 		public static string GetServerLoginSSOFilePath(string p4Port = null)

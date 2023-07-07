@@ -143,18 +143,6 @@ namespace P4 {
 		P4VFS_CORE_API static bool IsKnown(const DepotString& name);
 	};
 
-	struct DepotClientImpersonationScope : FileCore::NonCopyable<DepotClientImpersonationScope>
-	{
-	public:
-		DepotClientImpersonationScope(FDepotClient& client);
-		virtual ~DepotClientImpersonationScope();
-		HRESULT Status() const { return m_status; }
-
-	private:
-		HRESULT m_status;
-		bool m_impersonated;
-	};
-
 }}}
 
 #pragma managed(pop)

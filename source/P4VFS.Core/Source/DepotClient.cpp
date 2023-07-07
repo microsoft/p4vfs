@@ -747,10 +747,9 @@ bool FDepotClient::Login()
 
 bool FDepotClient::LoginUsingConfig()
 {
-	std::unique_ptr<DepotClientImpersonationScope> impersonationScope;
-	if (HasFlag(Flags::Unimpersonated) == false)
+	if (m_P4->m_Config.m_Passwd.empty())
 	{
-		impersonationScope = std::make_unique<DepotClientImpersonationScope>(*this);
+		m_P4->m_Config.m_Passwd = GetEnvImpersonated(DepotConstants::P4PASSWD);
 	}
 
 	DepotClientPromptCallback prompt = std::make_shared<FDepotClientPromptCallback>([this](const DepotString& message) -> DepotString
@@ -767,7 +766,6 @@ bool FDepotClient::LoginUsingConfig()
 		return false;
 	}
 
-	impersonationScope.reset();
 	if (IsLoginRequired())
 	{
 		return false;
@@ -1146,30 +1144,6 @@ bool DepotTunable::IsSet(const DepotString& name)
 bool DepotTunable::IsKnown(const DepotString& name)
 {
 	return !!p4tunable.IsKnown(name.c_str());
-}
-
-DepotClientImpersonationScope::DepotClientImpersonationScope(FDepotClient& client) :
-	m_status(S_OK),
-	m_impersonated(false)
-{
-	UserContext* context = client.GetUserContext();
-	if (FileOperations::IsCurrentProcessUserContext(context) == false)
-	{
-		m_status = FileOperations::ImpersonateLoggedOnUser(context);
-		if (SUCCEEDED(m_status))
-		{
-			m_impersonated = true;
-		}
-	}
-}
-
-DepotClientImpersonationScope::~DepotClientImpersonationScope()
-{
-	if (m_impersonated)
-	{
-		m_status = RevertToSelf() ? S_OK : HRESULT_FROM_WIN32(GetLastError());
-		m_impersonated = false;
-	}
 }
 
 }}}

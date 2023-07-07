@@ -353,6 +353,7 @@ namespace Microsoft.P4VFS.UnitTest
 		{
 			WorkspaceReset();
 			string depotPasswd = UnitTestServer.GetUserP4Passwd(_P4User);
+			string depotSyncPath = "//depot/gears1/Development/Src/Core/...";
 			string ssoLoginFile = String.Format("{0}\\{1}_ClientLoginSSO.bat", UnitTestServer.GetServerRootFolder(), nameof(DepotConnectionTest));
 			FileUtilities.DeleteFile(ssoLoginFile);
 
@@ -417,6 +418,18 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User, depotPasswd:depotPasswd));
 				Assert(depotClient.Login((_) => depotPasswd));
 			}
+
+			// Logout and interactive login to sync with the correct password
+			Assert(p4logout());
+			InteractiveOverridePasswd = depotPasswd;
+			Assert(ProcessInfo.ExecuteWait(P4vfsExe, String.Format("{0} sync {1}", ClientConfig, depotSyncPath), echo:true, log:true) == 0);
+			InteractiveOverridePasswd = null;
+			
+			// Logout and interactive login from service with the correct password
+			Assert(p4logout());
+			InteractiveOverridePasswd = depotPasswd;
+			Assert(ReconcilePreview(depotSyncPath).Any() == false);
+			InteractiveOverridePasswd = null;
 		}
 
 		[TestMethod, Priority(7), TestRemote]
@@ -1919,11 +1932,11 @@ namespace Microsoft.P4VFS.UnitTest
 				string portName = sourceConfig.PortName();
 				string portNumber = sourceConfig.PortNumber();
 				Assert(System.Net.IPAddress.TryParse(portName, out System.Net.IPAddress _) == false);
-				portName = UnitTestServer.GetServerPortIPAddress(portName)?.ToString();
-				Assert(System.Net.IPAddress.TryParse(portName, out System.Net.IPAddress _) == true);
+				string portIP = UnitTestServer.GetServerPortIPAddress(portName)?.ToString();
+				Assert(System.Net.IPAddress.TryParse(portIP, out System.Net.IPAddress _) == true);
 
 				DepotConfig targetConfig = new DepotConfig();
-				targetConfig.Port = String.Format("{0}:{1}", portName, portNumber);
+				targetConfig.Port = String.Format("{0}:{1}", portName == "localhost" ? "" : portIP, portNumber);
 				targetConfig.Client = sourceConfig.Client;
 				targetConfig.User = sourceConfig.User;
 				targetConfig.Passwd = UnitTestServer.GetUserP4Passwd(sourceConfig.User);

@@ -11,7 +11,7 @@ namespace Microsoft.P4VFS.External
 {
 	public class P4vfsModule : Module
 	{
-		private const string P4VFS_SIGNED_VERSION = "1.25.0.0";
+		private const string P4VFS_SIGNED_VERSION = "1.26.0.0";
 		private const string P4VFS_SIGNED_ARTIFACTS_URL = "https://github.com/microsoft/p4vfs/releases/download";
 
 		public override string Name

@@ -249,6 +249,12 @@ namespace Microsoft.P4VFS.UnitTest
 			AssertRetry(() => VirtualFileSystem.IsVirtualFileSystemAvailable(), message:"IsVirtualFileSystemAvailable");
 			ServiceSettings.Reset();
 			InteractiveOverridePasswd = null;
+
+			if (String.IsNullOrEmpty(config.Passwd))
+			{
+				config.Passwd = UnitTestServer.GetUserP4Passwd(config.User);
+				Assert(String.IsNullOrEmpty(config.Passwd) == false);
+			}
 			
 			using (DepotClient depotClient = new DepotClient())
 			{

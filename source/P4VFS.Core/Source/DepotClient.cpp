@@ -285,6 +285,16 @@ public:
 		m_Client->OnErrorPause(errBuf);
 	}
 
+	virtual void HandleUrl(const StrPtr* url) override
+	{
+		if (url != nullptr && FileCore::StringInfo::IsNullOrEmpty(url->Text()) == false)
+		{
+			UserContext* context = m_Client->GetUserContext();
+			DepotString cmd = StringInfo::Format("powershell.exe -Command \"&{ Start-Process -FilePath '%s' -Verb runas }\"", url->Text());
+			FileOperations::CreateProcessImpersonated(CSTR_ATOW(cmd), nullptr, FALSE, nullptr, context);
+		}
+	}
+
 	virtual void Diff(FileSys* f1, FileSys* f2, FileSys* fout, int doPage, char* diffFlags, Error* e) override
 	{
 		if (e == nullptr || fout != nullptr)

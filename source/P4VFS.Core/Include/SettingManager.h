@@ -30,7 +30,7 @@ namespace FileCore {
 		_N( int32_t,  CreateFileRetryWaitMs,           250 ) \
 		_N( int32_t,  PoolDefaultNumberOfThreads,      8 ) \
 		_N( int32_t,  GarbageCollectPeriodMs,          5*60*1000 ) \
-		_N( int32_t,  DepotClientCacheIdleTimeoutMs,   10*60*1000 ) \
+		_N( int32_t,  DepotClientCacheIdleTimeoutMs,   5*60*1000 ) \
 
 
 	class SettingManager;

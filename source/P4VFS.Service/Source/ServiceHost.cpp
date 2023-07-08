@@ -227,8 +227,7 @@ ServiceHost::SrvTickThreadEntry(
 
 	while (WaitForSingleObject(pSrvHost->m_SrvStopEvent, tickPeriodMs()) != WAIT_OBJECT_0)
 	{
-		int64_t timeoutSeconds = std::max<int32_t>(1, FileCore::SettingManager::StaticInstance().DepotClientCacheIdleTimeoutMs.GetValue()/1000);
-		pSrvHost->GarbageCollect(timeoutSeconds);
+		pSrvHost->GarbageCollect(P4::DepotClientCache::GetIdleTimeoutSeconds());
 	}
 
 	return 0;

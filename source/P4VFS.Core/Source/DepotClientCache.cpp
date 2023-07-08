@@ -2,13 +2,13 @@
 // Licensed under the MIT license.
 #include "Pch.h"
 #include "DepotClientCache.h"
+#include "SettingManager.h"
 
 namespace Microsoft {
 namespace P4VFS {
 namespace P4 {
 
 DepotClientCache::DepotClientCache() :
-	m_KeepAliveSeconds(5 * 60), // 5 minutes
 	m_FreeMap(new FreeMapType)
 {
 }
@@ -55,7 +55,7 @@ DepotClient DepotClientCache::Alloc(const DepotConfig& config, FileContext& file
 			continue;
 		}
 
-		if (client->GetAccessTimeSpan() >= m_KeepAliveSeconds )
+		if (client->GetAccessTimeSpan() >= GetIdleTimeoutSeconds())
 		{
 			if (fileContext.m_LogDevice)
 			{
@@ -129,6 +129,11 @@ void DepotClientCache::GarbageCollect(int64_t timeoutSeconds)
 size_t DepotClientCache::GetFreeCount() const 
 { 
 	return m_FreeMap->size(); 
+}
+
+time_t DepotClientCache::GetIdleTimeoutSeconds()
+{
+	return std::max<time_t>(0, FileCore::SettingManager::StaticInstance().DepotClientCacheIdleTimeoutMs.GetValue()/1000);
 }
 
 DepotString DepotClientCache::CreateKey(const DepotConfig& config)

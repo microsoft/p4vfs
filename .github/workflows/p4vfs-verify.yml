@@ -27,14 +27,14 @@ jobs:
   setup:
     runs-on: [windows-latest]
     outputs:
-      configs: ${{env.configs}}
+      configs: ${{ steps.configure.outputs.configs }}
     steps:
       - id: configure
         run: |
           if ($env:GITHUB_REF_NAME -match "dev/.+") {
-            Write-Output "configs=[DebugDev,ReleaseDev]" >> $GITHUB_ENV
+            Write-Output "configs=[DebugDev,ReleaseDev]" >> $GITHUB_OUTPUT
           } else {
-            Write-Output "configs=[Debug,Release]" >> $GITHUB_ENV
+            Write-Output "configs=[Debug,Release]" >> $GITHUB_OUTPUT
           }
 
   build:

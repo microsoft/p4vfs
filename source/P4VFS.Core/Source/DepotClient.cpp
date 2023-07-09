@@ -290,7 +290,7 @@ public:
 		if (url != nullptr && FileCore::StringInfo::IsNullOrEmpty(url->Text()) == false)
 		{
 			UserContext* context = m_Client->GetUserContext();
-			DepotString cmd = StringInfo::Format("powershell.exe -Command \"&{ Start-Process -FilePath '%s' -Verb runas }\"", url->Text());
+			DepotString cmd = StringInfo::Format("cmd.exe /c start %s", url->Text());
 			FileOperations::CreateProcessImpersonated(CSTR_ATOW(cmd), nullptr, FALSE, nullptr, context);
 		}
 	}

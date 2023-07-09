@@ -5,6 +5,9 @@ Version [1.26.0.0]
 * Refactor of perforce client login operations to support common forms of password and
   SSO login. This includes password auth, classic P4LOGINSSO client script auth, and server 
   auth extensions such as Helix Authentication Service.
+* Fixing service process launch as impersonated user to include the user's profile environment.
+  This allows the service's interactive password prompt, or browser authentication, to execute
+  with expected user environment variables.
 
 Version [1.25.1.0]
 * Addition of new "hydrate" command as synonym for "resident -x". Moved the implementation into

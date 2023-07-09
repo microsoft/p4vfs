@@ -2109,7 +2109,20 @@ Process::ExecuteResult Process::Execute(const wchar_t* cmd, const wchar_t* dir, 
 	WString commandLineRw = cmd;
 	if (hUserToken != NULL && hUserToken != INVALID_HANDLE_VALUE)
 	{
-		if (CreateProcessAsUserW(hUserToken,  NULL, &commandLineRw[0], NULL, NULL, TRUE, creationFlags, NULL, dir, &si, &pi) == FALSE)
+		creationFlags |= CREATE_UNICODE_ENVIRONMENT;
+		PVOID environment = nullptr;
+
+		if (CreateEnvironmentBlock(&environment, hUserToken, FALSE) == FALSE)
+		{
+			result.m_HR = ERROR_INVALID_ENVIRONMENT;
+			return result;
+		}
+		std::shared_ptr<void> environmentScope(nullptr, [environment](void*) 
+		{ 
+			DestroyEnvironmentBlock(environment);
+		});
+
+		if (CreateProcessAsUserW(hUserToken,  NULL, &commandLineRw[0], NULL, NULL, TRUE, creationFlags, environment, dir, &si, &pi) == FALSE)
 		{
 			result.m_HR = HRESULT_FROM_WIN32(GetLastError());
 			return result;

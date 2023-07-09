@@ -24,12 +24,26 @@ permissions:
   contents: read
 
 jobs:
+  setup:
+    runs-on: [windows-latest]
+    outputs:
+      configs: ${{ steps.configure.outputs.configs }}
+    steps:
+      - id: configure
+        run: |
+          if ($env:GITHUB_REF_NAME -match "dev/.+") {
+              Write-Output "::set-output name=configs::[DebugDev,ReleaseDev]"
+          } else {
+              Write-Output "::set-output name=configs::[Debug,Release]"
+          }
+
   build:
     runs-on: ${{matrix.os}}
+    needs: setup
     strategy:
       matrix:
         os: [windows-latest]
-        configuration: ${{ startsWith(github.ref_name, 'dev/') && 'DebugDev,ReleaseDev' || 'Debug,Release' }}
+        configuration: ${{ fromJSON(needs.setup.outputs.configs) }}
 
     steps:
     - name: Set image info in env

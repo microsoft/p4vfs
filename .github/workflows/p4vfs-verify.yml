@@ -32,9 +32,9 @@ jobs:
       - id: configure
         run: |
           if ($env:GITHUB_REF_NAME -match "dev/.+") {
-            Write-Output "configs=[DebugDev,ReleaseDev]" >> $GITHUB_OUTPUT
+            Write-Output "configs=DebugDev" >> $GITHUB_OUTPUT
           } else {
-            Write-Output "configs=[Debug,Release]" >> $GITHUB_OUTPUT
+            Write-Output "configs=Release" >> $GITHUB_OUTPUT
           }
 
   build:

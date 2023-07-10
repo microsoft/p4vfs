@@ -353,6 +353,7 @@ namespace Microsoft.P4VFS.UnitTest
 		{
 			WorkspaceReset();
 			string depotPasswd = UnitTestServer.GetUserP4Passwd(_P4User);
+			string depotSyncPath = "//depot/gears1/Development/Src/Core/...";
 			string ssoLoginFile = String.Format("{0}\\{1}_ClientLoginSSO.bat", UnitTestServer.GetServerRootFolder(), nameof(DepotConnectionTest));
 			FileUtilities.DeleteFile(ssoLoginFile);
 
@@ -415,8 +416,23 @@ namespace Microsoft.P4VFS.UnitTest
 			using (DepotClient depotClient = new DepotClient())
 			{
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User, depotPasswd:depotPasswd));
-				Assert(depotClient.Login(depotPasswd));
+				Assert(depotClient.Login((_) => depotPasswd));
 			}
+
+			// Logout and interactive login to sync with the correct password
+			Assert(p4logout());
+			InteractiveOverridePasswd = depotPasswd;
+			Assert(ProcessInfo.ExecuteWait(P4vfsExe, String.Format("{0} sync {1}", ClientConfig, depotSyncPath), echo:true, log:true) == 0);
+			InteractiveOverridePasswd = null;
+			
+			// Logout and interactive login from service with the correct password
+			Assert(p4logout());
+			InteractiveOverridePasswd = depotPasswd;
+			Extensions.SocketModel.SocketModelClient service = new Extensions.SocketModel.SocketModelClient(); 
+			Assert(ServiceGarbageCollect());
+			Assert(GetServiceIdleConnectionCount() == 0);
+			Assert(ReconcilePreview(depotSyncPath).Any() == false);
+			InteractiveOverridePasswd = null;
 		}
 
 		[TestMethod, Priority(7), TestRemote]
@@ -1422,6 +1438,9 @@ namespace Microsoft.P4VFS.UnitTest
 
 			string clientRoot = GetClientRoot();
 			string configFileName = ".p4vfsconfig";
+			string environmentUser = "northamerica\\quebec";
+			string environmentClient = "quebec-pc-depot";
+			string environmentPasswd = UnitTestServer.GetUserP4Passwd(environmentUser);
 			string rootFolder = clientRoot;
 			string subFolder = Path.Combine(rootFolder, "depot");
 			AssertLambda(() => FileUtilities.CreateDirectory(subFolder));
@@ -1433,8 +1452,8 @@ namespace Microsoft.P4VFS.UnitTest
 					depotClient.Unattended = true;
 					// Connect from environment without P4CONFIG
 					Assert(depotClient.Connect(directoryPath:rootFolder));
-					Assert(depotClient.ConnectionClient().Client == "quebec-pc-depot");
-					Assert(depotClient.Info().UserName == "northamerica\\quebec");
+					Assert(depotClient.ConnectionClient().Client == environmentClient);
+					Assert(depotClient.Info().UserName == environmentUser);
 					Assert(ProcessInfo.ExecuteWaitOutput(P4vfsExe, "info", directory:rootFolder, echo:true, log:true).Lines.Contains("P4 UserName: northamerica\\quebec"));
 				}}
 			};
@@ -1459,9 +1478,9 @@ namespace Microsoft.P4VFS.UnitTest
 				}}
 			};
 
-			using (new SetEnvironmentVariableScope("P4USER", "northamerica\\quebec")) {
-			using (new SetEnvironmentVariableScope("P4CLIENT", "quebec-pc-depot")) {
-			using (new SetEnvironmentVariableScope("P4PASSWD", UnitTestServer.DefaultP4Passwd)) {
+			using (new SetEnvironmentVariableScope("P4USER", environmentUser)) {
+			using (new SetEnvironmentVariableScope("P4CLIENT", environmentClient)) {
+			using (new SetEnvironmentVariableScope("P4PASSWD", environmentPasswd)) {
 			using (new SetEnvironmentVariableScope("P4PORT", _P4Port)) 
 			{
 				emptyConfigTest();
@@ -1798,11 +1817,6 @@ namespace Microsoft.P4VFS.UnitTest
 		public void DepotClientCacheIdleTimeoutTest()
 		{
 			WorkspaceReset();
-			Func<int> getIdleConnectionCount = () =>
-			{
-				return ProcessInfo.ExecuteWaitOutput(P4Exe, String.Format("{0} monitor show -a -l", ClientConfig), echo:true).Lines
-					.Count(line => Regex.IsMatch(line, @"^\s*(?<id>\d+)\s+(?<status>\w)\s+(?<user>\S+)\s+(?<duration>\S+)\s+(IDLE)"));
-			};
 
 			Action<Extensions.SocketModel.SocketModelClient, DepotConfig> assertSyncAndReconcile = (service, config) =>
 			{
@@ -1813,28 +1827,29 @@ namespace Microsoft.P4VFS.UnitTest
 
 				// Reconcile the folder using p4.exe. There will be one or more cached service connections
 				Assert(ReconcilePreview(depotFolder).Any() == false);
-				Assert(getIdleConnectionCount() > 1);
+				Assert(GetServiceIdleConnectionCount() > 1);
 			};
 
 			// There should be no idle connections from any process, including this process
-			Assert(getIdleConnectionCount() == 0);
+			Assert(GetServiceIdleConnectionCount() == 0);
 			using (DepotClient depotClient = new DepotClient())
 			{
+				Extensions.SocketModel.SocketModelClient service = new Extensions.SocketModel.SocketModelClient(); 
+
 				// Open a single idle connection
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
-				Assert(getIdleConnectionCount() == 1);
-
-				Extensions.SocketModel.SocketModelClient service = new Extensions.SocketModel.SocketModelClient(); 
-				Assert(service.GarbageCollect());
-				Assert(getIdleConnectionCount() == 1);
+				Assert(GetServiceIdleConnectionCount() == 1);
+				
+				Assert(ServiceGarbageCollect());
+				Assert(GetServiceIdleConnectionCount() == 1);
 
 				// Sync and reconcile to open some cached service connections
 				assertSyncAndReconcile(service, depotClient.Config());
-				Assert(getIdleConnectionCount() > 1);
+				Assert(GetServiceIdleConnectionCount() > 1);
 
 				// Close the idle service connections with a GC
-				Assert(service.GarbageCollect());
-				Assert(getIdleConnectionCount() == 1);
+				Assert(ServiceGarbageCollect());
+				Assert(GetServiceIdleConnectionCount() == 1);
 
 				// Write a temporary PublicSettingsFilePath settings file with very short GC timeout
 				using (new LocalSettingScope(nameof(SettingManager.GarbageCollectPeriodMs), "100")) {
@@ -1846,30 +1861,30 @@ namespace Microsoft.P4VFS.UnitTest
 
 					// Restart the service to load our new settings
 					ServiceRestart();
-					Assert(getIdleConnectionCount() == 1);
+					Assert(GetServiceIdleConnectionCount() == 1);
 
 					Assert(service.GetServiceSetting(nameof(SettingManager.GarbageCollectPeriodMs)).ToInt32() == SettingManager.GarbageCollectPeriodMs);
 					Assert(service.GetServiceSetting(nameof(SettingManager.DepotClientCacheIdleTimeoutMs)).ToInt32() == SettingManager.DepotClientCacheIdleTimeoutMs);
 
 					// Sync and reconcile to open some cached service connections
 					assertSyncAndReconcile(service, depotClient.Config());
-					Assert(getIdleConnectionCount() > 1);
+					Assert(GetServiceIdleConnectionCount() > 1);
 
 					// Wait at least DepotClientCacheIdleTimeoutMs for the service connections to be closed
-					AssertRetry(() => getIdleConnectionCount() == 1, "Waiting for GC", retryWait:500, limitWait:8000);
+					AssertRetry(() => GetServiceIdleConnectionCount() == 1, "Waiting for GC", retryWait:500, limitWait:8000);
 				}}}
 			
 				// Restart the service to load base settings again
 				Assert(File.Exists(VirtualFileSystem.PublicSettingsFilePath) == false);
 				ServiceRestart();
-				Assert(getIdleConnectionCount() == 1);
+				Assert(GetServiceIdleConnectionCount() == 1);
 
 				Assert(service.GetServiceSetting(nameof(SettingManager.GarbageCollectPeriodMs)).ToInt32() == SettingManager.GarbageCollectPeriodMs);
 				Assert(service.GetServiceSetting(nameof(SettingManager.DepotClientCacheIdleTimeoutMs)).ToInt32() == SettingManager.DepotClientCacheIdleTimeoutMs);
 			}
 		}
 
-		[TestMethod, Priority(33), TestRemote]
+		[TestMethod, Priority(33)]
 		public void DepotOperationsReconfigTest()
 		{
 			WorkspaceReset();
@@ -1919,15 +1934,15 @@ namespace Microsoft.P4VFS.UnitTest
 				string portName = sourceConfig.PortName();
 				string portNumber = sourceConfig.PortNumber();
 				Assert(System.Net.IPAddress.TryParse(portName, out System.Net.IPAddress _) == false);
-				portName = UnitTestServer.GetServerPortIPAddress(portName)?.ToString();
-				Assert(System.Net.IPAddress.TryParse(portName, out System.Net.IPAddress _) == true);
+				string portIP = UnitTestServer.GetServerPortIPAddress(portName)?.ToString();
+				Assert(System.Net.IPAddress.TryParse(portIP, out System.Net.IPAddress _) == true);
 
 				DepotConfig targetConfig = new DepotConfig();
-				targetConfig.Port = String.Format("{0}:{1}", portName, portNumber);
+				targetConfig.Port = String.Format("{0}:{1}", portIP, portNumber);
 				targetConfig.Client = sourceConfig.Client;
 				targetConfig.User = sourceConfig.User;
-				targetConfig.Passwd = UnitTestServer.GetUserP4Passwd(sourceConfig.User);
 
+				InteractiveOverridePasswd = UnitTestServer.GetUserP4Passwd(_P4User);
 				using (DepotClient targetDepotClient = new DepotClient())
 				{
 					Assert(targetDepotClient.Connect(targetConfig));
@@ -1947,6 +1962,7 @@ namespace Microsoft.P4VFS.UnitTest
 				}
 
 				Assert(ReconcilePreview(clientRoot).Any() == false);
+				InteractiveOverridePasswd = null;
 			}
 		}
 	}

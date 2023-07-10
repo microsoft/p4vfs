@@ -16,8 +16,7 @@ namespace P4 {
 
 	typedef std::shared_ptr<struct FDepotClient> DepotClient;
 	typedef std::function<void(LogChannel::Enum channel, const char* severity, const char* text)> FDepotClientLogCallback;
-	typedef FDepotClientLogCallback FOnErrorCallback;
-	typedef FDepotClientLogCallback FOnMessageCallback;
+	typedef std::shared_ptr<FDepotClientLogCallback> DepotClientLogCallback;
 
 	struct FDepotClient
 	{
@@ -34,7 +33,7 @@ namespace P4 {
 		P4VFS_CORE_API bool IsConnectedClient();
 
 		P4VFS_CORE_API bool IsLoginRequired();
-		P4VFS_CORE_API bool Login(const DepotString& passwd);
+		P4VFS_CORE_API bool Login(DepotClientPromptCallback prompt);
 		P4VFS_CORE_API bool Login();
 
 		P4VFS_CORE_API DepotResult Trust();
@@ -61,10 +60,10 @@ namespace P4 {
 		template <typename Result = DepotResult>
 		Result Run(const DepotString& name, const DepotStringArray& args = DepotStringArray());
 	
-		virtual bool OnRequestPassword(DepotString& passwd);
 		virtual void OnErrorPause(const char* message);
 		virtual void OnErrorCallback(LogChannel::Enum channel, const char* severity, const char* text);
 		virtual void OnMessageCallback(LogChannel::Enum channel, const char* severity, const char* text);
+		virtual DepotString OnPromptCallback(const DepotCommand* command, const char* message);
 
 		P4VFS_CORE_API LogDevice* Log();
 		P4VFS_CORE_API void Log(LogChannel::Enum channel, const DepotString& text);
@@ -93,15 +92,14 @@ namespace P4 {
 		P4VFS_CORE_API DepotString GetEnvImpersonated(const char* name) const;
 		P4VFS_CORE_API WString GetEnvImpersonatedW(const char* name) const;
 
-		P4VFS_CORE_API void SetErrorCallback(FOnErrorCallback* callback);
-		P4VFS_CORE_API void SetMessageCallback(FOnMessageCallback* callback);
+		P4VFS_CORE_API void SetErrorCallback(DepotClientLogCallback callback);
+		P4VFS_CORE_API void SetMessageCallback(DepotClientLogCallback callback);
 
 	protected:
 		bool LoginUsingConfig();
-		bool LoginUsingSSO();
 		bool LoginUsingClientOwner();
-		bool LoginUsingImpersonation();
 		bool LoginUsingInteractiveSession();
+		bool RequestInteractivePassword(DepotString& passwd);
 
 	private:
 		struct Api;

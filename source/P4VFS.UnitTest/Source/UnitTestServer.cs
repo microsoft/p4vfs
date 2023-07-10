@@ -116,7 +116,7 @@ namespace Microsoft.P4VFS.UnitTest
 					DepotResultView userResult = adminClient.Run(new DepotCommand{ Name="user", Args=new[]{"-i", "-f"}, Input=userSpec }).ToView();
 					Assert(userResult.HasError == false);
 					Assert(adminClient.Users().Nodes.Any(n => n.User == _P4User));
-					Assert(adminClient.Run(new DepotCommand{ Name="passwd", Args=new[]{userName}, Prompt=password }).HasError == false);
+					Assert(adminClient.Run(new DepotCommand{ Name="passwd", Args=new[]{userName}, Prompt=(_) => password }).HasError == false);
 
 					using (DepotClient userClient = new DepotClient())
 					{
@@ -531,12 +531,15 @@ namespace Microsoft.P4VFS.UnitTest
 
 		public static string GetUserP4Passwd(string username)
 		{
-			return LoadServerRecipeXmlDocument()
+			string passwd = LoadServerRecipeXmlDocument()
 				.SelectNodes("./server/user")
 				.OfType<XmlElement>()
 				.Where(u => u.GetAttribute("name") == username)
 				.Select(u => u.GetAttribute("password"))
-				.FirstOrDefault() ?? DefaultP4Passwd;
+				.FirstOrDefault()?.NullIfEmpty() ?? DefaultP4Passwd;
+			
+			Assert(String.IsNullOrEmpty(passwd) == false);
+			return passwd;
 		}
 
 		public static string GetServerLoginSSOFilePath(string p4Port = null)

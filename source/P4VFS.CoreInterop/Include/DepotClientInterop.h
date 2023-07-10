@@ -30,7 +30,7 @@ public:
 	System::String^ Name;
 	array<System::String^>^ Args;
 	System::String^ Input;
-	System::String^ Prompt;
+	System::Func<System::String^, System::String^>^ Prompt;
 	DepotCommandFlags Flags;
 };
 
@@ -69,7 +69,7 @@ public:
 
 	bool 
 	Login(
-		System::String^ passwd
+		System::Func<System::String^, System::String^>^ prompt
 		);
 
 	bool 

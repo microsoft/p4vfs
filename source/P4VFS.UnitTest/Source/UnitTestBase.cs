@@ -249,6 +249,12 @@ namespace Microsoft.P4VFS.UnitTest
 			AssertRetry(() => VirtualFileSystem.IsVirtualFileSystemAvailable(), message:"IsVirtualFileSystemAvailable");
 			ServiceSettings.Reset();
 			InteractiveOverridePasswd = null;
+
+			if (String.IsNullOrEmpty(config.Passwd))
+			{
+				config.Passwd = UnitTestServer.GetUserP4Passwd(config.User);
+				Assert(String.IsNullOrEmpty(config.Passwd) == false);
+			}
 			
 			using (DepotClient depotClient = new DepotClient())
 			{
@@ -546,6 +552,18 @@ namespace Microsoft.P4VFS.UnitTest
 		{
 			Extensions.SocketModel.SocketModelClient serviceClient = new Extensions.SocketModel.SocketModelClient();
 			return serviceClient.GetServiceStatus()?.LastRequestTime ?? DateTime.MinValue;
+		}
+
+		public int GetServiceIdleConnectionCount()
+		{
+			return ProcessInfo.ExecuteWaitOutput(P4Exe, String.Format("{0} monitor show -a -l", ClientConfig), echo:true).Lines
+				.Count(line => Regex.IsMatch(line, @"^\s*(?<id>\d+)\s+(?<status>\w)\s+(?<user>\S+)\s+(?<duration>\S+)\s+(IDLE)"));
+		}
+
+		public bool ServiceGarbageCollect()
+		{
+			Extensions.SocketModel.SocketModelClient service = new Extensions.SocketModel.SocketModelClient(); 
+			return service.GarbageCollect();
 		}
 
 		public FileDifferenceSummary DiffAgainstWorkspace(string fileSpec)

@@ -9,6 +9,30 @@ namespace Microsoft {
 namespace P4VFS {
 namespace CoreInterop {
 
+P4::DepotClientPromptCallback marshal_as_prompt_callback(System::Func<System::String^, System::String^>^ prompt)
+{
+	if (prompt != nullptr)
+	{
+		std::shared_ptr<marshal_as_gchandle> gcprompt = std::make_shared<marshal_as_gchandle>(prompt);
+		return std::make_shared<P4::FDepotClientPromptCallback>([gcprompt](const P4::DepotString& message) -> P4::DepotString
+		{
+			System::Func<System::String^, System::String^>^ callback = safe_cast<System::Func<System::String^, System::String^>^>(gcprompt->Target());
+			if (callback != nullptr)
+			{
+				try
+				{
+					System::String^ response = callback(gcnew System::String(message.c_str()));
+					return marshal_as_astring(response);
+				} 
+				catch (...) 
+				{}
+			}
+			return P4::DepotString();
+		});
+	}
+	return nullptr;
+}
+
 DepotCommand::DepotCommand(
 	)
 {
@@ -21,7 +45,7 @@ DepotCommand::ToNative(
 	P4::DepotCommand dst;
 	dst.m_Name = marshal_as_astring(Name);
 	dst.m_Input = marshal_as_astring(Input);
-	dst.m_Prompt = marshal_as_astring(Prompt);
+	dst.m_Prompt = marshal_as_prompt_callback(Prompt);
 	dst.m_Flags = safe_cast<P4::DepotCommand::Flags::Enum>(Flags);
 	dst.m_Args = Marshal::ToNativeAnsi(Args);
 	return dst;
@@ -119,11 +143,11 @@ DepotClient::IsLoginRequired(
 
 bool 
 DepotClient::Login(
-	System::String^ passwd
+	System::Func<System::String^, System::String^>^ prompt
 	)
 {
 	ThrowIfObjectDisposed();
-	return m_Data->m_DepotClient->Login(marshal_as_astring(passwd));
+	return m_Data->m_DepotClient->Login(marshal_as_prompt_callback(prompt));
 }
 
 bool 

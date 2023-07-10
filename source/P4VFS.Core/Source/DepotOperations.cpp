@@ -869,13 +869,13 @@ DepotOperations::SyncCommand(
 		}
 	}
 
-	FDepotClientLogCallback onClientLogCallback = [log](LogChannel::Enum channel, const char* severity, const char* text) -> void
+	DepotClientLogCallback onClientLogCallback = std::make_shared<FDepotClientLogCallback>([log](LogChannel::Enum channel, const char* severity, const char* text) -> void
 	{
 		if (log != nullptr)
 		{
 			log->Write(channel, StringInfo::ToWide(text));
 		}
-	};
+	});
 
 	DepotCommand syncCmd;
 	syncCmd.m_Name = "sync";
@@ -895,8 +895,8 @@ DepotOperations::SyncCommand(
 		syncCmd.m_Flags |= DepotCommand::Flags::UnTagged;
 	}
 
-	depotClient->SetMessageCallback(&onClientLogCallback);
-	depotClient->SetErrorCallback(&onClientLogCallback);
+	depotClient->SetMessageCallback(onClientLogCallback);
+	depotClient->SetErrorCallback(onClientLogCallback);
 	DepotResult syncResult = depotClient->Run(syncCmd);
 	depotClient->SetMessageCallback(nullptr);
 	depotClient->SetErrorCallback(nullptr);

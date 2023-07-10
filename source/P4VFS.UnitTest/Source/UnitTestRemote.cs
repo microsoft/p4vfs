@@ -55,7 +55,7 @@ namespace Microsoft.P4VFS.UnitTest
 				Port = String.Format("{0}:{1}", serverPortIPAddress, serverPortNumber), 
 				Client = _P4Client, 
 				User = _P4User,
-				Passwd = "Password1",
+				Passwd = UnitTestServer.GetUserP4Passwd(_P4User)
 			};
 
 			Assert(remoteTests.Count > 0);
@@ -68,7 +68,7 @@ namespace Microsoft.P4VFS.UnitTest
 
 		private int RemoteExecuteWait(string cmd, bool admin=false, bool shell=false, bool copy=false, StringBuilder stdout=null)
 		{
-			return ProcessInfo.RemoteExecuteWait(cmd, RemoteHost, RemoteUser, RemotePasswd, admin:admin, shell:shell, copy:copy, stdout:stdout);
+			return ProcessInfo.RemoteExecuteWait(cmd, RemoteHost, RemoteUser, RemotePasswd, admin:admin, shell:shell, copy:copy, stdout:stdout, interactive:true);
 		}
 
 		private string GetRequiredEnvironmentVariable(string name)

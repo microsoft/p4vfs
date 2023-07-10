@@ -139,6 +139,11 @@ public:
 		return System::Runtime::InteropServices::GCHandle::ToIntPtr(m_hGlobal).ToPointer();
 	}
 
+	System::Object^ Target()
+	{
+		return m_hGlobal.Target;
+	}
+
 private:
 	System::Runtime::InteropServices::GCHandle m_hGlobal;
 };

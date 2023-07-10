@@ -20,6 +20,7 @@ namespace P4 {
 		void GarbageCollect(int64_t timeoutSeconds);
 		
 		size_t GetFreeCount() const;
+		static int64_t GetIdleTimeoutSeconds();
 
 	private:
 		static DepotString CreateKey(const DepotConfig& config);
@@ -27,7 +28,6 @@ namespace P4 {
 	private:
 		typedef UnorderedMultiMap<DepotString, DepotClient, StringInfo::Hash, StringInfo::EqualInsensitive> FreeMapType;
 
-		const int64_t m_KeepAliveSeconds;
 		CriticalSection m_FreeMapLock;
 		FreeMapType* m_FreeMap;
 	};

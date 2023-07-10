@@ -23,6 +23,8 @@ parameters:
 jobs:
 - job: P4VFS_CI
   timeoutInMinutes: 240
+  workspace:
+    clean: all
   
   steps:
   - task: NuGetToolInstaller@1

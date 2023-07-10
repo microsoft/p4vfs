@@ -14,6 +14,8 @@ jobs:
 - deployment:
   displayName: P4VFS_CD
   environment: P4VFS_GITHUB
+  workspace:
+    clean: all
   strategy:
     runOnce:
       deploy:

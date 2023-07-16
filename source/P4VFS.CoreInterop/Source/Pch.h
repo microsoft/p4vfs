@@ -4,6 +4,7 @@
 
 #pragma warning(disable : 4127) // conditional expression is constant
 #pragma warning(disable : 4100) // unreferenced formal parameter
+#pragma warning(disable : 4239) // nonstandard extension used : 'token' : conversion from 'type' to 'type'
 #include <SDKDDKVer.h>
 
 #include <tchar.h>

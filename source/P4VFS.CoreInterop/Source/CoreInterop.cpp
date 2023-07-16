@@ -65,7 +65,7 @@ LogElement::FromNative(
 {
 	LogElement^ dst = gcnew LogElement();
 	dst->m_Channel = safe_cast<LogChannel>(src.m_Channel);
-	dst->m_Text = gcnew System::String(src.m_Text.c_str());
+	dst->m_Text = Marshal::FromNativeWide(src.m_Text.c_str());
 	dst->m_Time = src.m_Time;
 	return dst;
 }
@@ -151,7 +151,7 @@ NativeMethods::GetFilePopulateInfo(
 	)
 {
 	FileCore::GAllocPtr<P4VFS_REPARSE_DATA_2> populateData;
-	HRESULT hr = FileOperations::GetFileReparseData(marshal_as_wchar(path), populateData);
+	HRESULT hr = FileOperations::GetFileReparseData(marshal_as_wstring_c_str(path), populateData);
 	if (FAILED(hr) || populateData.get() == nullptr)
 	{
 		return nullptr;
@@ -161,10 +161,10 @@ NativeMethods::GetFilePopulateInfo(
 	info->ResidencyPolicy	= safe_cast<FileResidencyPolicy>(populateData->residencyPolicy);
 	info->PopulatePolicy	= safe_cast<FilePopulatePolicy>(populateData->populatePolicy);	
 	info->FileRevision		= populateData->fileRevision;	 		
-	info->DepotPath			= gcnew System::String(populateData->depotPath.c_str());	
-	info->DepotServer		= gcnew System::String(populateData->depotServer.c_str());	
-	info->DepotClient		= gcnew System::String(populateData->depotClient.c_str());	
-	info->DepotUser			= gcnew System::String(populateData->depotUser.c_str());	
+	info->DepotPath			= Marshal::FromNativeWide(populateData->depotPath.c_str());	
+	info->DepotServer		= Marshal::FromNativeWide(populateData->depotServer.c_str());	
+	info->DepotClient		= Marshal::FromNativeWide(populateData->depotClient.c_str());	
+	info->DepotUser			= Marshal::FromNativeWide(populateData->depotUser.c_str());	
 	return info;
 }
 
@@ -188,15 +188,15 @@ NativeMethods::InstallReparsePointOnFile(
 								majorVersion, 
 								minorVersion, 
 								buildVersion, 
-								marshal_as_wchar(filePath), 
+								marshal_as_wstring_c_str(filePath), 
 								residencyPolicy, 
 								fileRevision,
 								fileSize,
 								fileAttributes,
-								marshal_as_wchar(depotPath),
-								marshal_as_wchar(depotServer),
-								marshal_as_wchar(depotClient),
-								marshal_as_wchar(depotUser)
+								marshal_as_wstring_c_str(depotPath),
+								marshal_as_wstring_c_str(depotServer),
+								marshal_as_wstring_c_str(depotClient),
+								marshal_as_wstring_c_str(depotUser)
 								);
 }
 
@@ -207,8 +207,8 @@ NativeMethods::CreateSymlinkFile(
 )
 {
 	return FileOperations::CreateSymlinkFile(
-		marshal_as_wchar(symlinkFilePath),
-		marshal_as_wchar(targetFilePath)
+		marshal_as_wstring_c_str(symlinkFilePath),
+		marshal_as_wstring_c_str(targetFilePath)
 	);
 }
 
@@ -217,7 +217,7 @@ NativeMethods::RemoveReparsePoint(
 	System::String^		filePath
 	)
 {
-	return FileOperations::RemoveReparsePoint(marshal_as_wchar(filePath));
+	return FileOperations::RemoveReparsePoint(marshal_as_wstring_c_str(filePath));
 }
 
 System::Int32 
@@ -227,7 +227,7 @@ NativeMethods::PopulateFile(
 	FilePopulateMethod	populateMethod
 	)
 {
-	return FileOperations::PopulateFile(marshal_as_wchar(dstFile), marshal_as_wchar(srcFile), safe_cast<BYTE>(populateMethod));
+	return FileOperations::PopulateFile(marshal_as_wstring_c_str(dstFile), marshal_as_wstring_c_str(srcFile), safe_cast<BYTE>(populateMethod));
 }
 
 System::Int32 
@@ -235,7 +235,7 @@ NativeMethods::HydrateFile(
 	System::String^		filePath
 	)
 {
-	return FileOperations::HydrateFile(marshal_as_wchar(filePath));
+	return FileOperations::HydrateFile(marshal_as_wstring_c_str(filePath));
 }
 
 System::Boolean
@@ -246,8 +246,8 @@ NativeMethods::ImpersonateFileAppend(
 	)
 {
 	return SUCCEEDED(FileOperations::ImpersonateFileAppend(
-			marshal_as_wchar(filePath), 
-			marshal_as_wchar(text),
+			marshal_as_wstring_c_str(filePath), 
+			marshal_as_wstring_c_str(text),
 			marshal_as_user_context(context)
 			));
 }
@@ -274,7 +274,9 @@ NativeMethods::GetImpersonatedUserName(
 {
 	FileCore::String userName = FileOperations::GetImpersonatedUserName(marshal_as_user_context(context));
 	if (userName.empty() == false)
-		return gcnew System::String(userName.c_str());
+	{
+		return Marshal::FromNativeWide(userName.c_str());
+	}
 	return nullptr;
 }
 
@@ -286,9 +288,11 @@ NativeMethods::GetImpersonatedEnvironmentStrings(
 {
 	wchar_t dstText[2048] = {0};
 	DWORD dstTextSize = _countof(dstText);
-	HRESULT hr = FileOperations::GetImpersonatedEnvironmentStrings(marshal_as_wchar(srcText), dstText, dstTextSize, marshal_as_user_context(context));
+	HRESULT hr = FileOperations::GetImpersonatedEnvironmentStrings(marshal_as_wstring_c_str(srcText), dstText, dstTextSize, marshal_as_user_context(context));
 	if (SUCCEEDED(hr))
-		return gcnew System::String(dstText);
+	{
+		return Marshal::FromNativeWide(dstText);
+	}
 	return nullptr;
 }
 
@@ -324,14 +328,16 @@ NativeMethods::CreateProcessImpersonated(
 {
 	FileCore::String stdOutputResult;
 	HRESULT status = FileOperations::CreateProcessImpersonated(
-										marshal_as_wchar(commandLine), 
-										marshal_as_wchar(currentDirectory), 
+										marshal_as_wstring_c_str(commandLine), 
+										marshal_as_wstring_c_str(currentDirectory), 
 										waitForExit,
 										stdOutput != nullptr ? &stdOutputResult : nullptr,
 										marshal_as_user_context(context)
 										);
 	if (stdOutput != nullptr)
-		stdOutput->Append(gcnew System::String(stdOutputResult.c_str()));
+	{
+		stdOutput->Append(Marshal::FromNativeWide(stdOutputResult.c_str()));
+	}
 	return SUCCEEDED(status);
 }
 
@@ -349,7 +355,7 @@ NativeMethods::SetDriverFlag(
 	System::UInt32		flagValue
 	)
 {
-	return SUCCEEDED(FileOperations::SetDriverFlag(marshal_as_wchar(flagName), flagValue));
+	return SUCCEEDED(FileOperations::SetDriverFlag(marshal_as_wstring_c_str(flagName), flagValue));
 }
 
 System::Boolean
@@ -388,7 +394,7 @@ NativeMethods::SetupInstallHinfSection(
 	System::String^		filePath
 	)
 {
-	return SUCCEEDED(FileSystem::SetupInstallHinfSection(marshal_as_wchar(sectionName), marshal_as_wchar(filePath)));
+	return SUCCEEDED(FileSystem::SetupInstallHinfSection(marshal_as_wstring_c_str(sectionName), marshal_as_wstring_c_str(filePath)));
 }
 
 System::Boolean
@@ -396,7 +402,7 @@ NativeMethods::IsFileExists(
 	System::String^		filePath
 	)
 {
-	return FileCore::FileInfo::Exists(marshal_as_wchar(filePath));
+	return FileCore::FileInfo::Exists(marshal_as_wstring_c_str(filePath));
 }
 
 System::Boolean
@@ -404,7 +410,7 @@ NativeMethods::IsFileRegular(
 	System::String^		filePath
 	)
 {
-	return FileCore::FileInfo::IsRegular(marshal_as_wchar(filePath));
+	return FileCore::FileInfo::IsRegular(marshal_as_wstring_c_str(filePath));
 }
 
 System::Boolean
@@ -412,7 +418,7 @@ NativeMethods::IsFileSymlink(
 	System::String^		filePath
 	)
 {
-	return FileCore::FileInfo::IsSymlink(marshal_as_wchar(filePath));
+	return FileCore::FileInfo::IsSymlink(marshal_as_wstring_c_str(filePath));
 }
 
 System::Boolean
@@ -420,7 +426,7 @@ NativeMethods::IsFileDirectory(
 	System::String^		filePath
 	)
 {
-	return FileCore::FileInfo::IsDirectory(marshal_as_wchar(filePath));
+	return FileCore::FileInfo::IsDirectory(marshal_as_wstring_c_str(filePath));
 }
 
 System::Boolean
@@ -428,7 +434,7 @@ NativeMethods::IsFileReadOnly(
 	System::String^		filePath
 	)
 {
-	return FileCore::FileInfo::IsReadOnly(marshal_as_wchar(filePath));
+	return FileCore::FileInfo::IsReadOnly(marshal_as_wstring_c_str(filePath));
 }
 
 System::Boolean
@@ -437,7 +443,7 @@ NativeMethods::SetFileReadOnly(
 	System::Boolean		readOnly
 	)
 {
-	return FileCore::FileInfo::SetReadOnly(marshal_as_wchar(filePath), readOnly);
+	return FileCore::FileInfo::SetReadOnly(marshal_as_wstring_c_str(filePath), readOnly);
 }
 
 System::IO::FileAttributes
@@ -445,9 +451,11 @@ NativeMethods::GetFileAttributes(
 	System::String^		filePath
 	)
 {
-	DWORD attributes = FileCore::FileInfo::FileAttributes(marshal_as_wchar(filePath));
+	DWORD attributes = FileCore::FileInfo::FileAttributes(marshal_as_wstring_c_str(filePath));
 	if (attributes == INVALID_FILE_ATTRIBUTES)
+	{
 		throw gcnew System::Exception("failed to get attributes");
+	}
 	return static_cast<System::IO::FileAttributes>(attributes);
 }
 
@@ -456,7 +464,7 @@ NativeMethods::GetFileSize(
 	System::String^		filePath
 	)
 {
-	return FileCore::FileInfo::FileSize(marshal_as_wchar(filePath));
+	return FileCore::FileInfo::FileSize(marshal_as_wstring_c_str(filePath));
 }
 
 System::Int64
@@ -464,7 +472,7 @@ NativeMethods::GetFileUncompressedSize(
 	System::String^		filePath
 	)
 {
-	return FileCore::FileInfo::FileUncompressedSize(marshal_as_wchar(filePath));
+	return FileCore::FileInfo::FileUncompressedSize(marshal_as_wstring_c_str(filePath));
 }
 
 System::Int64
@@ -472,7 +480,7 @@ NativeMethods::GetFileDiskSize(
 	System::String^		filePath
 	)
 {
-	return FileCore::FileInfo::FileDiskSize(marshal_as_wchar(filePath));
+	return FileCore::FileInfo::FileDiskSize(marshal_as_wstring_c_str(filePath));
 }
 
 System::String^
@@ -480,7 +488,7 @@ NativeMethods::GetFileSymlinkTarget(
 	System::String^		filePath
 	)
 {
-	return gcnew System::String(FileCore::FileInfo::SymlinkTarget(marshal_as_wchar(filePath)).c_str());
+	return Marshal::FromNativeWide(FileCore::FileInfo::SymlinkTarget(marshal_as_wstring_c_str(filePath)).c_str());
 }
 
 System::Boolean
@@ -488,7 +496,7 @@ NativeMethods::IsFileExtendedPath(
 	System::String^		filePath
 	)
 {
-	return FileCore::FileInfo::IsExtendedPath(marshal_as_wchar(filePath));
+	return FileCore::FileInfo::IsExtendedPath(marshal_as_wstring_c_str(filePath));
 }
 
 System::String^
@@ -496,7 +504,7 @@ NativeMethods::GetFileExtendedPath(
 	System::String^		filePath
 	)
 {
-	return gcnew System::String(FileCore::FileInfo::ExtendedPath(marshal_as_wchar(filePath)).c_str());
+	return Marshal::FromNativeWide(FileCore::FileInfo::ExtendedPath(marshal_as_wstring_c_str(filePath)).c_str());
 }
 
 System::String^
@@ -504,7 +512,7 @@ NativeMethods::GetFileUnextendedPath(
 	System::String^		filePath
 	)
 {
-	return gcnew System::String(FileCore::FileInfo::UnextendedPath(marshal_as_wchar(filePath)).c_str());
+	return Marshal::FromNativeWide(FileCore::FileInfo::UnextendedPath(marshal_as_wstring_c_str(filePath)).c_str());
 }
 
 UserContext^

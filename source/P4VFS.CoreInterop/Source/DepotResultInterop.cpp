@@ -26,7 +26,7 @@ DepotResultTag^ DepotResultTag::FromNative(const P4::DepotResultTag& src)
 		dst = gcnew DepotResultTag();
 		for (P4::FDepotResultTag::FieldsType::const_iterator i = src->m_Fields.begin(); i != src->m_Fields.end(); ++i)
 		{
-			dst->m_Fields->Add(gcnew System::String(i->first.c_str()), gcnew System::String(i->second.c_str()));
+			dst->m_Fields->Add(Marshal::FromNativeAnsi(i->first.c_str()), Marshal::FromNativeAnsi(i->second.c_str()));
 		}
 	}
 	return dst;
@@ -91,7 +91,7 @@ DepotResultText^ DepotResultText::FromNative(const P4::DepotResultText& src)
 	{
 		dst = gcnew DepotResultText();
 		dst->Channel = safe_cast<DepotResultChannel>(src->m_Channel);
-		dst->Value = gcnew System::String(src->m_Value.c_str());
+		dst->Value = Marshal::FromNativeAnsi(src->m_Value.c_str());
 		dst->Level = src->m_Level;
 	}
 	return dst;

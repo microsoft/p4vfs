@@ -535,7 +535,7 @@ namespace Microsoft.P4VFS.UnitTest
 		[TestMethod, Priority(10), TestRemote]
 		public void MakeResidentRaceTest()
 		{
-			foreach (ServiceSettingsScope settings in EnumerateCommonServicePopulateSettings())
+			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSyncSettings())
 			{
 				using (settings) {
 				using (DepotClient depotClient = new DepotClient()) {
@@ -1964,6 +1964,43 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(ReconcilePreview(clientRoot).Any() == false);
 				InteractiveOverridePasswd = null;
 			}
+		}
+
+		[TestMethod, Priority(34), TestRemote]
+		public void NonAsciiFilePathTest()
+		{
+			HashSet<string> expectedFileSet = new HashSet<string>()
+			{
+				"\\français\\LaCédille.txt",
+				"\\français\\Médecin.txt",
+				"\\français\\deuxième.txt",
+				"\\français\\forêt.txt",
+				"\\français\\coïncidence.txt",
+				"\\anglaise\\microsoft©.txt",
+				"\\anglaise\\xbox—one.txt",
+			};
+
+			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSyncSettings())
+			{
+				using (settings) {
+				using (DepotClient depotClient = new DepotClient()) {
+				DepotSyncType syncType = settings.SyncType.Value;
+
+				WorkspaceReset();
+				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
+				string clientRoot = GetClientRoot(depotClient);
+				string clientFolder = String.Format("{0}\\depot\\tools\\dev\\documentation", clientRoot);
+
+				DepotSyncResult syncResult = depotClient.Sync(String.Format("{0}\\...", clientFolder), null, syncType, DepotSyncMethod.Virtual);
+				Assert(syncResult?.Status == DepotSyncStatus.Success);
+				Assert(syncType.HasFlag(DepotSyncType.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() == 7);
+				string[] srcFiles = Directory.GetFiles(clientRoot, "*", SearchOption.AllDirectories);
+				Assert(srcFiles.Length == 7);
+				HashSet<string> srcFileSet = srcFiles.Select(path => Regex.Replace(path, String.Format(@"^{0}", Regex.Escape(clientFolder)), "", RegexOptions.IgnoreCase)).ToHashSet();
+				Assert(expectedFileSet.Except(srcFileSet).Any() == false);
+
+				Assert(ReconcilePreview(clientRoot).Any() == false);
+			}}}
 		}
 	}
 }

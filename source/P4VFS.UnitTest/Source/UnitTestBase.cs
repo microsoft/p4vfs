@@ -53,6 +53,21 @@ namespace Microsoft.P4VFS.UnitTest
 					}
 				}
 
+				int argIndex = 0;
+				for (; argIndex < args.Length; ++argIndex)
+				{
+					if (String.Compare(args[argIndex], "-r") == 0)
+					{
+						IsTestRemote = true;
+					}
+					else
+					{
+						break;
+					}
+				}
+
+				args = args.Skip(argIndex).ToArray();
+
 				Assembly unitTestAssembly = Assembly.GetExecutingAssembly();
 				List<TestMethodInfo> testMethods = new List<TestMethodInfo>();
 				foreach (Type unitTestClassType in unitTestAssembly.GetTypes().Where(t => t.IsClass && t.GetCustomAttribute<TestClassAttribute>(true) != null))
@@ -336,6 +351,12 @@ namespace Microsoft.P4VFS.UnitTest
 			return null;
 		}
 
+		public static bool IsTestRemote
+		{
+			get;
+			private set;
+		}
+
 		private static string _P4dExe;
 		public static string P4dExe
 		{
@@ -345,7 +366,7 @@ namespace Microsoft.P4VFS.UnitTest
 		private static string _P4Exe;
 		public static string P4Exe
 		{
-			get { return GetCachedFilePath(ref _P4Exe, () => String.Format("{0}\\bin\\p4.exe", GetExternalModuleFolder("P4API"))); }
+			get { return IsTestRemote ? "p4.exe" : GetCachedFilePath(ref _P4Exe, () => String.Format("{0}\\bin\\p4.exe", GetExternalModuleFolder("P4API"))); }
 		}
 
 		private static string _P4vfsExe;
@@ -401,13 +422,13 @@ namespace Microsoft.P4VFS.UnitTest
 			return Path.GetFullPath(String.Format(@"{0}\external", GetRepositoryRootFolder()));
 		}
 
-		public static string GetExternalModuleFolder(string moduleName)
+		public static string GetExternalModuleFolder(string moduleName, bool required = false)
 		{
 			string folderPath = Directory.GetDirectories(String.Format(@"{0}\{1}", GetExternalRootFolder(), moduleName))
 				.Where(path => Regex.IsMatch(Path.GetFileName(path), @"^\d+\.\d+"))
 				.OrderBy(path => Path.GetFileName(path))
 				.FirstOrDefault();
-			Assert(Directory.Exists(folderPath));
+			Assert(Directory.Exists(folderPath) || required == false);
 			return folderPath;
 		}
 

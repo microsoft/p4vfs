@@ -19,10 +19,10 @@ ServiceOperations::InstallLocalService(
 	)
 {
 	return P4VFS::ServiceOperations::InstallLocalService(
-		marshal_as_wchar(pathToServiceBinary), 
-		marshal_as_wchar(serviceName), 
-		marshal_as_wchar(friendlyServiceName),
-		marshal_as_wchar(serviceDescription)
+		marshal_as_wstring_c_str(pathToServiceBinary), 
+		marshal_as_wstring_c_str(serviceName), 
+		marshal_as_wstring_c_str(friendlyServiceName),
+		marshal_as_wstring_c_str(serviceDescription)
 		);
 }
 
@@ -33,7 +33,7 @@ ServiceOperations::UninstallLocalService(
 	)
 {
 	return P4VFS::ServiceOperations::UninstallLocalService(
-		marshal_as_wchar(serviceName),
+		marshal_as_wstring_c_str(serviceName),
 		safe_cast<P4VFS::ServiceOperations::UninstallFlags::Enum>(flags)
 		);
 }
@@ -44,7 +44,7 @@ ServiceOperations::StartLocalService(
 	)
 {
 	return P4VFS::ServiceOperations::StartLocalService(
-		marshal_as_wchar(serviceName)
+		marshal_as_wstring_c_str(serviceName)
 		);
 }
 
@@ -54,7 +54,7 @@ ServiceOperations::StopLocalService(
 	)
 {
 	return P4VFS::ServiceOperations::StopLocalService(
-		marshal_as_wchar(serviceName)
+		marshal_as_wstring_c_str(serviceName)
 		);
 }
 
@@ -64,7 +64,7 @@ ServiceOperations::GetLocalServiceState(
 	)
 {
 	return P4VFS::ServiceOperations::GetLocalServiceState(
-		marshal_as_wchar(serviceName)
+		marshal_as_wstring_c_str(serviceName)
 		);
 }
 

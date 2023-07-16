@@ -7,15 +7,15 @@ namespace Microsoft {
 namespace P4VFS {
 namespace CoreInterop {
 
-class marshal_as_wchar
+class marshal_as_wstring_c_str
 {
 public:
-	marshal_as_wchar(System::String^ s)
+	marshal_as_wstring_c_str(System::String^ s)
 	{
 		m_hGlobal = System::Runtime::InteropServices::Marshal::StringToHGlobalUni(s);
 	}
 
-	~marshal_as_wchar()
+	~marshal_as_wstring_c_str()
 	{
 		System::Runtime::InteropServices::Marshal::FreeHGlobal(m_hGlobal);
 	}
@@ -29,15 +29,15 @@ private:
 	mutable System::IntPtr m_hGlobal;
 };
 
-class marshal_as_char
+class marshal_as_astring_c_str
 {
 public:
-	marshal_as_char(System::String^ s)
+	marshal_as_astring_c_str(System::String^ s)
 	{
 		m_hGlobal = System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(s);
 	}
 
-	~marshal_as_char()
+	~marshal_as_astring_c_str()
 	{
 		System::Runtime::InteropServices::Marshal::FreeHGlobal(m_hGlobal);
 	}
@@ -66,7 +66,7 @@ public:
 	}
 
 private:
-	marshal_as_wchar m_String;
+	marshal_as_wstring_c_str m_String;
 };
 
 class marshal_as_astring
@@ -84,7 +84,7 @@ public:
 	}
 
 private:
-	marshal_as_char m_String;
+	marshal_as_astring_c_str m_String;
 };
 
 class marshal_as_user_context
@@ -212,10 +212,24 @@ marshal_as_filetime(System::DateTime^ dateTime)
 
 struct Marshal
 {
-	template <typename StringArrayType>
 	static array<System::String^>^ 
-	FromNative(
-		const StringArrayType& src
+	FromNativeAnsi(
+		const FileCore::AStringArray& src
+		);
+
+	static array<System::String^>^ 
+	FromNativeWide(
+		const FileCore::WStringArray& src
+		);
+
+	static System::String^
+	FromNativeAnsi(
+		const char* src
+		);
+
+	static System::String^
+	FromNativeWide(
+		const wchar_t* src
 		);
 
 	static FileCore::AStringArray

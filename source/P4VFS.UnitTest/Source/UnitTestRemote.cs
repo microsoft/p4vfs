@@ -59,7 +59,7 @@ namespace Microsoft.P4VFS.UnitTest
 			};
 
 			Assert(remoteTests.Count > 0);
-			string remoteTestsArgs = String.Join(" ", remoteTests.ToArray());
+			string remoteTestsArgs = String.Join(" ", new[]{"-r"}.Concat(remoteTests.Select(t => t.ToString())));
 			AssertLambda(() => CreateRemoteFirewallSettings(remoteConfig));
 			Assert(RemoteExecuteWait(String.Format("\"{0}\" {1} login", InstalledP4vfsExe, remoteConfig)) == 0);
 			Assert(RemoteExecuteWait(String.Format("\"{0}\" {1} test {2}", InstalledP4vfsExe, remoteConfig, remoteTestsArgs), admin:true) == 0);

@@ -1,5 +1,11 @@
 Microsoft P4VFS Release Notes
 
+Version [1.26.1.0]
+* Fixing support for file paths including non-ASCII single-byte (CP-1252) encoded characters.
+  Additional unit test for handling file paths containing common french accent marks.
+* Fixing execution of remote unit tests requiring an installed p4.exe instead of using
+  the included P4VFS external binaries
+
 Version [1.26.0.0]
 * Driver using officially allocated FSFilter HSM altitude of 189700
 * Refactor of perforce client login operations to support common forms of password and

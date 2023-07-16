@@ -21,7 +21,7 @@ P4::DepotClientPromptCallback marshal_as_prompt_callback(System::Func<System::St
 			{
 				try
 				{
-					System::String^ response = callback(gcnew System::String(message.c_str()));
+					System::String^ response = callback(Marshal::FromNativeAnsi(message.c_str()));
 					return marshal_as_astring(response);
 				} 
 				catch (...) 
@@ -232,7 +232,7 @@ DepotClient::SetEnv(
 	)
 {
 	ThrowIfObjectDisposed();
-	return m_Data->m_DepotClient->SetEnv(marshal_as_char(name), marshal_as_char(value));
+	return m_Data->m_DepotClient->SetEnv(marshal_as_astring_c_str(name), marshal_as_astring_c_str(value));
 }
 
 System::String^ 
@@ -241,7 +241,7 @@ DepotClient::GetEnv(
 	)
 {
 	ThrowIfObjectDisposed();
-	return gcnew System::String(m_Data->m_DepotClient->GetEnv(marshal_as_char(name)).c_str());
+	return Marshal::FromNativeAnsi(m_Data->m_DepotClient->GetEnv(marshal_as_astring_c_str(name)).c_str());
 }
 
 System::String^ 
@@ -249,7 +249,7 @@ DepotClient::GetErrorText(
 	)
 {
 	ThrowIfObjectDisposed();
-	return gcnew System::String(m_Data->m_DepotClient->GetErrorText().c_str());
+	return Marshal::FromNativeAnsi(m_Data->m_DepotClient->GetErrorText().c_str());
 }
 
 DepotResult^ 
@@ -305,7 +305,7 @@ DepotInfo::TimeToString(
 	System::Int64 time
 	)
 {
-	return gcnew System::String(P4::DepotInfo::TimeToString(time).c_str());
+	return Marshal::FromNativeAnsi(P4::DepotInfo::TimeToString(time).c_str());
 }
 
 bool 

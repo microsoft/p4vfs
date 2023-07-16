@@ -115,6 +115,18 @@ namespace FileCore {
 		return (T)((((size_t)Ptr + Alignment - 1) / Alignment) * Alignment);
 	}
 
+	// P4VFS string encoding
+	//
+	// AString 
+	//     Otherwise referred to as "Ansi" string, but is not strictly ANSI. We use the term to refer to the 
+	//     CP-1252 single-byte encoding. This should not be confused as a UTF-8 multi-byte encoding. Unless
+	//     otherwise specified, all char* strings in P4VFS are assumed to be AString.
+	//
+	// WString
+	//     Otherwise referred to as "Wide" string. This is UTF-16 multi-byte encoding. Windows operates natively 
+	//     in UTF-16 (or WCHAR) and majority of P4VFS api's require this encoding. Unless otherwise specified, all
+	//     wchar_t* strings in P4VFS are assumed to be WString.
+
 	typedef std::string AString;
 	typedef std::wstring WString;
 	typedef WString String;

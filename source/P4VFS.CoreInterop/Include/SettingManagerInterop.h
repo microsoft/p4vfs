@@ -4,6 +4,7 @@
 #include "SettingManager.h"
 #include "DepotSyncAction.h"
 #include "FileSystem.h"
+#include "CoreMarshal.h"
 
 namespace Microsoft {
 namespace P4VFS {
@@ -151,7 +152,7 @@ namespace SettingTraits
 			const wchar_t* defaultValue
 			) 
 		{ 
-			return n != nullptr ? n->ToString() : gcnew System::String(defaultValue); 
+			return n != nullptr ? n->ToString() : Marshal::FromNativeWide(defaultValue); 
 		}
 
 		static SettingNode^ 

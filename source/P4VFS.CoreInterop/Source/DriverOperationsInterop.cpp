@@ -15,7 +15,7 @@ DriverOperations::LoadFilter(
 	System::String^ driverName
 	)
 {
-	return P4VFS::DriverOperations::LoadFilter(marshal_as_wchar(driverName));
+	return P4VFS::DriverOperations::LoadFilter(marshal_as_wstring_c_str(driverName));
 }
 
 System::Int32
@@ -23,7 +23,7 @@ DriverOperations::UnloadFilter(
 	System::String^ driverName
 	)
 {
-	return P4VFS::DriverOperations::UnloadFilter(marshal_as_wchar(driverName));
+	return P4VFS::DriverOperations::UnloadFilter(marshal_as_wstring_c_str(driverName));
 }
 
 System::Boolean
@@ -31,7 +31,7 @@ DriverOperations::IsFilterLoaded(
 	System::String^ driverName
 	)
 {
-	return P4VFS::DriverOperations::IsFilterLoaded(marshal_as_wchar(driverName));
+	return P4VFS::DriverOperations::IsFilterLoaded(marshal_as_wstring_c_str(driverName));
 }
 
 System::Int32
@@ -45,7 +45,7 @@ DriverOperations::GetLoadedFilters(
 	HRESULT hr = P4VFS::DriverOperations::GetLoadedFilters(srcNames);
 	if (SUCCEEDED(hr))
 	{
-		driverNames = Marshal::FromNative(srcNames);
+		driverNames = Marshal::FromNativeWide(srcNames);
 	}
 	return hr;
 }

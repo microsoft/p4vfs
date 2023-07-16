@@ -819,6 +819,9 @@ namespace Microsoft.P4VFS.UnitTest
 				if (String.IsNullOrEmpty(fstat) == false)
 				{
 					Assert(historyFStatElements.TryGetValue(fstat, out XmlElement historyChangeElement), "Empty changelist in recipe document");
+					Assert(historyChangeElement != null, "History change already used");
+					historyFStatElements[fstat] = null;
+
 					Assert(historyChangeElement.ChildNodes.OfType<XmlElement>().Any(), "Empty changelist in history document");
 					foreach (XmlElement historyElement in historyChangeElement.ChildNodes.OfType<XmlElement>())
 					{
@@ -826,6 +829,8 @@ namespace Microsoft.P4VFS.UnitTest
 					}
 				}
 			}
+
+			Assert(historyFStatElements.Values.All(historyChangeElement => historyChangeElement == null), "Not all history changes used");
 		}
   	}
 }

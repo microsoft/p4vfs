@@ -33,7 +33,7 @@ TestFactoryInterop::Run(
 
 		factoryContext.m_ReconcilePreviewAny = [&gccontext](const FileCore::String& s) -> bool 
 		{ 
-			return gccontext->m_ReconcilePreviewAny(gcnew System::String(s.c_str())); 
+			return gccontext->m_ReconcilePreviewAny(Marshal::FromNativeWide(s.c_str())); 
 		};
 
 		factoryContext.m_WorkspaceReset = [&gccontext]() -> void 
@@ -43,7 +43,7 @@ TestFactoryInterop::Run(
 
 		factoryContext.m_IsPlaceholderFile = [&gccontext](const FileCore::String& s) -> bool 
 		{ 
-			return gccontext->m_IsPlaceholderFile(gcnew System::String(s.c_str())); 
+			return gccontext->m_IsPlaceholderFile(Marshal::FromNativeWide(s.c_str())); 
 		};
 
 		factoryContext.m_ServiceLastRequestTime = [&gccontext]() -> FILETIME 
@@ -64,7 +64,7 @@ TestFactoryInterop::Run(
 	}
 	catch (std::exception e)
 	{
-		throw gcnew System::Exception(gcnew System::String(e.what()));
+		throw gcnew System::Exception(Marshal::FromNativeAnsi(e.what()));
 	}
 	catch (...)
 	{

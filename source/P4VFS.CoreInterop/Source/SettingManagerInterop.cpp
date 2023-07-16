@@ -138,7 +138,7 @@ SettingNode::FromNative(
 	)
 {
 	SettingNode^ node = gcnew SettingNode();
-	node->m_Data = gcnew System::String(srcNode.GetString().c_str());
+	node->m_Data = Marshal::FromNativeWide(srcNode.GetString().c_str());
 	node->m_Nodes = gcnew array<SettingNode^>(int32_t(srcNode.Nodes().size()));
 	for (uint32_t i = 0; i < srcNode.Nodes().size(); ++i)
 	{
@@ -192,7 +192,7 @@ SettingManager::GetProperties(
 	SettingNodeMap^ nodeMap = gcnew SettingNodeMap();
 	for (FileCore::SettingManager::PropertyMap::const_iterator propertyIt = propertyMap.begin(); propertyIt != propertyMap.end(); ++propertyIt)
 	{
-		nodeMap[gcnew System::String(propertyIt->first.c_str())] = SettingNode::FromNative(propertyIt->second);
+		nodeMap[Marshal::FromNativeWide(propertyIt->first.c_str())] = SettingNode::FromNative(propertyIt->second);
 	}
 	return nodeMap;
 }
@@ -209,9 +209,12 @@ SettingManager::SetProperties(
 	if (nodeMap->Count > 0)
 	{
 		FileCore::SettingManager::PropertyMap propertyMap;
-		for each (System::Collections::Generic::KeyValuePair<System::String^, SettingNode^> keyValue in nodeMap)
+		for each (System::Collections::Generic::KeyValuePair<System::String^, SettingNode^>^ keyValue in nodeMap)
 		{
-			propertyMap[marshal_as_wstring(keyValue.Key)] = keyValue.Value ? keyValue.Value->ToNative() : FileCore::SettingNode();
+			if (keyValue != nullptr)
+			{
+				propertyMap[marshal_as_wstring(keyValue->Key)] = keyValue->Value ? keyValue->Value->ToNative() : FileCore::SettingNode();
+			}
 		}
 		FileCore::SettingManager::StaticInstance().SetProperties(propertyMap);
 	}

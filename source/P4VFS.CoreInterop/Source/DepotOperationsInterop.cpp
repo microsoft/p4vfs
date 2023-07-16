@@ -54,7 +54,7 @@ DepotOperations::GetHeadRevisionChangelist(
 	P4::DepotRevision revision = P4::DepotOperations::GetHeadRevisionChangelist(depotClient->ToNative());
 	if (revision.get() != nullptr)
 	{
-		return gcnew System::String(P4::FDepotRevision::ToString(revision).c_str());
+		return Marshal::FromNativeAnsi(P4::FDepotRevision::ToString(revision).c_str());
 	}
 	return nullptr;
 }
@@ -93,7 +93,7 @@ DepotOperations::CreateFileSpec(
 		P4::FDepotRevision::FromString(marshal_as_astring(revision)),
 		safe_cast<P4::DepotOperations::CreateFileSpecFlags::Enum>(flags));
 
-	return gcnew System::String(result.c_str());
+	return Marshal::FromNativeAnsi(result.c_str());
 }
 
 array<System::String^>^
@@ -110,7 +110,7 @@ DepotOperations::CreateFileSpecs(
 		P4::FDepotRevision::FromString(marshal_as_astring(revision)),
 		safe_cast<P4::DepotOperations::CreateFileSpecFlags::Enum>(flags));
 
-	return Marshal::FromNative(result);
+	return Marshal::FromNativeAnsi(result);
 }
 
 bool
@@ -136,7 +136,7 @@ DepotOperations::GetSymlinkTargetPath(
 		marshal_as_astring(filePath),
 		P4::FDepotRevision::FromString(marshal_as_astring(revision)));
 
-	return gcnew System::String(result.c_str());
+	return Marshal::FromNativeAnsi(result.c_str());
 }
 
 System::String^
@@ -151,7 +151,7 @@ DepotOperations::GetSymlinkTargetDepotFile(
 		marshal_as_astring(filePath),
 		P4::FDepotRevision::FromString(marshal_as_astring(revision)));
 
-	return gcnew System::String(result.c_str());
+	return Marshal::FromNativeAnsi(result.c_str());
 }
 
 System::String^
@@ -162,7 +162,7 @@ DepotOperations::NormalizePath(
 	P4::DepotString result = P4::DepotOperations::NormalizePath(
 		marshal_as_astring(path));
 		
-	return gcnew System::String(result.c_str());
+	return Marshal::FromNativeAnsi(result.c_str());
 }
 
 System::String^ 
@@ -173,7 +173,7 @@ DepotOperations::ResolveDepotServerName(
 	P4::DepotString targetName;
 	if (P4::DepotOperations::ResolveDepotServerName(marshal_as_astring(sourceName), targetName))
 	{
-		return gcnew System::String(targetName.c_str());
+		return Marshal::FromNativeAnsi(targetName.c_str());
 	}
 	return sourceName;
 }
@@ -189,7 +189,7 @@ DepotOperations::GetClientOwnerUserName(
 		marshal_as_astring(clientName),
 		marshal_as_astring(portName));
 
-	return gcnew System::String(userName.c_str());
+	return Marshal::FromNativeAnsi(userName.c_str());
 }
 
 }}}

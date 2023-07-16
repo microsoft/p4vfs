@@ -48,11 +48,11 @@ DepotSyncActionInfo^ DepotSyncActionInfo::FromNative(const P4::DepotSyncActionIn
 	if (src.get() != nullptr)
 	{
 		dst = gcnew DepotSyncActionInfo();
-		dst->DepotFile = gcnew System::String(src->m_DepotFile.c_str());
-		dst->ClientFile = gcnew System::String(src->m_ClientFile.c_str());
-		dst->Revision = gcnew System::String(P4::FDepotRevision::ToString(src->m_Revision).c_str());
+		dst->DepotFile = Marshal::FromNativeAnsi(src->m_DepotFile.c_str());
+		dst->ClientFile = Marshal::FromNativeAnsi(src->m_ClientFile.c_str());
+		dst->Revision = Marshal::FromNativeAnsi(P4::FDepotRevision::ToString(src->m_Revision).c_str());
 		dst->SyncActionType = safe_cast<DepotSyncActionType>(src->m_SyncActionType);
-		dst->Message = gcnew System::String(src->m_Message.c_str());
+		dst->Message = Marshal::FromNativeAnsi(src->m_Message.c_str());
 	}
 	return dst;
 }

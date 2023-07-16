@@ -1108,15 +1108,15 @@ AString StringInfo::ToAnsi(const wchar_t* str)
 		return AString();
 
 	char fixedBuffer[256];
-	int32_t charCount = WideCharToMultiByte(CP_UTF8, 0, str, -1, fixedBuffer, _countof(fixedBuffer), NULL, NULL);
+	int32_t charCount = WideCharToMultiByte(CP_ACP, 0, str, -1, fixedBuffer, _countof(fixedBuffer), NULL, NULL);
 	if (charCount > 0)
 		return AString(fixedBuffer);
 
-	charCount = WideCharToMultiByte(CP_UTF8, 0, str, -1, NULL, 0, NULL, NULL);
+	charCount = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
 	if (charCount > 0)
 	{
 		std::unique_ptr<char[]> bufferPtr = std::make_unique<char[]>(size_t(charCount));
-		if (bufferPtr.get() && WideCharToMultiByte(CP_UTF8, 0, str, -1, bufferPtr.get(), charCount, NULL, NULL) > 0)
+		if (bufferPtr.get() && WideCharToMultiByte(CP_ACP, 0, str, -1, bufferPtr.get(), charCount, NULL, NULL) > 0)
 			return AString(bufferPtr.get());
 	}
 
@@ -1141,15 +1141,15 @@ WString StringInfo::ToWide(const char* str)
 		return WString();
 
 	wchar_t fixedBuffer[256];
-	int32_t charCount = MultiByteToWideChar(CP_UTF8, 0, str, -1, fixedBuffer, _countof(fixedBuffer));
+	int32_t charCount = MultiByteToWideChar(CP_ACP, 0, str, -1, fixedBuffer, _countof(fixedBuffer));
 	if (charCount > 0)
 		return WString(fixedBuffer);
 
-	charCount = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
+	charCount = MultiByteToWideChar(CP_ACP, 0, str, -1, NULL, 0);
 	if (charCount > 0)
 	{
 		std::unique_ptr<wchar_t[]> bufferPtr = std::make_unique<wchar_t[]>(size_t(charCount));
-		if (bufferPtr.get() && MultiByteToWideChar(CP_UTF8, 0, str, -1, bufferPtr.get(), charCount) > 0)
+		if (bufferPtr.get() && MultiByteToWideChar(CP_ACP, 0, str, -1, bufferPtr.get(), charCount) > 0)
 			return WString(bufferPtr.get());
 	}
 

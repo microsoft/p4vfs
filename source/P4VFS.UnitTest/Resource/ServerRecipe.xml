@@ -1,4 +1,4 @@
-ï»¿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="Windows-1252" ?>
 <!--
   ============================================================================================
   This file is authored manually. It contains the change specifications to describe filespecs
@@ -81,4 +81,13 @@
     <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.System.Profile.SystemManufacturers.SystemManufacturersContract/3.0.0.0/zh-hans/Windows.System.Profile.SystemManufacturers.SystemManufacturersContract.xml" size="4167" type="text" rev="1" />
     <file path="//depot/tools/dev/external/packages/thirdparty/microsoft/Windows Kits/10/References/10.0.17134.0/Windows.System.Profile.SystemManufacturers.SystemManufacturersContract/3.0.0.0/zh-hant/Windows.System.Profile.SystemManufacturers.SystemManufacturersContract.xml" size="4165" type="text" rev="1" />
   </change>
+  <change fstat="//depot/tools/dev/documentation/...@7102178">
+    <file path="//depot/tools/dev/documentation/français/LaCédille.txt" size="175" type="text" rev="1" />
+    <file path="//depot/tools/dev/documentation/français/Médecin.txt" size="135" type="text" rev="1" />
+    <file path="//depot/tools/dev/documentation/français/deuxième.txt" size="80" type="text" rev="1" />
+    <file path="//depot/tools/dev/documentation/français/forêt.txt" size="20" type="text" rev="1" />
+    <file path="//depot/tools/dev/documentation/français/coïncidence.txt" size="35" type="text" rev="1" />
+    <file path="//depot/tools/dev/documentation/anglaise/microsoft©.txt" size="34" type="text" rev="1" />
+    <file path="//depot/tools/dev/documentation/anglaise/xbox—one.txt" size="33" type="text" rev="1" />
+  </change>  
 </server>

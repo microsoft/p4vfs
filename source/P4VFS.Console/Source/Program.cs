@@ -882,7 +882,7 @@ Available commands:
 			ushort minor = 0;
 			ushort build = 0;
 			ushort revision = 0;
-			result &= PredicateLog(() => CoreInterop.NativeMethods.GetDriverVersion(ref major, ref minor, ref build, ref revision), "GetDriverVersion");
+			result &= PredicateLog(() => CoreInterop.NativeMethods.GetDriverVersion(out major, out minor, out build, out revision), "GetDriverVersion");
 			result &= PredicateLog(() => CoreInterop.NativeConstants.VersionMajor == major, String.Format("Driver major version {0} expected {1}", major, CoreInterop.NativeConstants.VersionMajor));
 			return result;
 		}
@@ -1115,8 +1115,7 @@ Available commands:
 				{
 					if (String.Compare(args[argIndex], "-dc") == 0)
 					{
-						bool connected = false;
-						if (CoreInterop.NativeMethods.GetDriverIsConnected(ref connected) == false)
+						if (CoreInterop.NativeMethods.GetDriverIsConnected(out bool connected) == false)
 						{
 							VirtualFileSystemLog.Error("Failed to GetDriverIsConnected");
 							return false;

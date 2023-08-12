@@ -46,11 +46,7 @@ namespace Microsoft.P4VFS.UnitTest
 			AssertRetry(() => VirtualFileSystem.IsServiceReady(), message:"IsServiceReady");
 			AssertRetry(() => VirtualFileSystem.IsVirtualFileSystemAvailable(), message:"IsVirtualFileSystemAvailable");
 
-			ushort major = 0; 
-			ushort minor = 0; 
-			ushort build = 0;
-			ushort revision = 0;
-			Assert(CoreInterop.NativeMethods.GetDriverVersion(ref major, ref minor, ref build, ref revision));
+			Assert(CoreInterop.NativeMethods.GetDriverVersion(out ushort major, out ushort minor, out ushort build, out ushort revision));
 			Assert(CoreInterop.NativeConstants.VersionMajor == major, "VersionMajor mismatch");
 			Assert(CoreInterop.NativeConstants.VersionMinor == minor, "VersionMinor mismatch");
 			Assert(CoreInterop.NativeConstants.VersionBuild == build || IsTestingDevConfig() == false, "VersionBuild mismatch");

@@ -50,8 +50,7 @@ namespace Microsoft.P4VFS.Extensions
 
 		public static bool IsDriverReady()
 		{
-			bool isConnected = false;
-			if (NativeMethods.GetDriverIsConnected(ref isConnected) == false || isConnected == false)
+			if (NativeMethods.GetDriverIsConnected(out bool isConnected) == false || isConnected == false)
 			{
 				return false;
 			}
@@ -266,11 +265,7 @@ namespace Microsoft.P4VFS.Extensions
 
 		public static VersionDescriptor GetDriverVersion()
 		{
-			ushort major = 0;
-			ushort minor = 0;
-			ushort build = 0;
-			ushort revision = 0;
-			NativeMethods.GetDriverVersion(ref major, ref minor, ref build, ref revision);
+			NativeMethods.GetDriverVersion(out ushort major, out ushort minor, out ushort build, out ushort revision);
 			return new VersionDescriptor(major, minor, build, revision);
 		}
 

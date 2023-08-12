@@ -142,53 +142,53 @@ public:
 
 	static System::Int32 
 	InstallReparsePointOnFile(
-		System::UInt16		majorVersion,
-		System::UInt16		minorVersion,
-		System::UInt16		buildVersion,
-		System::String^		filePath,
-		System::Byte		residencyPolicy,
-		System::UInt32		fileRevision,
-		System::Int64		fileSize,
-		System::UInt32		fileAttributes,
-		System::String^		depotPath,
-		System::String^		depotServer,
-		System::String^		depotClient,
-		System::String^		depotUser
+		System::UInt16 majorVersion,
+		System::UInt16 minorVersion,
+		System::UInt16 buildVersion,
+		System::String^ filePath,
+		System::Byte residencyPolicy,
+		System::UInt32 fileRevision,
+		System::Int64 fileSize,
+		System::UInt32 fileAttributes,
+		System::String^ depotPath,
+		System::String^ depotServer,
+		System::String^ depotClient,
+		System::String^ depotUser
 		);
 
 	static System::Int32
 	CreateSymlinkFile(
-		System::String^		symlinkFilePath,
-		System::String^		targetFilePath
+		System::String^ symlinkFilePath,
+		System::String^ targetFilePath
 	);
 
 	static System::Int32 
 	RemoveReparsePoint(
-		System::String^		filePath
+		System::String^ filePath
 		);
 
 	static System::Int32 
 	PopulateFile(
-		System::String^		dstFile,
-		System::String^		srcFile,
-		FilePopulateMethod	populateMethod
+		System::String^ dstFile,
+		System::String^ srcFile,
+		FilePopulateMethod populateMethod
 		);
 
 	static System::Int32 
 	HydrateFile(
-		System::String^		filePath
+		System::String^ filePath
 		);
 
 	static System::Boolean
 	ImpersonateFileAppend(
-		System::String^		filePath,
-		System::String^		text,
-		UserContext^		context
+		System::String^ filePath,
+		System::String^ text,
+		UserContext^ context
 		);
 
 	static System::Boolean
 	ImpersonateLoggedOnUser(
-		UserContext^	context
+		UserContext^ context
 		);
 
 	static System::Boolean
@@ -197,18 +197,18 @@ public:
 
 	static System::String^
 	GetImpersonatedUserName(
-		UserContext^	context
+		UserContext^ context
 		);
 
 	static System::String^
 	GetImpersonatedEnvironmentStrings(
-		System::String^	srcText,
-		UserContext^	context
+		System::String^ srcText,
+		UserContext^ context
 		);
 
 	static System::IntPtr^
 	GetLoggedOnUserToken(
-		UserContext^	context
+		UserContext^ context
 		);
 
 	static System::IntPtr^
@@ -217,112 +217,112 @@ public:
 
 	static System::Boolean
 	CreateProcessImpersonated(
-		System::String^					commandLine,
-		System::String^					currentDirectory,
-		System::Boolean					waitForExit,
-		System::Text::StringBuilder^	stdOutput,
-		UserContext^					context
+		System::String^ commandLine,
+		System::String^ currentDirectory,
+		System::Boolean waitForExit,
+		System::Text::StringBuilder^ stdOutput,
+		UserContext^ context
 		);
 
 	static System::Boolean
 	SetDriverTraceEnabled(
-		System::UInt32		channels
+		System::UInt32 channels
 		);
 
 	static System::Boolean
 	SetDriverFlag(
-		System::String^		flagName,
-		System::UInt32		flagValue
+		System::String^ flagName,
+		System::UInt32 flagValue
 		);
 
 	static System::Boolean
 	GetDriverIsConnected(
-		System::Boolean%	connected
+		[System::Runtime::InteropServices::Out] System::Boolean% connected
 		);
 
 	static System::Boolean
 	GetDriverVersion(
-		System::UInt16%		major,
-		System::UInt16%		minor,
-		System::UInt16%		build,
-		System::UInt16%		revision
+		[System::Runtime::InteropServices::Out] System::UInt16% major,
+		[System::Runtime::InteropServices::Out] System::UInt16% minor,
+		[System::Runtime::InteropServices::Out] System::UInt16% build,
+		[System::Runtime::InteropServices::Out] System::UInt16% revision
 		);
 
 	static System::Boolean
 	SetupInstallHinfSection(
-		System::String^		sectionName,
-		System::String^		filePath
+		System::String^ sectionName,
+		System::String^ filePath
 		);
 
 	static System::Boolean
 	IsFileExists(
-		System::String^		filePath
+		System::String^ filePath
 		);
 
 	static System::Boolean
 	IsFileRegular(
-		System::String^		filePath
+		System::String^ filePath
 		);
 
 	static System::Boolean
 	IsFileSymlink(
-		System::String^		filePath
+		System::String^ filePath
 		);
 
 	static System::Boolean
 	IsFileDirectory(
-		System::String^		filePath
+		System::String^ filePath
 		);
 
 	static System::Boolean
 	IsFileReadOnly(
-		System::String^		filePath
+		System::String^ filePath
 		);
 
 	static System::Boolean
 	SetFileReadOnly(
-		System::String^		filePath,
-		System::Boolean		readOnly
+		System::String^ filePath,
+		System::Boolean readOnly
 		);
 
 	static System::IO::FileAttributes
 	GetFileAttributes(
-		System::String^		filePath
+		System::String^ filePath
 		);
 
 	static System::Int64
 	GetFileSize(
-		System::String^		filePath
+		System::String^ filePath
 		);
 
 	static System::Int64
 	GetFileUncompressedSize(
-		System::String^		filePath
+		System::String^ filePath
 		);
 
 	static System::Int64
 	GetFileDiskSize(
-		System::String^		filePath
+		System::String^ filePath
 		);
 
 	static System::String^
 	GetFileSymlinkTarget(
-		System::String^		filePath
+		System::String^ filePath
 		);
 
 	static System::Boolean
 	IsFileExtendedPath(
-		System::String^		filePath
+		System::String^ filePath
 		);
 
 	static System::String^
 	GetFileExtendedPath(
-		System::String^		filePath
+		System::String^ filePath
 		);
 	
 	static System::String^
 	GetFileUnextendedPath(
-		System::String^		filePath
+		System::String^ filePath
 		);
 
 	static UserContext^

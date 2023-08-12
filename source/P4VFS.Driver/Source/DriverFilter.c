@@ -931,7 +931,8 @@ P4vfsPostCreate(
 	// Determine if we our hitting our reparse point and should hydrate
 	if (pData->IoStatus.Status == STATUS_REPARSE &&
 		pData->TagData->FileTag == P4VFS_REPARSE_TAG &&
-		FlagOn(pData->Iopb->Parameters.Create.Options, FILE_OPEN_REPARSE_POINT) == 0)
+		FlagOn(pData->Iopb->Parameters.Create.Options, FILE_OPEN_REPARSE_POINT) == 0 &&
+		P4vfsIsReparseGuid(&pData->TagData->GenericGUIDReparseBuffer.TagGuid))
 	{
 		// Since this is our reparse determine if all the 
 		// other conditions are met to make the file resident

@@ -1,5 +1,11 @@
 Microsoft P4VFS Release Notes
 
+Version [1.27.0.0]
+* Updating to P4API 2023.1 and OpenSSL 1.1.1v. UnitTest now uses p4d.exe/p4.exe 2023.1
+* P4VFS.External checksum verification fix to handle unexpected whitespace around SHA256
+* Driver IRP_MJ_CREATE PostCreate callback fix for properly ignoring reparse on non-P4VFS 
+  files with FileTag matching our P4VFS_REPARSE_TAG.
+
 Version [1.26.1.0]
 * Fixing support for file paths including non-ASCII single-byte (CP-1252) encoded characters.
   Additional unit test for handling file paths containing common french accent marks.

@@ -19,7 +19,7 @@ DepotOperations::Sync(
 	DepotClient& depotClient, 
 	const DepotStringArray& files, 
 	const DepotRevision revision, 
-	DepotSyncType::Enum syncType,
+	DepotSyncFlags::Enum syncFlags,
 	DepotSyncMethod::Enum syncMethod,
 	DepotFlushType::Enum flushType,
 	const DepotString& syncResident
@@ -28,7 +28,7 @@ DepotOperations::Sync(
 	FDepotSyncOptions syncOptions;
 	syncOptions.m_Files = files;
 	syncOptions.m_Revision = revision;
-	syncOptions.m_SyncType = syncType;
+	syncOptions.m_SyncFlags = syncFlags;
 	syncOptions.m_SyncMethod = syncMethod;
 	syncOptions.m_FlushType = flushType;
 	syncOptions.m_SyncResident = syncResident;
@@ -42,7 +42,7 @@ DepotOperations::Sync(
 	const FDepotSyncOptions& syncOptions
 	)
 {
-	if (syncOptions.m_SyncMethod == DepotSyncMethod::Regular || syncOptions.m_SyncType & (DepotSyncType::Preview|DepotSyncType::Flush))
+	if (syncOptions.m_SyncMethod == DepotSyncMethod::Regular || syncOptions.m_SyncFlags & (DepotSyncFlags::Preview|DepotSyncFlags::Flush))
 	{
 		return SyncRegular(depotClient, syncOptions);
 	}
@@ -71,25 +71,25 @@ DepotOperations::SyncVirtual(
 		}
 	}
 
-	depotClient->Log(LogChannel::Warning, StringInfo::Join(DepotStringArray{ "Virtual Sync:", ToString(syncOptions.m_Files), DepotSyncType::ToString(syncOptions.m_SyncType), DepotFlushType::ToString(syncOptions.m_FlushType), revision->ToString() }, " "));
+	depotClient->Log(LogChannel::Warning, StringInfo::Join(DepotStringArray{ "Virtual Sync:", ToString(syncOptions.m_Files), DepotSyncFlags::ToString(syncOptions.m_SyncFlags), DepotFlushType::ToString(syncOptions.m_FlushType), revision->ToString() }, " "));
 	depotClient->Log(LogChannel::Info, StringInfo::Format("Started at [%s] version [%s]", DepotDateTime::Now().ToDisplayString().c_str(), CSTR_WTOA(FileSystem::GetModuleVersion())));
 	if (depotClient->IsFaulted())
 	{
 		return std::make_shared<FDepotSyncResult>(DepotSyncStatus::Error);
 	}
 
-	DepotSyncType::Enum primarySyncType = syncOptions.m_SyncType & ~DepotSyncType::IgnoreOutput;
+	DepotSyncFlags::Enum primarySyncFlags = syncOptions.m_SyncFlags & ~DepotSyncFlags::IgnoreOutput;
 	if (syncOptions.m_FlushType == DepotFlushType::Single)
 	{
-		primarySyncType |= DepotSyncType::Flush;
+		primarySyncFlags |= DepotSyncFlags::Flush;
 	}
 	else
 	{
-		primarySyncType |= DepotSyncType::Preview;
+		primarySyncFlags |= DepotSyncFlags::Preview;
 	}
 
 	// Retrieve a list of files to be added, deleted, and updated
-	DepotSyncActionInfoArray modifications = SyncCommand(depotClient, syncOptions.m_Files, revision, primarySyncType | DepotSyncType::Quiet);
+	DepotSyncActionInfoArray modifications = SyncCommand(depotClient, syncOptions.m_Files, revision, primarySyncFlags | DepotSyncFlags::Quiet);
 	if (modifications.get() == nullptr)
 	{
 		return std::make_shared<FDepotSyncResult>(DepotSyncStatus::Error);
@@ -99,13 +99,13 @@ DepotOperations::SyncVirtual(
 	ThreadPool::ForEach::Execute(
 		modifications->data(), 
 		modifications->size(), 
-		[&syncOptions, primarySyncType](DepotSyncActionInfo& modification) -> void
+		[&syncOptions, primarySyncFlags](DepotSyncActionInfo& modification) -> void
 		{
-			modification->m_SyncType = syncOptions.m_SyncType;
+			modification->m_SyncFlags = syncOptions.m_SyncFlags;
 			modification->m_FlushType = syncOptions.m_FlushType;
 			modification->m_IsAlwaysResident = IsFileTypeAlwaysResident(syncOptions.m_SyncResident, modification->m_DepotFile);
 
-			if (primarySyncType & DepotSyncType::Writeable)
+			if (primarySyncFlags & DepotSyncFlags::Writeable)
 			{
 				modification->m_SyncActionFlags |= DepotSyncActionFlags::ClientClobber;
 			}
@@ -140,7 +140,7 @@ DepotOperations::SyncVirtual(
 	}
 
 	DepotSyncActionInfoArray resultModifications;
-	if ((syncOptions.m_SyncType & DepotSyncType::IgnoreOutput) == 0)
+	if ((syncOptions.m_SyncFlags & DepotSyncFlags::IgnoreOutput) == 0)
 	{
 		resultModifications = std::make_shared<DepotSyncActionInfoArray::element_type>();
 	}
@@ -215,7 +215,7 @@ DepotOperations::SyncVirtual(
 		}
 		if (residentFileSpecs.size())
 		{
-			SyncCommand(depotClient, residentFileSpecs, revision, DepotSyncType::Force | DepotSyncType::IgnoreOutput);
+			SyncCommand(depotClient, residentFileSpecs, revision, DepotSyncFlags::Force | DepotSyncFlags::IgnoreOutput);
 		}
 	}
 
@@ -354,7 +354,7 @@ DepotOperations::ApplyVirtualModification(
 					modification->m_DiskFileSize = modification->m_FileSize;
 					if (modification->IsPreview() == false)
 					{
-						SyncCommand(depotClient, DepotStringArray{ modification->m_DepotFile }, modification->m_Revision, DepotSyncType::Force | DepotSyncType::IgnoreOutput | DepotSyncType::Quiet);
+						SyncCommand(depotClient, DepotStringArray{ modification->m_DepotFile }, modification->m_Revision, DepotSyncFlags::Force | DepotSyncFlags::IgnoreOutput | DepotSyncFlags::Quiet);
 					}
 				}
 				else
@@ -368,7 +368,7 @@ DepotOperations::ApplyVirtualModification(
 							modification->m_PlaceholderTime = timer.TotalMilliseconds();
 							timer.Restart();
 
-							SyncCommand(depotClient, DepotStringArray{ modification->m_DepotFile }, modification->m_Revision, DepotSyncType::Flush | DepotSyncType::IgnoreOutput | DepotSyncType::Quiet);
+							SyncCommand(depotClient, DepotStringArray{ modification->m_DepotFile }, modification->m_Revision, DepotSyncFlags::Flush | DepotSyncFlags::IgnoreOutput | DepotSyncFlags::Quiet);
 							modification->m_FlushTime = timer.TotalMilliseconds();
 						}
 						else
@@ -400,7 +400,7 @@ DepotOperations::ApplyVirtualModification(
 						modification->m_PlaceholderTime = timer.TotalMilliseconds();
 						timer.Restart();
 
-						SyncCommand(depotClient, DepotStringArray{ modification->m_DepotFile }, FDepotRevision::New<FDepotRevisionNone>(), DepotSyncType::Flush | DepotSyncType::IgnoreOutput | DepotSyncType::Quiet);
+						SyncCommand(depotClient, DepotStringArray{ modification->m_DepotFile }, FDepotRevision::New<FDepotRevisionNone>(), DepotSyncFlags::Flush | DepotSyncFlags::IgnoreOutput | DepotSyncFlags::Quiet);
 						modification->m_FlushTime = timer.TotalMilliseconds();
 					}
 					else
@@ -418,7 +418,7 @@ DepotOperations::ApplyVirtualModification(
 		case DepotSyncActionType::OpenedNotChanged:
 		{
 			DepotStopwatch timer(DepotStopwatch::Init::Start);
-			SyncCommand(depotClient, DepotStringArray{ modification->m_DepotFile }, modification->m_Revision, DepotSyncType::Flush | DepotSyncType::IgnoreOutput | DepotSyncType::Quiet);
+			SyncCommand(depotClient, DepotStringArray{ modification->m_DepotFile }, modification->m_Revision, DepotSyncFlags::Flush | DepotSyncFlags::IgnoreOutput | DepotSyncFlags::Quiet);
 			modification->m_FlushTime = timer.TotalMilliseconds();
 			LogDevice::WriteLine(log, LogChannel::Warning, StringInfo::Format("%s - is opened and not being changed", modification->ToFileSpecString().c_str()));
 			break;
@@ -568,7 +568,7 @@ DepotOperations::Hydrate(
 			modification->m_DepotFile = depotFile;
 			modification->m_ClientFile = clientFile;
 			modification->m_Revision = FDepotRevision::New<FDepotRevisionNumber>(haveRev);
-			modification->m_SyncType = syncOptions.m_SyncType;
+			modification->m_SyncFlags = syncOptions.m_SyncFlags;
 			modification->m_IsAlwaysResident = isAlwaysResident;
 
 			LogDevice::WriteLine(log, LogChannel::Info, StringInfo::Format("%s#%d - request hydrate as %s", depotFile.c_str(), haveRev, clientFile.c_str()));
@@ -765,7 +765,7 @@ DepotOperations::SyncRegular(
 	}
 
 	// Perform a regular (non-virtual) sync
-	DepotSyncActionInfoArray modifications = SyncCommand(depotClient, syncOptions.m_Files, revision, syncOptions.m_SyncType, log);
+	DepotSyncActionInfoArray modifications = SyncCommand(depotClient, syncOptions.m_Files, revision, syncOptions.m_SyncFlags, log);
 
 	// Derive a DepotSyncStatus from the log output for this operation
 	DepotSyncStatus::Enum status = DepotSyncStatus::FromLog(memoryLog);
@@ -782,7 +782,7 @@ DepotOperations::SyncCommand(
 	DepotClient& depotClient, 
 	const DepotStringArray& files, 
 	DepotRevision revision,
-	DepotSyncType::Enum syncType,
+	DepotSyncFlags::Enum syncFlags,
 	FileCore::LogDevice* log
 	)
 {
@@ -791,7 +791,7 @@ DepotOperations::SyncCommand(
 		return nullptr;
 	}
 
-	if (log == nullptr && (syncType & DepotSyncType::Quiet) == 0)
+	if (log == nullptr && (syncFlags & DepotSyncFlags::Quiet) == 0)
 	{
 		log = depotClient->Log();
 	}
@@ -800,11 +800,11 @@ DepotOperations::SyncCommand(
 	{
 		if (log != nullptr)
 		{
-			log->Error(StringInfo::Format("DepotOperations sync failed for ClientName='%s' files=%s revision='%s' syncType='%s'. %s", 
+			log->Error(StringInfo::Format("DepotOperations sync failed for ClientName='%s' files=%s revision='%s' syncFlags='%s'. %s", 
 				depotClient->Config().m_Client.c_str(), 
 				ToString(files).c_str(), 
 				FDepotRevision::ToString(revision).c_str(), 
-				DepotSyncType::ToString(syncType).c_str(), 
+				DepotSyncFlags::ToString(syncFlags).c_str(), 
 				context.c_str()));
 		}
 	};
@@ -830,9 +830,9 @@ DepotOperations::SyncCommand(
 	HashSet<DepotString> writeableHaveDepotFiles;
 	HashSet<DepotString> symlinkDepotFiles;
 	HashSet<DepotString> diffDepotFiles;
-	if ((syncType & (DepotSyncType::Preview | DepotSyncType::Flush)) != 0 && (syncType & DepotSyncType::IgnoreOutput) == 0)
+	if ((syncFlags & (DepotSyncFlags::Preview | DepotSyncFlags::Flush)) != 0 && (syncFlags & DepotSyncFlags::IgnoreOutput) == 0)
 	{
-		DepotRevision haveRevision = (syncType & DepotSyncType::Force) ? FDepotRevision::New<FDepotRevisionNone>() : FDepotRevision::New<FDepotRevisionHave>();
+		DepotRevision haveRevision = (syncFlags & DepotSyncFlags::Force) ? FDepotRevision::New<FDepotRevisionNone>() : FDepotRevision::New<FDepotRevisionHave>();
 		for (const DepotString& fileSpec : fileSpecs)
 		{
 			const DepotString haveFileSpec = CreateFileSpec(fileSpec, haveRevision, CreateFileSpecFlags::OverrideRevison);
@@ -880,16 +880,16 @@ DepotOperations::SyncCommand(
 	DepotCommand syncCmd;
 	syncCmd.m_Name = "sync";
 
-	if (syncType & DepotSyncType::Force)
+	if (syncFlags & DepotSyncFlags::Force)
 		syncCmd.m_Args.push_back("-f");
-	if (syncType & DepotSyncType::Flush)
+	if (syncFlags & DepotSyncFlags::Flush)
 		syncCmd.m_Args.push_back("-k");
-	if (syncType & DepotSyncType::Preview)
+	if (syncFlags & DepotSyncFlags::Preview)
 		syncCmd.m_Args.push_back("-n");
 
 	Algo::Append(syncCmd.m_Args, fileSpecs);
 
-	bool useTaggedOutput = (syncType & DepotSyncType::Quiet) != 0;
+	bool useTaggedOutput = (syncFlags & DepotSyncFlags::Quiet) != 0;
 	if (useTaggedOutput == false)
 	{
 		syncCmd.m_Flags |= DepotCommand::Flags::UnTagged;
@@ -901,7 +901,7 @@ DepotOperations::SyncCommand(
 	depotClient->SetMessageCallback(nullptr);
 	depotClient->SetErrorCallback(nullptr);
 
-	if (syncType & DepotSyncType::IgnoreOutput)
+	if (syncFlags & DepotSyncFlags::IgnoreOutput)
 	{
 		return nullptr;
 	}
@@ -972,7 +972,7 @@ DepotOperations::SyncCommand(
 		}
 	}
 
-	if (syncType & (DepotSyncType::Preview | DepotSyncType::Flush))
+	if (syncFlags & (DepotSyncFlags::Preview | DepotSyncFlags::Flush))
 	{
 		DepotStringArray identicalHaveDepotFiles;
 		for (const DepotSyncActionInfo& modification : *modifications)
@@ -1011,7 +1011,7 @@ DepotOperations::SyncCommand(
 
 	for (const DepotSyncActionInfo& modification : *modifications)
 	{
-		modification->m_SyncType = syncType;
+		modification->m_SyncFlags = syncFlags;
 		modification->m_SyncActionFlags = commonSyncActionFlags;
 
 		if (Algo::Contains(writeableHeadDepotFiles, modification->m_DepotFile))

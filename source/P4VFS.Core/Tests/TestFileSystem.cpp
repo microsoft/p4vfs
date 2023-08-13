@@ -162,7 +162,7 @@ void TestFileAlternateStream(const TestContext& context)
 
 	auto AssertForceSyncFile = [&]() -> void
 	{
-		DepotSyncResult syncResult = DepotOperations::Sync(client, DepotStringArray{ depotFile }, nullptr, DepotSyncType::Force);
+		DepotSyncResult syncResult = DepotOperations::Sync(client, DepotStringArray{ depotFile }, nullptr, DepotSyncFlags::Force);
 		Assert(syncResult.get() && syncResult->m_Status == DepotSyncStatus::Success);
 		Assert(FileInfo::IsRegular(clientFile.c_str()));
 		Assert(context.m_IsPlaceholderFile(clientFile));

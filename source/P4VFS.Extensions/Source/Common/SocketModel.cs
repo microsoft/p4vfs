@@ -180,7 +180,7 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 			using (var impersonate = new Impersonation.ImpersonateLoggedOnUserScope(request.SyncOptions.Context))
 			{
 				LogDevice log = new SocketModelLogDevice(stream, _Cancellation.Token);
-				if (request.SyncOptions.SyncType.HasFlag(DepotSyncType.Quiet) == false)
+				if (request.SyncOptions.SyncFlags.HasFlag(DepotSyncFlags.Quiet) == false)
 				{
 					LogDeviceAggregate aggregateLog = new LogDeviceAggregate();
 					aggregateLog.Devices.Add(log);

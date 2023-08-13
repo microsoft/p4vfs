@@ -9,7 +9,7 @@ namespace Microsoft {
 namespace P4VFS {
 namespace P4 {
 
-	struct DepotSyncType
+	struct DepotSyncFlags
 	{
 		enum Enum
 		{
@@ -93,7 +93,7 @@ namespace P4 {
 		DepotRevision m_Revision;
 		DepotSyncActionType::Enum m_SyncActionType;
 		DepotSyncActionFlags::Enum m_SyncActionFlags;
-		DepotSyncType::Enum m_SyncType;
+		DepotSyncFlags::Enum m_SyncFlags;
 		DepotFlushType::Enum m_FlushType;
 		int64_t m_DiskFileSize;
 		int64_t m_VirtualFileSize;
@@ -145,7 +145,7 @@ namespace P4 {
 
 	typedef std::shared_ptr<FDepotSyncResult> DepotSyncResult;
 
-	DEFINE_ENUM_FLAG_OPERATORS(DepotSyncType::Enum);
+	DEFINE_ENUM_FLAG_OPERATORS(DepotSyncFlags::Enum);
 	DEFINE_ENUM_FLAG_OPERATORS(DepotSyncActionFlags::Enum);
 	DEFINE_ENUM_FLAG_OPERATORS(DepotSyncStatus::Enum);
 }}}

@@ -24,7 +24,7 @@ public:
 
 	array<System::String^>^ Files;
 	System::String^ Revision;
-	DepotSyncType SyncType;
+	DepotSyncFlags SyncFlags;
 	DepotFlushType FlushType;
 	DepotSyncMethod SyncMethod;
 	System::String^ SyncResident;

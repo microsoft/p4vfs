@@ -11,7 +11,7 @@ namespace CoreInterop {
 DepotSyncOptions::DepotSyncOptions() :
 	Files(nullptr),
 	Revision(nullptr),
-	SyncType(DepotSyncType::Normal),
+	SyncFlags(DepotSyncFlags::Normal),
 	SyncMethod(DepotSyncMethod::Virtual),
 	FlushType(DepotFlushType::Atomic),
 	Context(nullptr)
@@ -22,7 +22,7 @@ P4::FDepotSyncOptions DepotSyncOptions::ToNative()
 {
 	P4::FDepotSyncOptions dst;
 	dst.m_Revision = P4::FDepotRevision::FromString(marshal_as_astring(Revision));
-	dst.m_SyncType = safe_cast<P4::DepotSyncType::Enum>(SyncType);
+	dst.m_SyncFlags = safe_cast<P4::DepotSyncFlags::Enum>(SyncFlags);
 	dst.m_FlushType = safe_cast<P4::DepotFlushType::Enum>(FlushType);
 	dst.m_SyncMethod = safe_cast<P4::DepotSyncMethod::Enum>(SyncMethod);
 	dst.m_SyncResident = marshal_as_astring(SyncResident);

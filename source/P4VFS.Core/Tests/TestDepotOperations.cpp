@@ -39,12 +39,12 @@ void TestDepotOperationsSync(const TestContext& context)
 
 	for (DepotSyncMethod::Enum syncMethod : { DepotSyncMethod::Virtual, DepotSyncMethod::Regular })
 	{
-		for (DepotSyncType::Enum syncType : { DepotSyncType::Normal, DepotSyncType::Quiet })
+		for (DepotSyncFlags::Enum syncFlags : { DepotSyncFlags::Normal, DepotSyncFlags::Quiet })
 		{
 			TestUtilities::WorkspaceReset(context);
 			for (const char* fileSpec : fileSpecs)
 			{
-				DepotSyncResult syncResult = DepotOperations::Sync(client, DepotStringArray{ fileSpec }, nullptr, syncType, syncMethod);
+				DepotSyncResult syncResult = DepotOperations::Sync(client, DepotStringArray{ fileSpec }, nullptr, syncFlags, syncMethod);
 				Assert(syncResult.get() != nullptr);
 				Assert(syncResult->m_Status == DepotSyncStatus::Success);
 				Assert(syncResult->m_Modifications.get() && syncResult->m_Modifications->size() > 0);
@@ -64,9 +64,9 @@ void TestDepotOperationsSyncStatus(const TestContext& context)
 	{
 		for (DepotSyncMethod::Enum syncMethod : { DepotSyncMethod::Virtual, DepotSyncMethod::Regular })
 		{
-			for (DepotSyncType::Enum syncType : { DepotSyncType::Normal, DepotSyncType::Quiet })
+			for (DepotSyncFlags::Enum syncFlags : { DepotSyncFlags::Normal, DepotSyncFlags::Quiet })
 			{
-				DepotSyncResult syncResult = DepotOperations::Sync(client, DepotStringArray{ fileSpec }, nullptr, syncType, syncMethod);
+				DepotSyncResult syncResult = DepotOperations::Sync(client, DepotStringArray{ fileSpec }, nullptr, syncFlags, syncMethod);
 				Assert(syncResult.get() != nullptr);
 				Assert(syncResult->m_Status == status);
 				Assert((modificationCount < 0 && syncResult->m_Modifications.get() == nullptr) || (syncResult->m_Modifications.get() && int32_t(syncResult->m_Modifications->size()) == modificationCount));
@@ -97,11 +97,11 @@ void TestDepotOperationsToString(const TestContext& context)
 	Assert(DepotOperations::ToString(DepotStringArray{"//foo/bar", "//foo/star"}) == "[\"//foo/bar\",\"//foo/star\"]");
 	Assert(DepotOperations::ToString(DepotStringArray{"//foo/bar", ""}) == "[\"//foo/bar\",\"\"]");
 
-	Assert(DepotSyncType::ToString(DepotSyncType::Flush) == "Flush");
-	Assert(DepotSyncType::ToString(DepotSyncType::Enum(DepotSyncType::Flush|DepotSyncType::Quiet)) == "Flush|Quiet");
-	Assert(DepotSyncType::ToString(DepotSyncType::Enum(DepotSyncType::Flush|DepotSyncType::Quiet|DepotSyncType::IgnoreOutput)) == "Flush|IgnoreOutput|Quiet");
-	Assert(DepotSyncType::ToString(DepotSyncType::Enum(0)) == "Normal");
-	Assert(DepotSyncType::ToString(DepotSyncType::Enum(1<<16)) == "");
+	Assert(DepotSyncFlags::ToString(DepotSyncFlags::Flush) == "Flush");
+	Assert(DepotSyncFlags::ToString(DepotSyncFlags::Enum(DepotSyncFlags::Flush|DepotSyncFlags::Quiet)) == "Flush|Quiet");
+	Assert(DepotSyncFlags::ToString(DepotSyncFlags::Enum(DepotSyncFlags::Flush|DepotSyncFlags::Quiet|DepotSyncFlags::IgnoreOutput)) == "Flush|IgnoreOutput|Quiet");
+	Assert(DepotSyncFlags::ToString(DepotSyncFlags::Enum(0)) == "Normal");
+	Assert(DepotSyncFlags::ToString(DepotSyncFlags::Enum(1<<16)) == "");
 
 	Assert(DepotSyncMethod::ToString(DepotSyncMethod::Regular) == "Regular");
 	Assert(DepotSyncMethod::ToString(DepotSyncMethod::Virtual) == "Virtual");

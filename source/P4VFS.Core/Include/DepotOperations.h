@@ -20,7 +20,7 @@ namespace P4 {
 			DepotClient& depotClient, 
 			const DepotStringArray& files, 
 			const DepotRevision revision = nullptr,
-			DepotSyncType::Enum syncType = DepotSyncType::Normal,
+			DepotSyncFlags::Enum syncFlags = DepotSyncFlags::Normal,
 			DepotSyncMethod::Enum syncMethod = DepotSyncMethod::Virtual, 
 			DepotFlushType::Enum flushType = DepotFlushType::Atomic,  
 			const DepotString& syncResident = DepotString()
@@ -117,7 +117,7 @@ namespace P4 {
 			DepotClient& depotClient, 
 			const DepotStringArray& files, 
 			DepotRevision revision,
-			DepotSyncType::Enum syncType,
+			DepotSyncFlags::Enum syncFlags,
 			FileCore::LogDevice* log = nullptr
 			);
 

@@ -405,7 +405,7 @@ Available commands:
 			SyncProtocol syncProtocol = SyncProtocol.Service | SyncProtocol.Local;
 			string syncResident = SettingManager.SyncResidentPattern?.Trim();
 			
-			DepotSyncType syncType = SettingManager.SyncDefaultQuiet ? DepotSyncType.Quiet : DepotSyncType.Normal;
+			DepotSyncFlags syncFlags = SettingManager.SyncDefaultQuiet ? DepotSyncFlags.Quiet : DepotSyncFlags.Normal;
 			DepotFlushType flushType = SettingManagerExtensions.DefaultFlushType;
 			DepotFlushType? explicitFlush = null;
 
@@ -415,36 +415,36 @@ Available commands:
 				if (String.Compare(args[argIndex], "-v") == 0)
 				{
 					syncMethod = DepotSyncMethod.Virtual;
-					syncType &= ~DepotSyncType.IgnoreOutput;
+					syncFlags &= ~DepotSyncFlags.IgnoreOutput;
 				}
 				else if (String.Compare(args[argIndex], "-r") == 0)
 				{
 					syncMethod = DepotSyncMethod.Regular;
-					syncType |= DepotSyncType.IgnoreOutput;
+					syncFlags |= DepotSyncFlags.IgnoreOutput;
 				}
 				else if (String.Compare(args[argIndex], "-f") == 0)
 				{
-					syncType |= DepotSyncType.Force;
+					syncFlags |= DepotSyncFlags.Force;
 				}
 				else if (String.Compare(args[argIndex], "-q") == 0)
 				{
-					syncType |= DepotSyncType.Quiet;
+					syncFlags |= DepotSyncFlags.Quiet;
 				}
 				else if (String.Compare(args[argIndex], "-l") == 0)
 				{
-					syncType &= ~DepotSyncType.Quiet;
+					syncFlags &= ~DepotSyncFlags.Quiet;
 				}
 				else if (String.Compare(args[argIndex], "-n") == 0)
 				{
-					syncType |= DepotSyncType.Preview;
+					syncFlags |= DepotSyncFlags.Preview;
 				}
 				else if (String.Compare(args[argIndex], "-k") == 0)
 				{
-					syncType |= DepotSyncType.Flush;
+					syncFlags |= DepotSyncFlags.Flush;
 				}
 				else if (String.Compare(args[argIndex], "-w") == 0)
 				{
-					syncType |= DepotSyncType.Writeable;
+					syncFlags |= DepotSyncFlags.Writeable;
 				}
 				else if (String.Compare(args[argIndex], "-t") == 0)
 				{
@@ -478,7 +478,7 @@ Available commands:
 				}
 			}
 
-			if (syncType.HasFlag(DepotSyncType.Quiet) && explicitFlush == null)
+			if (syncFlags.HasFlag(DepotSyncFlags.Quiet) && explicitFlush == null)
 			{
 				flushType = DepotFlushType.Atomic;
 			}
@@ -488,13 +488,13 @@ Available commands:
 
 			DepotSyncOptions syncOptions = new DepotSyncOptions();
 			syncOptions.Files = files.ToArray();
-			syncOptions.SyncType = syncType;
+			syncOptions.SyncFlags = syncFlags;
 			syncOptions.SyncMethod = syncMethod;
 			syncOptions.SyncResident = syncResident;
 			syncOptions.FlushType = flushType;
 			syncOptions.Context = new CoreInterop.UserContext { ProcessId = Process.GetCurrentProcess().Id };
 
-			if (syncType.HasFlag(DepotSyncType.Quiet))
+			if (syncFlags.HasFlag(DepotSyncFlags.Quiet))
 			{
 				SettingManagerExtensions.Verbosity = LogChannel.Warning;
 			}
@@ -701,7 +701,7 @@ Available commands:
 		{
 			SyncProtocol syncProtocol = SyncProtocol.Service | SyncProtocol.Local;
 			DepotSyncMethod syncMethod = DepotSyncMethod.Regular;
-			DepotSyncType syncType = SettingManager.SyncDefaultQuiet ? DepotSyncType.Quiet : DepotSyncType.Normal;
+			DepotSyncFlags syncFlags = SettingManager.SyncDefaultQuiet ? DepotSyncFlags.Quiet : DepotSyncFlags.Normal;
 			string syncResident = null;
 
 			int argIndex = 0;
@@ -717,7 +717,7 @@ Available commands:
 				}
 				else if (String.Compare(args[argIndex], "-n") == 0)
 				{
-					syncType |= DepotSyncType.Preview;
+					syncFlags |= DepotSyncFlags.Preview;
 				}
 				else if (String.Compare(args[argIndex], "-t") == 0)
 				{
@@ -737,11 +737,11 @@ Available commands:
 				}
 				else if (String.Compare(args[argIndex], "-q") == 0)
 				{
-					syncType |= DepotSyncType.Quiet;
+					syncFlags |= DepotSyncFlags.Quiet;
 				}
 				else if (String.Compare(args[argIndex], "-l") == 0)
 				{
-					syncType &= ~DepotSyncType.Quiet;
+					syncFlags &= ~DepotSyncFlags.Quiet;
 				}
 				else
 				{
@@ -752,7 +752,7 @@ Available commands:
 			List<string> fileArguments = new List<string>(args.Skip(argIndex));
 			fileArguments.AddRange(ReadInputFileArgs());
 
-			if (syncType.HasFlag(DepotSyncType.Quiet))
+			if (syncFlags.HasFlag(DepotSyncFlags.Quiet))
 			{
 				SettingManagerExtensions.Verbosity = LogChannel.Warning;
 			}
@@ -769,7 +769,7 @@ Available commands:
 				{
 					DepotSyncOptions syncOptions = new DepotSyncOptions();
 					syncOptions.Files = fileArguments.ToArray();
-					syncOptions.SyncType = DepotSyncType.Force | syncType;
+					syncOptions.SyncFlags = DepotSyncFlags.Force | syncFlags;
 					syncOptions.SyncMethod = DepotSyncMethod.Virtual;
 					syncOptions.SyncResident = String.IsNullOrEmpty(syncResident) ? null : String.Format("^(?!.*({0})).*$", syncResident);
 					syncOptions.Revision = new DepotRevisionHave().ToString();
@@ -794,7 +794,7 @@ Available commands:
 				{
 					DepotSyncOptions syncOptions = new DepotSyncOptions();
 					syncOptions.Files = fileArguments.ToArray();
-					syncOptions.SyncType = syncType;
+					syncOptions.SyncFlags = syncFlags;
 					syncOptions.SyncResident = syncResident;
 
 					VirtualFileSystemLog.Verbose("Hydrating files ...");

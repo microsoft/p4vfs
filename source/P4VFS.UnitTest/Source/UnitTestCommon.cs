@@ -25,15 +25,15 @@ namespace Microsoft.P4VFS.UnitTest
 			{
 				using (settings) {
 				using (DepotClient depotClient = new DepotClient()) {
-				DepotSyncType syncType = settings.SyncType.Value;
+				DepotSyncFlags syncFlags = settings.SyncFlags.Value;
 
 				WorkspaceReset();
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
 				string clientRoot = GetClientRoot(depotClient);
 
-				DepotSyncResult syncResult = depotClient.Sync("//depot/gears1/Development/Src/Core/...", null, syncType, DepotSyncMethod.Virtual);
+				DepotSyncResult syncResult = depotClient.Sync("//depot/gears1/Development/Src/Core/...", null, syncFlags, DepotSyncMethod.Virtual);
 				Assert(syncResult?.Status == DepotSyncStatus.Success);
-				Assert(syncType.HasFlag(DepotSyncType.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() > 0);
+				Assert(syncFlags.HasFlag(DepotSyncFlags.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() > 0);
 				long rootLocalSize = FileUtilities.GetDirectorySize(clientRoot);
 				Assert(rootLocalSize >= 0);
 				long rootDepotSize = depotClient.GetDepotSize(new[]{ "//depot/gears1/Development/Src/Core/..." });
@@ -52,9 +52,9 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(IsPlaceholderFile(coreFile) == false);
 
 				string canvasFile = String.Format(@"{0}\depot\gears1\Development\Src\Engine\Src\UnCanvas.cpp", clientRoot);
-				syncResult = depotClient.Sync(canvasFile, null, syncType, DepotSyncMethod.Virtual);
+				syncResult = depotClient.Sync(canvasFile, null, syncFlags, DepotSyncMethod.Virtual);
 				Assert(syncResult?.Status == DepotSyncStatus.Success);
-				Assert(syncType.HasFlag(DepotSyncType.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() > 0);
+				Assert(syncFlags.HasFlag(DepotSyncFlags.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() > 0);
 				Assert(IsPlaceholderFile(canvasFile));
 
 				Assert(depotClient.Run("edit", new[]{ canvasFile }).HasError == false);
@@ -63,23 +63,23 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(IsPlaceholderFile(canvasFile) == false);
 
 				Assert(depotClient.Run("revert", new[]{ canvasFile }).HasError == false);
-				syncResult = depotClient.Sync(canvasFile, new DepotRevisionNumber(1), syncType, DepotSyncMethod.Virtual);
+				syncResult = depotClient.Sync(canvasFile, new DepotRevisionNumber(1), syncFlags, DepotSyncMethod.Virtual);
 				Assert(syncResult?.Status == DepotSyncStatus.Success);
-				Assert(syncType.HasFlag(DepotSyncType.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() > 0);
+				Assert(syncFlags.HasFlag(DepotSyncFlags.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() > 0);
 				Assert(IsPlaceholderFile(canvasFile));
 				Assert(File.ReadAllLines(canvasFile).Length == 515);
 				Assert(IsPlaceholderFile(canvasFile) == false);
 
-				syncResult = depotClient.Sync(canvasFile + "#2", null, syncType, DepotSyncMethod.Virtual);
+				syncResult = depotClient.Sync(canvasFile + "#2", null, syncFlags, DepotSyncMethod.Virtual);
 				Assert(syncResult?.Status == DepotSyncStatus.Success);
-				Assert(syncType.HasFlag(DepotSyncType.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() > 0);
+				Assert(syncFlags.HasFlag(DepotSyncFlags.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() > 0);
 				Assert(IsPlaceholderFile(canvasFile));
 				Assert(File.ReadAllLines(canvasFile).Length == 521);
 				Assert(IsPlaceholderFile(canvasFile) == false);
 
-				syncResult = depotClient.Sync(canvasFile, new DepotRevisionNone(), syncType, DepotSyncMethod.Virtual);
+				syncResult = depotClient.Sync(canvasFile, new DepotRevisionNone(), syncFlags, DepotSyncMethod.Virtual);
 				Assert(syncResult?.Status == DepotSyncStatus.Success);
-				Assert(syncType.HasFlag(DepotSyncType.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() > 0);
+				Assert(syncFlags.HasFlag(DepotSyncFlags.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() > 0);
 				Assert(Directory.Exists(String.Format(@"{0}\depot\gears1\Development\Src\Engine", clientRoot)) == false);
 				Assert(Directory.Exists(String.Format(@"{0}\depot\gears1\Development\Src", clientRoot)) == true);
 			}}}
@@ -92,7 +92,7 @@ namespace Microsoft.P4VFS.UnitTest
 			{
 				using (settings) {
 				using (DepotClient depotClient = new DepotClient()) {
-				DepotSyncType syncType = settings.SyncType.Value;
+				DepotSyncFlags syncFlags = settings.SyncFlags.Value;
 
 				WorkspaceReset();
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
@@ -100,22 +100,22 @@ namespace Microsoft.P4VFS.UnitTest
 				string clientRoot = GetClientRoot(depotClient);
 				string fileLocalPath = String.Format(@"{0}\depot\gears1\Development\Src\Core\Src\Core.cpp", clientRoot);
 
-				DepotSyncResult syncResult = depotClient.Sync(fileLocalPath, new DepotRevisionHead(), syncType, DepotSyncMethod.Regular);
+				DepotSyncResult syncResult = depotClient.Sync(fileLocalPath, new DepotRevisionHead(), syncFlags, DepotSyncMethod.Regular);
 				Assert(syncResult?.Status == DepotSyncStatus.Success);
-				Assert(syncType.HasFlag(DepotSyncType.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() == 1);
+				Assert(syncFlags.HasFlag(DepotSyncFlags.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() == 1);
 				Assert(File.Exists(fileLocalPath), "File Path should not exist.");
 				Assert(IsPlaceholderFile(fileLocalPath) == false, "File Path should not be placeholder.");
 
 				// Delete the file that we're interested in
-				syncResult = depotClient.Sync(fileLocalPath, new DepotRevisionNone(), syncType, DepotSyncMethod.Virtual);
+				syncResult = depotClient.Sync(fileLocalPath, new DepotRevisionNone(), syncFlags, DepotSyncMethod.Virtual);
 				Assert(syncResult?.Status == DepotSyncStatus.Success);
-				Assert(syncType.HasFlag(DepotSyncType.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() == 1);
+				Assert(syncFlags.HasFlag(DepotSyncFlags.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() == 1);
 				Assert(File.Exists(fileLocalPath) == false, "File Path should not exist.");
 
 				// Now virtual sync to the head revision
-				syncResult = depotClient.Sync(fileLocalPath, new DepotRevisionHead(), syncType, DepotSyncMethod.Virtual);
+				syncResult = depotClient.Sync(fileLocalPath, new DepotRevisionHead(), syncFlags, DepotSyncMethod.Virtual);
 				Assert(syncResult?.Status == DepotSyncStatus.Success);
-				Assert(syncType.HasFlag(DepotSyncType.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() == 1);
+				Assert(syncFlags.HasFlag(DepotSyncFlags.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() == 1);
 				Assert(IsPlaceholderFile(fileLocalPath), "File Path should exist.");
 
 				// Now make the file resident and check that the file has changed
@@ -148,7 +148,7 @@ namespace Microsoft.P4VFS.UnitTest
 			{
 				using (settings) {
 				using (DepotClient depotClient = new DepotClient()) {
-				DepotSyncType syncType = settings.SyncType.Value;
+				DepotSyncFlags syncFlags = settings.SyncFlags.Value;
 
 				WorkspaceReset();
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
@@ -157,9 +157,9 @@ namespace Microsoft.P4VFS.UnitTest
 				string clientFolder = String.Format(@"{0}\depot\gears1\Binaries\Xenon", clientRoot);
 
 				// Now sync to the head revision
-				DepotSyncResult syncResult = depotClient.Sync(String.Format("{0}\\...", clientFolder), new DepotRevisionHead(), syncType, DepotSyncMethod.Virtual);
+				DepotSyncResult syncResult = depotClient.Sync(String.Format("{0}\\...", clientFolder), new DepotRevisionHead(), syncFlags, DepotSyncMethod.Virtual);
 				Assert(syncResult?.Status == DepotSyncStatus.Success);
-				Assert(syncType.HasFlag(DepotSyncType.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() > 0);
+				Assert(syncFlags.HasFlag(DepotSyncFlags.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() > 0);
 				Assert(Directory.Exists(clientFolder), "Directory Path should exist.");
 					
 				foreach (string file in Directory.GetFiles(clientFolder, "*", SearchOption.AllDirectories).ToArray())
@@ -191,7 +191,7 @@ namespace Microsoft.P4VFS.UnitTest
 			{
 				using (settings) {
 				using (DepotClient depotClient = new DepotClient()) {
-				DepotSyncType syncType = settings.SyncType.Value;
+				DepotSyncFlags syncFlags = settings.SyncFlags.Value;
 				
 				WorkspaceReset();
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
@@ -208,9 +208,9 @@ namespace Microsoft.P4VFS.UnitTest
 				string rootFolder = Path.GetDirectoryName(writableFile);
 				{
 					string folderSpec = String.Format(@"{0}\...@5", rootFolder);
-					DepotSyncResult syncResult = depotClient.Sync(folderSpec, null, syncType, DepotSyncMethod.Virtual);
+					DepotSyncResult syncResult = depotClient.Sync(folderSpec, null, syncFlags, DepotSyncMethod.Virtual);
 					Assert(syncResult?.Status == DepotSyncStatus.Success);
-					Assert(syncType.HasFlag(DepotSyncType.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() == 10);
+					Assert(syncFlags.HasFlag(DepotSyncFlags.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() == 10);
 					Assert(FileUtilities.GetDirectorySize(rootFolder) > 0);
 					Assert(FileUtilities.GetDirectoryFileCount(clientRoot) == 10);
 					Assert(File.Exists(writableFile));
@@ -222,9 +222,9 @@ namespace Microsoft.P4VFS.UnitTest
 				}
 				{
 					string folderSpec = String.Format(@"{0}\...@6", rootFolder);
-					DepotSyncResult syncResult = depotClient.Sync(folderSpec, null, syncType, DepotSyncMethod.Virtual);
+					DepotSyncResult syncResult = depotClient.Sync(folderSpec, null, syncFlags, DepotSyncMethod.Virtual);
 					Assert(syncResult?.Status == DepotSyncStatus.Success);
-					Assert(syncType.HasFlag(DepotSyncType.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() > 0);
+					Assert(syncFlags.HasFlag(DepotSyncFlags.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() > 0);
 					Assert(FileUtilities.GetDirectorySize(rootFolder) > 0);
 					Assert(File.Exists(writableFile));
 					Assert(FileUtilities.IsReadOnly(writableFile) == false);
@@ -235,9 +235,9 @@ namespace Microsoft.P4VFS.UnitTest
 				}
 				{
 					string folderSpec = String.Format(@"{0}\...@7", rootFolder);
-					DepotSyncResult syncResult = depotClient.Sync(folderSpec, null, syncType, DepotSyncMethod.Virtual);
+					DepotSyncResult syncResult = depotClient.Sync(folderSpec, null, syncFlags, DepotSyncMethod.Virtual);
 					Assert(syncResult?.Status == DepotSyncStatus.Success);
-					Assert(syncType.HasFlag(DepotSyncType.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() > 0);
+					Assert(syncFlags.HasFlag(DepotSyncFlags.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() > 0);
 					Assert(FileUtilities.GetDirectorySize(rootFolder) > 0);
 					Assert(File.Exists(writableFile));
 					Assert(FileUtilities.IsReadOnly(writableFile) == false);
@@ -248,9 +248,9 @@ namespace Microsoft.P4VFS.UnitTest
 				}
 				{
 					string folderSpec = String.Format(@"{0}\...@5", rootFolder);
-					DepotSyncResult syncResult = depotClient.Sync(folderSpec, null, syncType, DepotSyncMethod.Virtual);
+					DepotSyncResult syncResult = depotClient.Sync(folderSpec, null, syncFlags, DepotSyncMethod.Virtual);
 					Assert(syncResult?.Status == DepotSyncStatus.Success);
-					Assert(syncType.HasFlag(DepotSyncType.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() > 0);
+					Assert(syncFlags.HasFlag(DepotSyncFlags.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() > 0);
 					Assert(FileUtilities.GetDirectorySize(rootFolder) > 0);
 					Assert(File.Exists(writableFile));
 					Assert(FileUtilities.IsReadOnly(writableFile) == true);
@@ -269,7 +269,7 @@ namespace Microsoft.P4VFS.UnitTest
 			{
 				using (settings) {
 				using (DepotClient depotClient = new DepotClient()) {
-				DepotSyncType syncType = settings.SyncType.Value;
+				DepotSyncFlags syncFlags = settings.SyncFlags.Value;
 				
 				WorkspaceReset();
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
@@ -278,7 +278,7 @@ namespace Microsoft.P4VFS.UnitTest
 				string writableFile = String.Format(@"{0}\depot\tools\dev\bin\studio\maya\scripts\python\Utilities\shaderTools.py", clientRoot);
 				{
 					string folderSpec = String.Format("{0}@8", writableFile);
-					depotClient.Sync(folderSpec, null, syncType, DepotSyncMethod.Virtual);
+					depotClient.Sync(folderSpec, null, syncFlags, DepotSyncMethod.Virtual);
 					Assert(IsPlaceholderFile(writableFile));
 					DepotResultFStat writableFileStat = depotClient.FStat(new[]{ writableFile });
 					Assert(writableFileStat.Count == 1 && writableFileStat[0].HaveRev == 4);
@@ -290,14 +290,14 @@ namespace Microsoft.P4VFS.UnitTest
 
 				{
 					string folderSpec = String.Format("{0}@6", writableFile);
-					depotClient.Sync(folderSpec, null, syncType, DepotSyncMethod.Virtual);
+					depotClient.Sync(folderSpec, null, syncFlags, DepotSyncMethod.Virtual);
 					DepotResultFStat writableFileStat = depotClient.FStat(new[]{ writableFile });
 					Assert(writableFileStat.Count == 1 && writableFileStat[0].HaveRev == 2);
 					Assert(DiffAgainstWorkspace(String.Format("{0}#4", writableFile)).LinesTotal == 0);
 				}
 				{
 					string folderSpec = String.Format("{0}@9", writableFile);
-					depotClient.Sync(folderSpec, null, syncType, DepotSyncMethod.Virtual);
+					depotClient.Sync(folderSpec, null, syncFlags, DepotSyncMethod.Virtual);
 					DepotResultFStat writableFileStat = depotClient.FStat(new[]{ writableFile });
 					Assert(writableFileStat.Count == 1 && writableFileStat[0].HaveRev == 5);
 					Assert(DiffAgainstWorkspace(String.Format("{0}#4", writableFile)).LinesTotal == 0);
@@ -499,7 +499,7 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
 				string clientRoot = GetClientRoot(depotClient);
 
-				depotClient.Sync("//depot/gears1/Development/Src/Core/...", null, DepotSyncType.Normal, DepotSyncMethod.Virtual);
+				depotClient.Sync("//depot/gears1/Development/Src/Core/...", null, DepotSyncFlags.Normal, DepotSyncMethod.Virtual);
 				Assert(ReconcilePreview("//depot/gears1/Development/Src/Core").Any() == false);
 
 				string newFile = String.Format(@"{0}\depot\gears1\Development\Src\Core\Src\NewFile.cpp", clientRoot);
@@ -547,7 +547,7 @@ namespace Microsoft.P4VFS.UnitTest
 				for (int racePass = 0; racePass < 4; ++racePass)
 				{
 					string raceFile = String.Format(@"{0}\depot\gears1\Development\Src\Core\Src\Core.cpp", clientRoot);
-					depotClient.Sync(raceFile, null, DepotSyncType.Force, DepotSyncMethod.Virtual);
+					depotClient.Sync(raceFile, null, DepotSyncFlags.Force, DepotSyncMethod.Virtual);
 					Assert(IsPlaceholderFile(raceFile) == true);
 
 					Random random = new Random();
@@ -608,7 +608,7 @@ namespace Microsoft.P4VFS.UnitTest
 				string depotPath = "//depot/gears1/Development/External/nvDXT/...";
 				{
 					int syncRevision = 10;
-					DepotSyncResult syncResults = depotClient.Sync(depotPath, new DepotRevisionChangelist(syncRevision), DepotSyncType.Force, DepotSyncMethod.Virtual);
+					DepotSyncResult syncResults = depotClient.Sync(depotPath, new DepotRevisionChangelist(syncRevision), DepotSyncFlags.Force, DepotSyncMethod.Virtual);
 					Assert(syncResults?.Status == DepotSyncStatus.Success);
 					Assert(syncResults.Modifications?.Count() == 12);
 					Assert(syncResults.Modifications.Any(a => a.SyncActionType != DepotSyncActionType.Added) == false);
@@ -617,7 +617,7 @@ namespace Microsoft.P4VFS.UnitTest
 				}
 				{
 					int syncRevision = 11;
-					DepotSyncResult syncResults = depotClient.Sync(depotPath, new DepotRevisionChangelist(syncRevision), DepotSyncType.Force, DepotSyncMethod.Virtual);
+					DepotSyncResult syncResults = depotClient.Sync(depotPath, new DepotRevisionChangelist(syncRevision), DepotSyncFlags.Force, DepotSyncMethod.Virtual);
 					Assert(syncResults?.Status == DepotSyncStatus.Success);
 					Assert(syncResults.Modifications?.Count() == 18);
 					Assert(syncResults.Modifications.Count(a => a.SyncActionType == DepotSyncActionType.Deleted) == 6);
@@ -706,20 +706,20 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
 				DepotSyncResult syncResult;
 				
-				syncResult = depotClient.Sync("//fenix/main/tools/...", null, DepotSyncType.Normal, DepotSyncMethod.Virtual);
+				syncResult = depotClient.Sync("//fenix/main/tools/...", null, DepotSyncFlags.Normal, DepotSyncMethod.Virtual);
 				Assert(syncResult != null);
 				Assert(syncResult.Status == DepotSyncStatus.Error);
 				Assert(syncResult.Modifications.Count() == 1);
 				Assert(syncResult.Modifications[0].SyncActionType == DepotSyncActionType.NotInClientView);
 
-				syncResult = depotClient.Sync("//depot/gears1/Binaries/...@vfs_bad_label", null, DepotSyncType.Normal, DepotSyncMethod.Virtual);
+				syncResult = depotClient.Sync("//depot/gears1/Binaries/...@vfs_bad_label", null, DepotSyncFlags.Normal, DepotSyncMethod.Virtual);
 				Assert(syncResult != null);
 				Assert(syncResult.Status == DepotSyncStatus.Error);
 				Assert(syncResult.Modifications.Count() == 1);
 				Assert(syncResult.Modifications[0].SyncActionType == DepotSyncActionType.GenericError);
 				Assert(syncResult.Modifications[0].Message == "Invalid changelist/client/label/date '@vfs_bad_label'.");
 
-				syncResult = depotClient.Sync("//depot/gears1/Binaries/...", new DepotRevisionLabel("vfs_bad_label"), DepotSyncType.Normal, DepotSyncMethod.Virtual);
+				syncResult = depotClient.Sync("//depot/gears1/Binaries/...", new DepotRevisionLabel("vfs_bad_label"), DepotSyncFlags.Normal, DepotSyncMethod.Virtual);
 				Assert(syncResult != null);
 				Assert(syncResult.Status == DepotSyncStatus.Error);
 				Assert(syncResult.Modifications.Count() == 1);
@@ -757,16 +757,16 @@ namespace Microsoft.P4VFS.UnitTest
 			using (DepotClient depotClient = new DepotClient())
 			{
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
-				Assert(depotClient.Sync(String.Format("{0}\\...", srcFolder), new DepotRevisionChangelist(Int32.Parse(srcRevision)), DepotSyncType.Normal, DepotSyncMethod.Virtual, DepotFlushType.Atomic, srcResidentPattern)?.Status == DepotSyncStatus.Success);
+				Assert(depotClient.Sync(String.Format("{0}\\...", srcFolder), new DepotRevisionChangelist(Int32.Parse(srcRevision)), DepotSyncFlags.Normal, DepotSyncMethod.Virtual, DepotFlushType.Atomic, srcResidentPattern)?.Status == DepotSyncStatus.Success);
 				verifyResidentFiles(false);
 				
 				WorkspaceReset();
-				Assert(depotClient.Sync(String.Format("{0}\\...", srcFolder), new DepotRevisionChangelist(Int32.Parse(srcRevision)), DepotSyncType.Normal, DepotSyncMethod.Virtual, DepotFlushType.Atomic)?.Status == DepotSyncStatus.Success);
+				Assert(depotClient.Sync(String.Format("{0}\\...", srcFolder), new DepotRevisionChangelist(Int32.Parse(srcRevision)), DepotSyncFlags.Normal, DepotSyncMethod.Virtual, DepotFlushType.Atomic)?.Status == DepotSyncStatus.Success);
 				Assert(DepotOperations.Hydrate(depotClient, new DepotSyncOptions{ Files=new[]{ String.Format("{0}\\...", srcFolder) }, SyncResident=srcResidentPattern })?.Status == DepotSyncStatus.Success);
 				verifyResidentFiles(false);
 
 				WorkspaceReset();
-				Assert(depotClient.Sync(String.Format("{0}\\...", srcFolder), new DepotRevisionChangelist(Int32.Parse(srcRevision)), DepotSyncType.Normal, DepotSyncMethod.Virtual, DepotFlushType.Atomic)?.Status == DepotSyncStatus.Success);
+				Assert(depotClient.Sync(String.Format("{0}\\...", srcFolder), new DepotRevisionChangelist(Int32.Parse(srcRevision)), DepotSyncFlags.Normal, DepotSyncMethod.Virtual, DepotFlushType.Atomic)?.Status == DepotSyncStatus.Success);
 				Assert(DepotOperations.Hydrate(depotClient, new DepotSyncOptions{ Files=new[]{ String.Format("{0}\\...", srcFolder) } })?.Status == DepotSyncStatus.Success);
 				verifyResidentFiles(true);
 			}
@@ -868,7 +868,7 @@ namespace Microsoft.P4VFS.UnitTest
 		[TestMethod, Priority(18), TestRemote]
 		public void DepotClientSymlinkSyncTest()
 		{
-			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSyncLineEndSettings().Where(s => s.SyncType == DepotSyncType.Normal))
+			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSyncLineEndSettings().Where(s => s.SyncFlags == DepotSyncFlags.Normal))
 			{
 				using (settings) {
 				using (DepotClient depotClient = new DepotClient()) {
@@ -907,8 +907,8 @@ namespace Microsoft.P4VFS.UnitTest
 
 					Action<string, string>[] syncActions = new Action<string, string>[] {
 							(path, rev) => Assert(ProcessInfo.ExecuteWait(P4Exe, String.Format("{0} sync \"{1}{2}\"", ClientConfig, path, rev), echo:true) == 0),
-							(path, rev) => Assert(depotClient.Sync(path, DepotRevision.FromString(rev), DepotSyncType.Normal, DepotSyncMethod.Virtual)?.Modifications?.Count() == 1),
-							(path, rev) => Assert(depotClient.Sync(path, DepotRevision.FromString(rev), DepotSyncType.Normal, DepotSyncMethod.Regular)?.Modifications?.Count() == 1),
+							(path, rev) => Assert(depotClient.Sync(path, DepotRevision.FromString(rev), DepotSyncFlags.Normal, DepotSyncMethod.Virtual)?.Modifications?.Count() == 1),
+							(path, rev) => Assert(depotClient.Sync(path, DepotRevision.FromString(rev), DepotSyncFlags.Normal, DepotSyncMethod.Regular)?.Modifications?.Count() == 1),
 							(path, rev) => Assert(ProcessInfo.ExecuteWait(P4vfsExe, String.Format("{0} sync -t \"{1}{2}\"", ClientConfig, path, rev), echo:true) == 0),
 							(path, rev) => Assert(ProcessInfo.ExecuteWait(P4vfsExe, String.Format("{0} sync -s \"{1}{2}\"", ClientConfig, path, rev), echo:true) == 0),
 					};
@@ -916,7 +916,7 @@ namespace Microsoft.P4VFS.UnitTest
 					for (int syncActionIndex = 0; syncActionIndex < syncActions.Length; ++syncActionIndex)
 					{
 						var syncAction = syncActions[syncActionIndex];
-						depotClient.Sync("//...", new DepotRevisionNone(), DepotSyncType.Force, DepotSyncMethod.Regular);
+						depotClient.Sync("//...", new DepotRevisionNone(), DepotSyncFlags.Force, DepotSyncMethod.Regular);
 						Assert(File.Exists(srcClientSymlink) == false && File.Exists(srcClientTarget) == false);
 						Assert(Directory.Exists(clientRoot) == false || FileUtilities.GetDirectoryFileCount(clientRoot) == 0);
 
@@ -955,7 +955,7 @@ namespace Microsoft.P4VFS.UnitTest
 				for (int racePass = 0; racePass < 2; ++racePass)
 				{
 					string clientFolder = String.Format(@"{0}\depot\gears3\GearGame\Movies", clientRoot);
-					depotClient.Sync(String.Format("{0}\\...@14", clientFolder), null, DepotSyncType.Force, DepotSyncMethod.Virtual);
+					depotClient.Sync(String.Format("{0}\\...@14", clientFolder), null, DepotSyncFlags.Force, DepotSyncMethod.Virtual);
 					
 					string[] clientFiles = Directory.EnumerateFiles(clientFolder).ToArray();
 					Assert(clientFiles.Length == 21);
@@ -1093,7 +1093,7 @@ namespace Microsoft.P4VFS.UnitTest
 				string invalidServer = "p4-localhost4.invalid.domain:1666";
 				string validServer = _P4Port;
 
-				depotClient.Sync(srcFile, new DepotRevisionHead(), DepotSyncType.Normal, DepotSyncMethod.Virtual);
+				depotClient.Sync(srcFile, new DepotRevisionHead(), DepotSyncFlags.Normal, DepotSyncMethod.Virtual);
 				Assert(IsPlaceholderFile(srcFile));
 
 				FilePopulateInfo popInfoBefore = NativeMethods.GetFilePopulateInfo(srcFile);
@@ -1311,11 +1311,11 @@ namespace Microsoft.P4VFS.UnitTest
 				string clientRoot = GetClientRoot(depotClient);
 
 				string largeFile = String.Format(@"{0}\depot\gears1\Development\Src\Core\Src\Core.cpp", clientRoot);
-				depotClient.Sync(largeFile, new DepotRevisionNumber(1), DepotSyncType.Normal, DepotSyncMethod.Virtual);
+				depotClient.Sync(largeFile, new DepotRevisionNumber(1), DepotSyncFlags.Normal, DepotSyncMethod.Virtual);
 				Int64 largeFileSize = FileUtilities.GetFileLength(largeFile);
 
 				string smallFile = String.Format(@"{0}\depot\gears1\Development\Src\Core\Src\BitArray.cpp", clientRoot);
-				depotClient.Sync(smallFile, new DepotRevisionNumber(1), DepotSyncType.Normal, DepotSyncMethod.Virtual);
+				depotClient.Sync(smallFile, new DepotRevisionNumber(1), DepotSyncFlags.Normal, DepotSyncMethod.Virtual);
 				Int64 smallFileSize = FileUtilities.GetFileLength(smallFile);
 
 				Assert(largeFileSize > smallFileSize);
@@ -1504,7 +1504,7 @@ namespace Microsoft.P4VFS.UnitTest
 
 				var AssertSyncEmpty = new Action<Func<DepotSyncResult>>(doSync =>
 				{
-					DepotSyncResult syncResult = depotClient.Sync("//...", null, DepotSyncType.Flush|DepotSyncType.Quiet);
+					DepotSyncResult syncResult = depotClient.Sync("//...", null, DepotSyncFlags.Flush|DepotSyncFlags.Quiet);
 					Assert(syncResult != null && syncResult.Modifications != null);
 					Assert((syncResult.Status == DepotSyncStatus.Success && syncResult.Modifications.Length > clientFileCount) || 
 						   (syncResult.Status == DepotSyncStatus.Warning && syncResult.Modifications.Length == 1 && syncResult.Modifications[0].SyncActionType == DepotSyncActionType.UpToDate));
@@ -1529,8 +1529,8 @@ namespace Microsoft.P4VFS.UnitTest
 
 				foreach (DepotSyncMethod syncMethod in new[]{ DepotSyncMethod.Regular, DepotSyncMethod.Virtual })
 				{
-					AssertSyncEmpty(() => depotClient.Sync("", null, DepotSyncType.Normal, syncMethod));
-					AssertSyncEmpty(() => depotClient.Sync(new DepotSyncOptions{ SyncType=DepotSyncType.Normal, SyncMethod=syncMethod }));
+					AssertSyncEmpty(() => depotClient.Sync("", null, DepotSyncFlags.Normal, syncMethod));
+					AssertSyncEmpty(() => depotClient.Sync(new DepotSyncOptions{ SyncFlags=DepotSyncFlags.Normal, SyncMethod=syncMethod }));
 				}
 
 				foreach (string syncOption in EnumerateCommonConsoleSyncOptions())
@@ -1654,15 +1654,15 @@ namespace Microsoft.P4VFS.UnitTest
 			{
 				using (settings) {
 				using (DepotClient depotClient = new DepotClient()) {
-				DepotSyncType syncType = settings.SyncType.Value;
+				DepotSyncFlags syncFlags = settings.SyncFlags.Value;
 
 				WorkspaceReset();
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
 				string clientRoot = GetClientRoot(depotClient);
 
-				DepotSyncResult syncResult = depotClient.Sync("//depot/tools/dev/external/packages/thirdparty/microsoft/...", null, syncType, DepotSyncMethod.Virtual);
+				DepotSyncResult syncResult = depotClient.Sync("//depot/tools/dev/external/packages/thirdparty/microsoft/...", null, syncFlags, DepotSyncMethod.Virtual);
 				Assert(syncResult?.Status == DepotSyncStatus.Success);
-				Assert(syncType.HasFlag(DepotSyncType.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() == 11);
+				Assert(syncFlags.HasFlag(DepotSyncFlags.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() == 11);
 				string[] srcFiles = Directory.GetFiles(clientRoot, "*", SearchOption.AllDirectories);
 				Assert(srcFiles.Length == 11);
 				foreach (string srcFile in srcFiles)
@@ -1694,7 +1694,7 @@ namespace Microsoft.P4VFS.UnitTest
 				// Sync the file to the start revision and verify consistent state
 				string clientFile = startFStat.ClientFile;
 				Assert(String.IsNullOrEmpty(clientFile) == false);
-				DepotSyncResult syncResult = depotClient.Sync(depotFile, new DepotRevisionNumber(startRev), DepotSyncType.Normal, syncMethod);
+				DepotSyncResult syncResult = depotClient.Sync(depotFile, new DepotRevisionNumber(startRev), DepotSyncFlags.Normal, syncMethod);
 				Assert(syncResult.Status == DepotSyncStatus.Success);
 				Assert(syncResult.Modifications?.Count() == 1);
 				Assert(IsPlaceholderFile(clientFile) == (syncMethod == DepotSyncMethod.Virtual));
@@ -1704,7 +1704,7 @@ namespace Microsoft.P4VFS.UnitTest
 				using (FileStream stream = File.OpenRead(clientFile))
 				{
 					// Sync the file to the end revision, which will fail, and verify consistent state still at start revision
-					syncResult = depotClient.Sync(depotFile, new DepotRevisionNumber(endRev), DepotSyncType.Normal, syncMethod);
+					syncResult = depotClient.Sync(depotFile, new DepotRevisionNumber(endRev), DepotSyncFlags.Normal, syncMethod);
 					Assert(syncResult.Status == DepotSyncStatus.Error);
 					Assert(syncResult.Modifications?.Count() > 0);
 					Assert(IsPlaceholderFile(clientFile) == false);
@@ -1714,7 +1714,7 @@ namespace Microsoft.P4VFS.UnitTest
 				}
 
 				// Sync the file to the end revision, which will succeed, and verify consistent state
-				syncResult = depotClient.Sync(depotFile, new DepotRevisionNumber(endRev), DepotSyncType.Normal, syncMethod);
+				syncResult = depotClient.Sync(depotFile, new DepotRevisionNumber(endRev), DepotSyncFlags.Normal, syncMethod);
 				Assert(syncResult.Status == DepotSyncStatus.Success);
 				Assert(syncResult.Modifications?.Count() == 1);
 				Assert(IsPlaceholderFile(clientFile) == (syncMethod == DepotSyncMethod.Virtual));
@@ -1823,7 +1823,7 @@ namespace Microsoft.P4VFS.UnitTest
 				string depotFolder = "//depot/gears1/Development/Src/Core";
 
 				// Perform a sync through the service. We expect connections to be closed when done (not cached)
-				Assert(service.Sync(config, new DepotSyncOptions{ Files=new[]{ depotFolder+"/..." }, SyncType=DepotSyncType.Force, SyncMethod=DepotSyncMethod.Virtual }) == DepotSyncStatus.Success);
+				Assert(service.Sync(config, new DepotSyncOptions{ Files=new[]{ depotFolder+"/..." }, SyncFlags=DepotSyncFlags.Force, SyncMethod=DepotSyncMethod.Virtual }) == DepotSyncStatus.Success);
 
 				// Reconcile the folder using p4.exe. There will be one or more cached service connections
 				Assert(ReconcilePreview(depotFolder).Any() == false);
@@ -1897,7 +1897,7 @@ namespace Microsoft.P4VFS.UnitTest
 				string clientFolder = Path.Combine(clientRoot, "depot\\gears1\\Development\\Src");
 				string clientSubFolder = Path.Combine(clientFolder, "Core\\Inc");
 
-				DepotSyncResult syncResult = sourceDepotClient.Sync(String.Format("{0}\\...", clientFolder), null, DepotSyncType.Normal, DepotSyncMethod.Virtual);
+				DepotSyncResult syncResult = sourceDepotClient.Sync(String.Format("{0}\\...", clientFolder), null, DepotSyncFlags.Normal, DepotSyncMethod.Virtual);
 				Assert(syncResult?.Status == DepotSyncStatus.Success);
 				Assert(ReconcilePreview(clientSubFolder).Any() == false);
 
@@ -1984,16 +1984,16 @@ namespace Microsoft.P4VFS.UnitTest
 			{
 				using (settings) {
 				using (DepotClient depotClient = new DepotClient()) {
-				DepotSyncType syncType = settings.SyncType.Value;
+				DepotSyncFlags syncFlags = settings.SyncFlags.Value;
 
 				WorkspaceReset();
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
 				string clientRoot = GetClientRoot(depotClient);
 				string clientFolder = String.Format("{0}\\depot\\tools\\dev\\documentation", clientRoot);
 
-				DepotSyncResult syncResult = depotClient.Sync(String.Format("{0}\\...", clientFolder), null, syncType, DepotSyncMethod.Virtual);
+				DepotSyncResult syncResult = depotClient.Sync(String.Format("{0}\\...", clientFolder), null, syncFlags, DepotSyncMethod.Virtual);
 				Assert(syncResult?.Status == DepotSyncStatus.Success);
-				Assert(syncType.HasFlag(DepotSyncType.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() == 7);
+				Assert(syncFlags.HasFlag(DepotSyncFlags.IgnoreOutput) ? syncResult.Modifications == null : syncResult.Modifications.Count() == 7);
 				string[] srcFiles = Directory.GetFiles(clientRoot, "*", SearchOption.AllDirectories);
 				Assert(srcFiles.Length == 7);
 				HashSet<string> srcFileSet = srcFiles.Select(path => Regex.Replace(path, String.Format(@"^{0}", Regex.Escape(clientFolder)), "", RegexOptions.IgnoreCase)).ToHashSet();

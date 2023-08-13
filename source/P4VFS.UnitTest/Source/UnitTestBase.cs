@@ -280,12 +280,12 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(String.IsNullOrEmpty(root) == false);
 				Assert(depotClient.Opened().Count == 0 || depotClient.Run("revert", new[]{ "-k", "//..." }).HasError == false);
 
-				depotClient.Sync("//...", new DepotRevisionNone(), DepotSyncType.Force|DepotSyncType.Quiet, DepotSyncMethod.Regular);
+				depotClient.Sync("//...", new DepotRevisionNone(), DepotSyncFlags.Force|DepotSyncFlags.Quiet, DepotSyncMethod.Regular);
 				AssertLambda(() => FileUtilities.DeleteDirectoryAndFiles(root));
 				AssertRetry(() => Directory.Exists(root) == false, String.Format("directory exists {0}", root));
 				if (depotClient.GetHeadRevisionChangelist() != null)
 				{
-					DepotSyncResult syncResult = depotClient.Sync("//...#none", null, DepotSyncType.Normal);
+					DepotSyncResult syncResult = depotClient.Sync("//...#none", null, DepotSyncFlags.Normal);
 					Assert(syncResult?.Modifications != null);
 					Assert(syncResult.Modifications.Where(a => !FDepotSyncActionType.IsError(a.SyncActionType)).Any() == false);
 				}
@@ -629,9 +629,9 @@ namespace Microsoft.P4VFS.UnitTest
 		{
 			foreach (ServiceSettingsScope item in EnumerateCommonServicePopulateSettings(false))
 			{
-				foreach (DepotSyncType primarySyncType in new[]{ DepotSyncType.Normal, DepotSyncType.Quiet, DepotSyncType.IgnoreOutput })
+				foreach (DepotSyncFlags primarySyncFlags in new[]{ DepotSyncFlags.Normal, DepotSyncFlags.Quiet, DepotSyncFlags.IgnoreOutput })
 				{
-					item.SyncType = primarySyncType;
+					item.SyncFlags = primarySyncFlags;
 					if (verbose)
 						VirtualFileSystemLog.Info("EnumerateCommonServiceSyncSettings: {0}", item);
 					yield return item;
@@ -844,7 +844,7 @@ namespace Microsoft.P4VFS.UnitTest
 	public class ServiceSettingsScope : IDisposable
 	{
 		public List<ServiceSettingScope> ServiceSettings = new List<ServiceSettingScope>();
-		public DepotSyncType? SyncType;
+		public DepotSyncFlags? SyncFlags;
 		public string LineEnd;
 
 		public void Dispose()
@@ -856,8 +856,8 @@ namespace Microsoft.P4VFS.UnitTest
 		public override string ToString()
 		{
 			string result = String.Format("ServiceSettings=[{0}]", String.Join(",", ServiceSettings));
-			if (SyncType.HasValue)
-				result += String.Format(", SyncType=[{0}]", SyncType.Value);
+			if (SyncFlags.HasValue)
+				result += String.Format(", SyncFlags=[{0}]", SyncFlags.Value);
 			if (LineEnd != null)
 				result += String.Format(", LineEnd={0}", LineEnd);
 			return result;

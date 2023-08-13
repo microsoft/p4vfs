@@ -26,17 +26,17 @@ namespace Microsoft.P4VFS.Extensions
 			return depotClient.Run(command).ToView<DepotResultViewType>();
 		}
 
-		public static DepotSyncResult Sync(this DepotClient depotClient, string files, DepotRevision revision = null, DepotSyncType syncType = DepotSyncType.Normal, DepotSyncMethod syncMethod = DepotSyncMethod.Virtual, DepotFlushType flushType = DepotFlushType.Atomic, string syncResident = null)
+		public static DepotSyncResult Sync(this DepotClient depotClient, string files, DepotRevision revision = null, DepotSyncFlags syncFlags = DepotSyncFlags.Normal, DepotSyncMethod syncMethod = DepotSyncMethod.Virtual, DepotFlushType flushType = DepotFlushType.Atomic, string syncResident = null)
 		{
-			return depotClient.Sync(new string[]{ files }, revision, syncType, syncMethod, flushType, syncResident);
+			return depotClient.Sync(new string[]{ files }, revision, syncFlags, syncMethod, flushType, syncResident);
 		}
 
-		public static DepotSyncResult Sync(this DepotClient depotClient, IEnumerable<string> files, DepotRevision revision = null, DepotSyncType syncType = DepotSyncType.Normal, DepotSyncMethod syncMethod = DepotSyncMethod.Virtual, DepotFlushType flushType = DepotFlushType.Atomic, string syncResident = null)
+		public static DepotSyncResult Sync(this DepotClient depotClient, IEnumerable<string> files, DepotRevision revision = null, DepotSyncFlags syncFlags = DepotSyncFlags.Normal, DepotSyncMethod syncMethod = DepotSyncMethod.Virtual, DepotFlushType flushType = DepotFlushType.Atomic, string syncResident = null)
 		{
 			DepotSyncOptions syncOptions = new DepotSyncOptions();
 			syncOptions.Files = files?.ToArray();
 			syncOptions.Revision = revision?.ToString();
-			syncOptions.SyncType = syncType;
+			syncOptions.SyncFlags = syncFlags;
 			syncOptions.SyncMethod = syncMethod;
 			syncOptions.SyncResident = syncResident;
 			syncOptions.FlushType = flushType;

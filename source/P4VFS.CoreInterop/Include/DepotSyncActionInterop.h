@@ -8,15 +8,15 @@ namespace P4VFS {
 namespace CoreInterop {
 
 [System::FlagsAttribute]
-public enum class DepotSyncType : System::Int32
+public enum class DepotSyncFlags : System::Int32
 {
-	Normal			= P4::DepotSyncType::Normal,
-	Force			= P4::DepotSyncType::Force,
-	Flush			= P4::DepotSyncType::Flush,
-	Preview			= P4::DepotSyncType::Preview,
-	IgnoreOutput	= P4::DepotSyncType::IgnoreOutput,
-	Quiet			= P4::DepotSyncType::Quiet,
-	Writeable		= P4::DepotSyncType::Writeable,
+	Normal			= P4::DepotSyncFlags::Normal,
+	Force			= P4::DepotSyncFlags::Force,
+	Flush			= P4::DepotSyncFlags::Flush,
+	Preview			= P4::DepotSyncFlags::Preview,
+	IgnoreOutput	= P4::DepotSyncFlags::IgnoreOutput,
+	Quiet			= P4::DepotSyncFlags::Quiet,
+	Writeable		= P4::DepotSyncFlags::Writeable,
 };
 
 public enum class DepotFlushType : System::Int32

@@ -24,7 +24,7 @@ namespace P4 {
 	{
 		DepotStringArray m_Files;
 		DepotRevision m_Revision;
-		DepotSyncType::Enum m_SyncType;
+		DepotSyncFlags::Enum m_SyncFlags;
 		DepotFlushType::Enum m_FlushType;
 		DepotSyncMethod::Enum m_SyncMethod;
 		DepotString m_SyncResident;

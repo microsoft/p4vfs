@@ -8,16 +8,16 @@ namespace Microsoft {
 namespace P4VFS {
 namespace P4 {
 
-DepotString DepotSyncType::ToString(DepotSyncType::Enum value)
+DepotString DepotSyncFlags::ToString(DepotSyncFlags::Enum value)
 {
 	DepotString result;
-	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncType, Normal);
-	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncType, Force);
-	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncType, Flush);
-	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncType, Preview);
-	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncType, IgnoreOutput);
-	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncType, Quiet);
-	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncType, Writeable);
+	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncFlags, Normal);
+	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncFlags, Force);
+	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncFlags, Flush);
+	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncFlags, Preview);
+	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncFlags, IgnoreOutput);
+	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncFlags, Quiet);
+	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncFlags, Writeable);
 	return result;
 }
 
@@ -130,7 +130,7 @@ FDepotSyncActionInfo::FDepotSyncActionInfo() :
 	m_Revision(),
 	m_SyncActionType(DepotSyncActionType::None),
 	m_SyncActionFlags(DepotSyncActionFlags::None),
-	m_SyncType(DepotSyncType::Normal),
+	m_SyncFlags(DepotSyncFlags::Normal),
 	m_FlushType(DepotFlushType::Atomic),
 	m_DiskFileSize(0),
 	m_VirtualFileSize(0),
@@ -155,7 +155,7 @@ int32_t FDepotSyncActionInfo::RevisionNumber() const
 
 bool FDepotSyncActionInfo::CanModifyWritableFile() const
 {
-	if (m_SyncType & DepotSyncType::Force)
+	if (m_SyncFlags & DepotSyncFlags::Force)
 		return true;
 	if (m_SyncActionFlags & (DepotSyncActionFlags::ClientClobber | DepotSyncActionFlags::ClientWrite | DepotSyncActionFlags::FileWrite | DepotSyncActionFlags::HaveFileWrite | DepotSyncActionFlags::FileSymlink))
 		return true;
@@ -171,7 +171,7 @@ bool FDepotSyncActionInfo::CanSetWritableFile() const
 
 bool FDepotSyncActionInfo::IsPreview() const
 {
-	if (m_SyncType & DepotSyncType::Preview)
+	if (m_SyncFlags & DepotSyncFlags::Preview)
 		return true;
 	return false;
 }

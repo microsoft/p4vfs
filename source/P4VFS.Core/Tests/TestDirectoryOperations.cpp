@@ -81,7 +81,7 @@ void TestIterateDirectoryParallel(const TestContext& context)
 	Assert(client->Connect(context.GetDepotConfig()));
 	
 	FDepotSyncOptions syncOptions;
-	syncOptions.m_SyncType = DepotSyncType::Quiet;
+	syncOptions.m_SyncFlags = DepotSyncFlags::Quiet;
 	DepotSyncResult syncResult = DepotOperations::Sync(client, syncOptions);
 	Assert(syncResult.get() != nullptr);
 	Assert(syncResult->m_Status == DepotSyncStatus::Success);

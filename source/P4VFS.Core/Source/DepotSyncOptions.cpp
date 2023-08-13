@@ -15,7 +15,7 @@ DepotString DepotSyncMethod::ToString(DepotSyncMethod::Enum value)
 }
 
 FDepotSyncOptions::FDepotSyncOptions() :
-	m_SyncType(DepotSyncType::Normal),
+	m_SyncFlags(DepotSyncFlags::Normal),
 	m_SyncMethod(DepotSyncMethod::Virtual),
 	m_FlushType(DepotFlushType::Atomic)
 {

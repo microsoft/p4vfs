@@ -24,6 +24,7 @@
     <ClInclude Include="Include\DepotResultFStat.h" />
     <ClInclude Include="Include\DepotResultInfo.h" />
     <ClInclude Include="Include\DepotResultPrint.h" />
+    <ClInclude Include="Include\DepotResultSizes.h" />
     <ClInclude Include="Include\DepotResultWhere.h" />
     <ClInclude Include="Include\DepotRevision.h" />
     <ClInclude Include="Include\DepotSyncAction.h" />

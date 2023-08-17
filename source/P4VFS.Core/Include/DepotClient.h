@@ -44,6 +44,7 @@ namespace P4 {
 		P4VFS_CORE_API void Reset();
 		P4VFS_CORE_API bool HasError();
 		P4VFS_CORE_API DepotString GetErrorText();
+		P4VFS_CORE_API int32_t GetServerProtocol();
 
 		P4VFS_CORE_API DepotString GetProgramName() const;
 		P4VFS_CORE_API DepotString GetTicketsFilePath() const;

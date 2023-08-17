@@ -441,7 +441,7 @@ bool FDepotClient::Connect(const DepotConfig& config)
 	m_P4->m_ClientApi->SetProg(GetProgramName().c_str());
 	m_P4->m_ClientApi->SetTicketFile(GetTicketsFilePath().c_str());
 	m_P4->m_ClientApi->SetTrustFile(GetTrustFilePath().c_str());
-	m_P4->m_ClientApi->SetProtocol(P4Tag::v_api, "70"); // 2016.1
+	m_P4->m_ClientApi->SetProtocol(P4Tag::v_api, DepotProtocol::CLIENT_2016_1_STRING);
 	m_P4->m_ClientApi->SetProtocol(P4Tag::v_specstring, ""); 
 	m_P4->m_ClientApi->SetProtocol(P4Tag::v_enableStreams, "");
 
@@ -573,6 +573,18 @@ DepotString FDepotClient::GetErrorText()
 		text = FileCore::StringInfo::ToString(msg.Text());
 	}
 	return text;
+}
+
+int32_t FDepotClient::GetServerProtocol()
+{
+	if (m_P4->m_ClientApi.get())
+	{
+		if (const StrPtr* server2 = m_P4->m_ClientApi->GetProtocol(P4Tag::v_server2))
+		{
+			return server2->Atoi();
+		}
+	}
+	return 0;
 }
 
 DepotString FDepotClient::GetProgramName() const

@@ -31,8 +31,8 @@ jobs:
           displayName: 'P4VFS Publish'
           inputs:
             solution: '$(Pipeline.Workspace)/drop/source/P4VFS.Setup/P4VFS.Setup.targets'
-            msbuildVersion: 17.0
-            msbuildArchitecture: x64
+            msbuildVersion: '17.0'
+            msbuildArchitecture: 'x64'
             configuration: ${{parameters.configuration}}
             msbuildArguments: '/Target:P4VFSDeploySetup ${{parameters.additionalBuildArguments}}'
 

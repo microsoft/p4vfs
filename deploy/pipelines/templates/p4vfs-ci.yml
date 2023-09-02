@@ -51,19 +51,28 @@ jobs:
   - task: PublishSymbols@2
     displayName: 'Publish Symbols'
     inputs:
-      SearchPattern: '**/builds/**/*.pdb'
+      SearchPattern: 'intermediate/builds/**/p4vfs*.pdb'
       SymbolServerType: 'TeamServices'
+      IndexSources: false
 
   - task: CopyFiles@2
     displayName: 'Stage Artifacts'
     inputs:
       sourceFolder: '$(Build.SourcesDirectory)'
       contents: |
-        intermediate/*/P4VFS.Setup/*/*.exe
         intermediate/*/P4VFS.Setup/**/Resource/*.nuspec
         source/**/+(*.props|*.targets)
         nuget.config
       TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: MSBuild@1
+    displayName: 'Stage Setup'
+    inputs:
+      solution: 'source/P4VFS.Setup/P4VFS.Setup.targets'
+      msbuildVersion: '17.0'
+      msbuildArchitecture: 'x64'
+      configuration: ${{parameters.configuration}}
+      msbuildArguments: '/Target:P4VFSDeploySetup /Property:P4VFSPublishDeployDir=$(Build.ArtifactStagingDirectory)'
 
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifacts'

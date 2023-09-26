@@ -20,6 +20,7 @@ typedef	INT	FLT_FILE_NAME_OPTIONS;
 typedef ULONG64 POOL_FLAGS;
 typedef	VOID* PACCESS_STATE;
 typedef INT FILE_INFORMATION_CLASS;
+typedef HANDLE PEPROCESS;
 
 typedef	struct _UNICODE_STRING {
 	USHORT Length;
@@ -224,6 +225,7 @@ typedef	struct _FILE_STANDARD_INFORMATION_EX {
 #define	PAGED_CODE()					__noop
 #define	FlagOn(_F,_SF)					((_F) &	(_SF))
 #define	ObDereferenceObject(f)			__noop
+#define PsGetCurrentProcess()			GetCurrentProcess()
 #define	PsGetCurrentProcessId()			GetCurrentProcessId()
 #define	PsGetCurrentThreadId()			GetCurrentThreadId()
 #define min(a,b)						(((a) < (b)) ? (a) : (b))
@@ -363,6 +365,39 @@ VOID RtlInitUnicodeString(PUNICODE_STRING dst, PCWSTR src)
 		dst->Buffer = (PWSTR)Microsoft::P4VFS::FileCore::GAlloc(dst->MaximumLength);
 		memcpy(dst->Buffer, src, dst->MaximumLength);
 	}
+}
+
+PACCESS_TOKEN PsReferencePrimaryToken(PEPROCESS process)
+{
+	HANDLE hToken = INVALID_HANDLE_VALUE;
+	return OpenProcessToken(process, TOKEN_ALL_ACCESS, &hToken) ? hToken : INVALID_HANDLE_VALUE;
+}
+
+VOID PsDereferencePrimaryToken(PACCESS_TOKEN token)
+{
+	CloseHandle(token);
+}
+
+VOID ExFreePool(VOID* ptr)
+{
+	Microsoft::P4VFS::FileCore::GFree(ptr);
+}
+
+NTSTATUS SeQueryInformationToken(PACCESS_TOKEN token, TOKEN_INFORMATION_CLASS tokenInformationClass, PVOID outTokenInformation)
+{
+	if (outTokenInformation && tokenInformationClass == TokenElevationType)
+	{
+		DWORD dwTokenInformationWritten = 0;
+		LPVOID tokenInformation = Microsoft::P4VFS::FileCore::GAlloc(sizeof(TOKEN_ELEVATION_TYPE));
+		if (GetTokenInformation(token, tokenInformationClass, tokenInformation, sizeof(TOKEN_ELEVATION_TYPE), &dwTokenInformationWritten) && 
+		    dwTokenInformationWritten == sizeof(TOKEN_ELEVATION_TYPE))
+		{
+			*(PVOID*)outTokenInformation = tokenInformation;
+			return STATUS_SUCCESS;	
+		}
+		Microsoft::P4VFS::FileCore::GFree(tokenInformation);
+	}
+	return STATUS_UNSUCCESSFUL;
 }
 
 #include "DriverCore.h"

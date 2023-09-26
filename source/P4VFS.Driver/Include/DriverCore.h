@@ -129,3 +129,7 @@ P4vfsCloseReparsePoint(
 	_In_ PFILE_OBJECT pFileObject
 	);
 
+BOOLEAN
+P4vfsIsCurrentProcessElevated(
+	);
+

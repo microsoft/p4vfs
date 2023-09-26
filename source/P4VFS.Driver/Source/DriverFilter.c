@@ -771,6 +771,13 @@ P4vfsControlPortMessage(
 		}
 		case P4VFS_OPERATION_SET_FLAG:
 		{
+			if (P4vfsIsCurrentProcessElevated() == FALSE)
+			{
+				P4vfsTraceError(Filter, L"P4vfsControlPortMessage: P4VFS_CONTROL_SET_FLAG elevation required");
+				status = STATUS_ELEVATION_REQUIRED;
+				break;
+			}
+
 			const WCHAR strSanitizeAttributes[] = L"SanitizeAttributes";
 			if (RtlCompareMemory(strSanitizeAttributes, input->data.SET_FLAG.name, sizeof(strSanitizeAttributes)) == sizeof(strSanitizeAttributes))
 			{

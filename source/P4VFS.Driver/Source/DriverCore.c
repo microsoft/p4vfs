@@ -884,3 +884,61 @@ P4vfsCloseReparsePoint(
 
 	return STATUS_SUCCESS;
 }
+
+BOOLEAN
+P4vfsIsCurrentProcessElevated(
+	)
+{
+	BOOLEAN result = FALSE;
+	NTSTATUS status = STATUS_SUCCESS;
+	PEPROCESS pProcessObject = NULL;
+	PACCESS_TOKEN pAccessToken = NULL;
+	PTOKEN_ELEVATION_TYPE pElevationType = NULL;
+
+	PAGED_CODE();
+
+	pProcessObject = PsGetCurrentProcess();
+	if (pProcessObject == NULL)
+	{
+		P4vfsTraceError(Core, L"P4vfsIsCurrentProcessElevated: PsGetCurrentProcess is NULL");
+		goto CLEANUP;
+	}
+
+	pAccessToken = PsReferencePrimaryToken(pProcessObject);
+	if (pAccessToken == NULL)
+	{
+		P4vfsTraceError(Core, L"P4vfsIsCurrentProcessElevated: PsReferencePrimaryToken is NULL");
+		goto CLEANUP;
+	}
+
+	status = SeQueryInformationToken(pAccessToken,
+									 TokenElevationType,
+									 &pElevationType);
+
+	if (!NT_SUCCESS(status) || pElevationType == NULL) 
+	{
+		P4vfsTraceError(Core, L"P4vfsIsCurrentProcessElevated: Failed to query TokenElevationType");
+		goto CLEANUP;
+	}
+
+	if (*pElevationType == TokenElevationTypeFull)
+	{
+		result = TRUE;
+	}
+
+	P4vfsTraceInfo(Core, L"P4vfsIsCurrentProcessElevated: Result [%d] pElevationType [%d]", (LONG)result, (LONG)(*pElevationType));
+
+CLEANUP:
+	if (pElevationType != NULL) 
+	{
+		ExFreePool(pElevationType);
+	}
+
+	if (pAccessToken != NULL)
+	{
+		PsDereferencePrimaryToken(pAccessToken);
+	}
+
+	return result;
+}
+

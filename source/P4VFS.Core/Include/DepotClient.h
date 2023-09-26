@@ -42,9 +42,11 @@ namespace P4 {
 		P4VFS_CORE_API DepotResultInfo Info();
 
 		P4VFS_CORE_API void Reset();
-		P4VFS_CORE_API bool HasError();
-		P4VFS_CORE_API DepotString GetErrorText();
-		P4VFS_CORE_API int32_t GetServerProtocol();
+		P4VFS_CORE_API bool HasError() const;
+		P4VFS_CORE_API DepotString GetErrorText() const;
+		P4VFS_CORE_API int32_t GetProtocol(const char* tag, int32_t defaultValue = 0) const;
+		P4VFS_CORE_API int32_t GetServerApiLevel() const;
+		P4VFS_CORE_API bool IsServerUnicode() const;
 
 		P4VFS_CORE_API DepotString GetProgramName() const;
 		P4VFS_CORE_API DepotString GetTicketsFilePath() const;
@@ -138,8 +140,8 @@ namespace P4 {
 	struct DepotTunable
 	{
 		P4VFS_CORE_API static int32_t Get(const DepotString& name, int32_t defaultValue = -1);
-		P4VFS_CORE_API static void	Set(const DepotString& name, int32_t value);
-		P4VFS_CORE_API static void	Unset(const DepotString& name);
+		P4VFS_CORE_API static void Set(const DepotString& name, int32_t value);
+		P4VFS_CORE_API static void Unset(const DepotString& name);
 		P4VFS_CORE_API static bool IsSet(const DepotString& name);
 		P4VFS_CORE_API static bool IsKnown(const DepotString& name);
 	};

@@ -387,17 +387,23 @@ struct FDepotClient::Api
 	DepotTimer m_AccessTime;
 	FileContext* m_FileContext;
 	Flags::Enum m_Flags;
+	bool m_IsServerUnicode;
+	int32_t m_ServerApiLevel;
 	DepotClientLogCallback m_OnErrorCallback;
 	DepotClientLogCallback m_OnMessageCallback;
+
+	Api() :
+		m_FileContext(nullptr),
+		m_Flags(Flags::None),
+		m_IsServerUnicode(false),
+		m_ServerApiLevel(0)
+	{}
 };
 
 FDepotClient::FDepotClient(FileContext* context)
 {
 	m_P4 = new FDepotClient::Api();
 	m_P4->m_FileContext = context;
-	m_P4->m_Flags = Flags::None;
-	m_P4->m_OnErrorCallback.reset();
-	m_P4->m_OnMessageCallback.reset();
 }
 
 FDepotClient::~FDepotClient()
@@ -471,6 +477,8 @@ bool FDepotClient::Connect(const DepotConfig& config)
 	m_P4->m_Config.SetUser(m_P4->m_ClientApi->GetUser().Text());
 	m_P4->m_Config.SetPort(m_P4->m_ClientApi->GetPort().Text());
 	m_P4->m_Config.SetDirectory(m_P4->m_ClientApi->GetCwd().Text());
+	m_P4->m_IsServerUnicode = !!GetProtocol(P4Tag::v_unicode);
+	m_P4->m_ServerApiLevel = GetProtocol(P4Tag::v_server2);
 	return IsConnected();
 }
 
@@ -493,7 +501,7 @@ void FDepotClient::Reset()
 	}
 }
 
-bool FDepotClient::HasError()
+bool FDepotClient::HasError() const
 {
 	return m_P4->m_Error.get() ? m_P4->m_Error->Test() : false;
 }
@@ -563,7 +571,7 @@ DepotResultInfo FDepotClient::Info()
 	return Run<DepotResultInfo>("info");
 }
 
-DepotString FDepotClient::GetErrorText()
+DepotString FDepotClient::GetErrorText() const
 {
 	DepotString text;
 	if (m_P4->m_Error.get())
@@ -575,16 +583,27 @@ DepotString FDepotClient::GetErrorText()
 	return text;
 }
 
-int32_t FDepotClient::GetServerProtocol()
+int32_t FDepotClient::GetProtocol(const char* tag, int32_t defaultValue) const
 {
-	if (m_P4->m_ClientApi.get())
+	if (m_P4->m_ClientApi.get() && StringInfo::IsNullOrEmpty(tag) == false)
 	{
-		if (const StrPtr* server2 = m_P4->m_ClientApi->GetProtocol(P4Tag::v_server2))
+		const StrPtr* protocol = m_P4->m_ClientApi->GetProtocol(tag);
+		if (protocol != nullptr && protocol->Length())
 		{
-			return server2->Atoi();
+			return protocol->Atoi();
 		}
 	}
-	return 0;
+	return defaultValue;
+}
+
+int32_t FDepotClient::GetServerApiLevel() const
+{
+	return m_P4->m_ServerApiLevel;
+}
+
+bool FDepotClient::IsServerUnicode() const
+{
+	return m_P4->m_IsServerUnicode;
 }
 
 DepotString FDepotClient::GetProgramName() const

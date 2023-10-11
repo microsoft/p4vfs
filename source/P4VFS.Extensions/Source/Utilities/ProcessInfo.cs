@@ -276,14 +276,14 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 			bool copy = false,
 			bool interactive = false,
 			StringBuilder stdout = null,
-			string sysInternalsSuiteFolder = null)
+			string sysInternalsFolder = null)
 		{
-			if (String.IsNullOrEmpty(sysInternalsSuiteFolder))
+			if (String.IsNullOrEmpty(sysInternalsFolder))
 			{
-				sysInternalsSuiteFolder = String.Format("{0}\\SysinternalsSuite", Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles));
+				sysInternalsFolder = String.Format("{0}\\SysinternalsSuite", Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles));
 			}
 
-			string psExecExe = String.Format("{0}\\psexec.exe", sysInternalsSuiteFolder);
+			string psExecExe = String.Format("{0}\\psexec.exe", sysInternalsFolder);
 			string psExecArgs = String.Format("\\\\{0} -u {1} -p {2} -accepteula -nobanner", remoteHost, remoteUser, remotePasswd);
 			if (admin)
 			{

@@ -24,12 +24,6 @@ namespace Microsoft.P4VFS.UnitTest
 		{
 			try
 			{
-				if (ShellUtilities.IsProcessElevated() == false)
-				{
-					VirtualFileSystemLog.Error("Unable to run tests as non-elevated process");
-					return false;
-				}
-
 				if (config != null)
 				{
 					if (String.IsNullOrWhiteSpace(config.Port) == false)
@@ -379,6 +373,11 @@ namespace Microsoft.P4VFS.UnitTest
 		public static string InstalledP4vfsExe
 		{
 			get { return GetCachedFilePath(ref _InstalledP4vfsExe, () => Path.GetFullPath(String.Format("{0}\\{1}", GetP4vfsInstallFolder(), Path.GetFileName(P4vfsExe)))); }
+		}
+
+		public static string SysInternalsFolder
+		{
+			get { return String.Format("{0}\\SysinternalsSuite", Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)); }
 		}
 
 		public static string GetRepositoryRootFolder()

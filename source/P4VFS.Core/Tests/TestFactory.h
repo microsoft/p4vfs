@@ -35,15 +35,26 @@ namespace TestCore {
 
 	typedef void (*TestDelegate)(const TestContext& context);
 
+	struct TestFlags 
+	{
+		enum Enum
+		{
+			None		= 0,
+			Explicit	= 1<<0,
+		};
+	};
+
+	DEFINE_ENUM_FLAG_OPERATORS(TestFlags::Enum);
+
 	struct TestObject
 	{	
-		TestObject(const wchar_t* name, const wchar_t* filename, int32_t priority);
-		TestObject(const wchar_t* name, const wchar_t* filename, int32_t priority, TestDelegate exec);
+		TestObject(const wchar_t* name, const wchar_t* filename, int32_t priority, TestDelegate exec, TestFlags::Enum flags = TestFlags::None);
 
 		String m_Name;
 		String m_Filename;
 		int32_t m_Priority;
 		TestDelegate m_Exec;
+		TestFlags::Enum m_Flags;
 	};
 
 	typedef TestObject (*TestObjectCreator)();
@@ -79,11 +90,12 @@ namespace TestCore {
 	};
 }}}
 
-#define P4VFS_REGISTER_TEST(name, priority) \
+#define P4VFS_REGISTER_TEST(name, priority, ...) \
 	__declspec(dllexport) Microsoft::P4VFS::TestCore::TestObject TestFactoryCreateTestObject##name() \
 	{ \
+		using namespace Microsoft::P4VFS::TestCore; \
 		extern void name(const Microsoft::P4VFS::TestCore::TestContext&); \
-		return Microsoft::P4VFS::TestCore::TestObject(TEXT(#name), TEXT(__FILE__), priority, &name); \
+		return Microsoft::P4VFS::TestCore::TestObject(TEXT(#name), TEXT(__FILE__), priority, &name, __VA_ARGS__); \
 	} \
 	static Microsoft::P4VFS::TestCore::TestRegistrator TestRegistrator##name(&TestFactoryCreateTestObject##name); \
 

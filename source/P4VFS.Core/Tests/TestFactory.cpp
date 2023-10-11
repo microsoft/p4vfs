@@ -41,18 +41,13 @@ namespace TestCore {
 		return m_FileContext->m_LogDevice;
 	}
 
-	TestObject::TestObject(const wchar_t* name, const wchar_t* filename, int32_t priority) :
+	TestObject::TestObject(const wchar_t* name, const wchar_t* filename, int32_t priority, TestDelegate exec, TestFlags::Enum flags) :
 		m_Name(name),
 		m_Filename(filename),
 		m_Priority(priority),
-		m_Exec(nullptr)
+		m_Exec(exec),
+		m_Flags(flags)
 	{
-	}
-
-	TestObject::TestObject(const wchar_t* name, const wchar_t* filename, int32_t priority, TestDelegate exec) :
-		TestObject(name, filename, priority)
-	{
-		m_Exec = exec;
 	}
 
 	TestFactory::TestFactory()
@@ -100,7 +95,8 @@ namespace TestCore {
 
 	bool TestFactory::IsRequested(const StringArray& args, const TestObject& test) const
 	{
-		if (args.size() == 0)
+		const bool isTestExplicit = !!(test.m_Flags & TestFlags::Explicit);
+		if (args.size() == 0 && isTestExplicit == false)
 			return true;
 		for (const String& arg : args)
 		{
@@ -108,15 +104,18 @@ namespace TestCore {
 				return true;
 			if (arg == StringInfo::ToString(test.m_Priority))
 				return true;
-			std::match_results<const wchar_t*> match;
-			if (std::regex_search(arg.c_str(), match, std::wregex(L"^\\s*\\[?(\\d*):(\\d*)\\]?\\s*$")))
+			if (isTestExplicit == false)
 			{
-				String strBegin = match.str(1);
-				String strEnd = match.str(2);
-				int32_t begin = strBegin.empty() ? 0 : _wtoi(strBegin.c_str());
-				int32_t end = strEnd.empty() ? std::numeric_limits<int32_t>::max() : _wtoi(strEnd.c_str());
-				if (test.m_Priority >= begin && test.m_Priority <= end)
-					return true;
+				std::match_results<const wchar_t*> match;
+				if (std::regex_search(arg.c_str(), match, std::wregex(L"^\\s*\\[?(\\d*):(\\d*)\\]?\\s*$")))
+				{
+					String strBegin = match.str(1);
+					String strEnd = match.str(2);
+					int32_t begin = strBegin.empty() ? 0 : _wtoi(strBegin.c_str());
+					int32_t end = strEnd.empty() ? std::numeric_limits<int32_t>::max() : _wtoi(strEnd.c_str());
+					if (test.m_Priority >= begin && test.m_Priority <= end)
+						return true;
+				}
 			}
 		}
 		return false;

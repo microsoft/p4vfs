@@ -26,8 +26,6 @@ namespace Microsoft.P4VFS.UnitTest
 				}
 			}
 
-			WorkspaceReset();
-
 			CoreInterop.TestContextInterop context = new CoreInterop.TestContextInterop();
 			context.m_Environment = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
 			context.m_Environment["P4USER"] = _P4User;
@@ -36,6 +34,10 @@ namespace Microsoft.P4VFS.UnitTest
 			context.m_Environment["P4ROOT"] = GetClientRoot();
 			context.m_Environment["P4VFS_EXE"] = P4vfsExe;
 			context.m_Environment["P4VFS_EXE_CONFIG"] = ClientConfig.ToString();
+			context.m_Environment["P4_EXE"] = P4Exe;
+			context.m_Environment["INSTALLED_P4VFS_EXE"] = InstalledP4vfsExe;
+			context.m_Environment["IS_TEST_REMOTE"] = IsTestRemote.ToString();
+			context.m_Environment["SYSINTERNALS_FOLDER"] = SysInternalsFolder;
 			context.m_ReconcilePreviewAny = (s) => this.ReconcilePreview(s).Any();
 			context.m_WorkspaceReset = () => this.WorkspaceReset();
 			context.m_IsPlaceholderFile = (s) => this.IsPlaceholderFile(s);

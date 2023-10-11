@@ -68,7 +68,7 @@ namespace Microsoft.P4VFS.UnitTest
 
 		private int RemoteExecuteWait(string cmd, bool admin=false, bool shell=false, bool copy=false, StringBuilder stdout=null)
 		{
-			return ProcessInfo.RemoteExecuteWait(cmd, RemoteHost, RemoteUser, RemotePasswd, admin:admin, shell:shell, copy:copy, stdout:stdout, interactive:true);
+			return ProcessInfo.RemoteExecuteWait(cmd, RemoteHost, RemoteUser, RemotePasswd, admin:admin, shell:shell, copy:copy, stdout:stdout, interactive:true, sysInternalsFolder:SysInternalsFolder);
 		}
 
 		private string GetRequiredEnvironmentVariable(string name)

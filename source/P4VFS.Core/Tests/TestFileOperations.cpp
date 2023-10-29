@@ -85,11 +85,6 @@ void TestFileOperationsOpenReparsePointFile(const TestContext& context)
 	Assert(memcmp(localFileReadBytes.data(), localFileWriteBytes.data(), localFileWriteBytes.size()) == 0);
 }
 
-static int32_t ExecCmd(const String& Cmd)
-{
-	return Process::Execute(Cmd.c_str(), nullptr, Process::ExecuteFlags::HideWindow|Process::ExecuteFlags::WaitForExit).m_ExitCode;
-}
-
 void TestFileOperationsAccess(const TestContext& context)
 {
 	const String p4vfsExe = context.GetEnvironment(TEXT("P4VFS_EXE"));
@@ -99,30 +94,48 @@ void TestFileOperationsAccess(const TestContext& context)
 	const String psexecExe = StringInfo::Format(TEXT("%s\\psexec.exe"), sysInternalsFolder.c_str());
 	Assert(FileInfo::IsRegular(psexecExe.c_str()));
 
-	Assert(ExecCmd(TEXT("fltmc.exe")) == 0);
-	Assert(ExecCmd(StringInfo::Format(TEXT("\"%s\" -i -accepteula -nobanner fltmc.exe"), psexecExe.c_str())) == 0);
-	Assert(ExecCmd(StringInfo::Format(TEXT("\"%s\" -i -l -accepteula -nobanner fltmc.exe"), psexecExe.c_str())) != 0);
+	// Confirm successfull run of elevated process
+	Assert(TestUtilities::ExecuteWait(TEXT("fltmc.exe")) == 0);
+	// Confirm successfull psexec run of elevated process
+	Assert(TestUtilities::ExecuteWait(StringInfo::Format(TEXT("\"%s\" -i -accepteula -nobanner fltmc.exe"), psexecExe.c_str())) == 0);
+	// Confirm unsuccessfull psexec run of unelevated process
+	Assert(TestUtilities::ExecuteWait(StringInfo::Format(TEXT("\"%s\" -i -l -accepteula -nobanner fltmc.exe"), psexecExe.c_str())) != 0);
 
-	Assert(ExecCmd(StringInfo::Format(TEXT("\"%s\" test 11003"), p4vfsExe.c_str())) == 0);
-	Assert(ExecCmd(StringInfo::Format(TEXT("\"%s\" -i -l -accepteula -nobanner \"%s\" test 11004"), psexecExe.c_str(), p4vfsExe.c_str())) == 0);
+	// Confirm successfull run of p4vfs test TestFileOperationsAccessElevated
+	int32_t testElevatedPriority = P4VFS_FIND_TEST(TestFileOperationsAccessElevated).m_Priority;
+	Assert(TestUtilities::ExecuteLogWait(StringInfo::Format(TEXT("\"%s\" -b test -e %d"), p4vfsExe.c_str(), testElevatedPriority), context, TEXT("[AccessElevated] ")) == 0);
+
+	// Confirm successfull run of p4vfs test TestFileOperationsAccessUnelevated
+	int32_t testUnelevatedPriority = P4VFS_FIND_TEST(TestFileOperationsAccessUnelevated).m_Priority;
+	Assert(TestUtilities::ExecuteLogWait(StringInfo::Format(TEXT("\"%s\" -i -l -accepteula -nobanner \"%s\" -b test -e %d"), psexecExe.c_str(), p4vfsExe.c_str(), testUnelevatedPriority), context, TEXT("[AccessUnelevated] ")) == 0);
+}
+
+void AssertFileOperationsAccessInternal(const TestContext& context, bool isElevated)
+{
+	// Confirm successfull run of elevated process if expected
+	Assert((TestUtilities::ExecuteWait(TEXT("fltmc.exe")) == 0) == isElevated);
+
+	// Attempt to open read/write an an existing file under an elevation protected folder
+	const String adminFilePath = FileOperations::GetExpandedEnvironmentStrings(TEXT("%ProgramFiles%\\P4VFS\\P4VFS.Notes.txt"));
+	Assert(FileInfo::IsRegular(adminFilePath.c_str()));
+	P4VFS_FLT_FILE_HANDLE adminFileHandle = FileOperations::OpenReparsePointFile(adminFilePath.c_str(), FILE_GENERIC_READ|FILE_GENERIC_WRITE, 0);
+	if (isElevated)
+	{
+		Assert(adminFileHandle.fileHandle != NULL && adminFileHandle.fileHandle != INVALID_HANDLE_VALUE && adminFileHandle.fileObject != nullptr);
+		Assert(SUCCEEDED(FileOperations::CloseReparsePointFile(adminFileHandle)));
+	}
+	else
+	{
+		Assert(adminFileHandle.fileHandle == NULL && adminFileHandle.fileObject == nullptr);
+	}
 }
 
 void TestFileOperationsAccessElevated(const TestContext& context)
 {
-	Assert(ExecCmd(TEXT("fltmc.exe")) == 0);
-
-/*
-	const WCHAR* adminFilePath = TEXT("C:\Program Files\P4VFS\P4VFS.Notes.txt");
-	P4VFS_FLT_FILE_HANDLE adminHandleWrite = FileOperations::OpenReparsePointFile(adminFilePath, FILE_GENERIC_READ|FILE_GENERIC_WRITE, 0);
-	Assert(adminHandleWrite.fileHandle == NULL && adminHandleWrite.fileObject == nullptr);
-
-	P4VFS_FLT_FILE_HANDLE adminHandleRead = FileOperations::OpenReparsePointFile(adminFilePath, FILE_GENERIC_READ, 0);
-	Assert(adminHandleRead.fileHandle != NULL && adminHandleRead.fileHandle != INVALID_HANDLE_VALUE && adminHandleRead.fileObject != nullptr);
-	Assert(SUCCEEDED(FileOperations::CloseReparsePointFile(adminHandleRead)));
-*/
+	AssertFileOperationsAccessInternal(context, true);
 }
 
 void TestFileOperationsAccessUnelevated(const TestContext& context)
 {
-	Assert(ExecCmd(TEXT("fltmc.exe")) != 0);
+	AssertFileOperationsAccessInternal(context, false);
 }

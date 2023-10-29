@@ -8,6 +8,8 @@ Version [1.27.0.0]
 * Driver now requires process to be elevated in order to set control paramters (p4vfs ctrl)
 * Addition of DepotClient accessor for server protocol level used for testing for server 
   features and unicode behavior
+* Additional tests for elevated access requirements for internal p4vfsflt control port 
+  operations
 
 Version [1.26.1.0]
 * Fixing support for file paths including non-ASCII single-byte (CP-1252) encoded characters.

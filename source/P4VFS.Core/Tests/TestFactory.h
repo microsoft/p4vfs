@@ -86,7 +86,8 @@ namespace TestCore {
 	struct P4VFS_CORE_API TestUtilities
 	{
 		static void WorkspaceReset(const TestContext& context);
-		static DWORD ExecuteWait(const FileCore::String& fileName, const FileCore::String& args, FileCore::String* stdOutput = nullptr);
+		static DWORD ExecuteWait(const FileCore::String& cmd, FileCore::String* stdOutput = nullptr);
+		static DWORD ExecuteLogWait(const FileCore::String& cmd, const TestContext& context, const wchar_t* logLinePrefix = nullptr);
 	};
 }}}
 
@@ -98,5 +99,12 @@ namespace TestCore {
 		return Microsoft::P4VFS::TestCore::TestObject(TEXT(#name), TEXT(__FILE__), priority, &name, __VA_ARGS__); \
 	} \
 	static Microsoft::P4VFS::TestCore::TestRegistrator TestRegistrator##name(&TestFactoryCreateTestObject##name); \
+
+#define P4VFS_FIND_TEST(name) \
+	([]() -> Microsoft::P4VFS::TestCore::TestObject \
+	{ \
+		extern Microsoft::P4VFS::TestCore::TestObject TestFactoryCreateTestObject##name(); \
+		return TestFactoryCreateTestObject##name(); \
+	})()
 
 #pragma managed(pop)

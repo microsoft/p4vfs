@@ -24,6 +24,31 @@ namespace Microsoft.P4VFS.UnitTest
 		{
 			try
 			{
+				int argIndex = 0;
+				for (; argIndex < args.Length; ++argIndex)
+				{
+					if (String.Compare(args[argIndex], "-r") == 0)
+					{
+						IsTestRemote = true;
+					}
+					else if (String.Compare(args[argIndex], "-e") == 0)
+					{
+						IsTestAllowUnelevated = true;
+					}
+					else
+					{
+						break;
+					}
+				}
+
+				args = args.Skip(argIndex).ToArray();
+				
+				if (IsTestAllowUnelevated == false && ShellUtilities.IsProcessElevated() == false)
+				{
+					VirtualFileSystemLog.Error("Unable to run tests as non-elevated process");
+					return false;
+				}
+
 				if (config != null)
 				{
 					if (String.IsNullOrWhiteSpace(config.Port) == false)
@@ -46,21 +71,6 @@ namespace Microsoft.P4VFS.UnitTest
 						Environment.SetEnvironmentVariable("P4PASSWD", config.Passwd);
 					}
 				}
-
-				int argIndex = 0;
-				for (; argIndex < args.Length; ++argIndex)
-				{
-					if (String.Compare(args[argIndex], "-r") == 0)
-					{
-						IsTestRemote = true;
-					}
-					else
-					{
-						break;
-					}
-				}
-
-				args = args.Skip(argIndex).ToArray();
 
 				Assembly unitTestAssembly = Assembly.GetExecutingAssembly();
 				List<TestMethodInfo> testMethods = new List<TestMethodInfo>();
@@ -346,6 +356,12 @@ namespace Microsoft.P4VFS.UnitTest
 		}
 
 		public static bool IsTestRemote
+		{
+			get;
+			private set;
+		}
+
+		public static bool IsTestAllowUnelevated
 		{
 			get;
 			private set;

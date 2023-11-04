@@ -691,6 +691,7 @@ namespace FileCore {
 			HideWindow	= (1<<1),
 			StdOut		= (1<<2),
 			KeepOpen	= (1<<3),
+			Unelevated	= (1<<4),
 			Default		= WaitForExit,
 		};};
 

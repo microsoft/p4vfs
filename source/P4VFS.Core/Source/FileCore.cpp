@@ -2077,10 +2077,10 @@ Process::ExecuteResult Process::Execute(const wchar_t* cmd, const wchar_t* dir, 
 	}
 
 	PROCESS_INFORMATION pi;
-	STARTUPINFO si;
+	STARTUPINFOEX siex;
 	memset(&pi, 0, sizeof(pi));
-	memset(&si, 0, sizeof(si));
-	si.cb = sizeof(si);
+	memset(&siex, 0, sizeof(siex));
+	siex.StartupInfo.cb = sizeof(siex);
 
 	AutoHandle hRead;
 	AutoHandle hWrite;
@@ -2097,14 +2097,68 @@ Process::ExecuteResult Process::Execute(const wchar_t* cmd, const wchar_t* dir, 
 			return result;
 		}
 
-		si.dwFlags = STARTF_USESTDHANDLES;
-		si.hStdError = hWrite.Handle();
-		si.hStdOutput = hWrite.Handle();
+		siex.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
+		siex.StartupInfo.hStdError = hWrite.Handle();
+		siex.StartupInfo.hStdOutput = hWrite.Handle();
 	}
 
 	DWORD creationFlags = 0;
 	if (flags & ExecuteFlags::HideWindow)
+	{
 		creationFlags |= CREATE_NO_WINDOW;
+	}
+
+	std::unique_ptr<char[]> unelevatedAttrListBuffer;
+	AutoHandle hUnelevatedParentProcess;
+	if (flags & ExecuteFlags::Unelevated)
+	{
+		HWND hShellWnd = GetShellWindow();
+		if (hShellWnd == NULL)
+		{
+			result.m_HR = HRESULT_FROM_WIN32(GetLastError());
+			return result;
+		}
+
+		DWORD shellPID = 0;
+		GetWindowThreadProcessId(hShellWnd, &shellPID);
+		if (shellPID == 0)
+		{
+			result.m_HR = HRESULT_FROM_WIN32(GetLastError());
+			return result;
+		}
+
+		hUnelevatedParentProcess.Reset(OpenProcess(PROCESS_CREATE_PROCESS, FALSE, shellPID));
+		if (hUnelevatedParentProcess.IsValid() == false)
+		{
+			result.m_HR = HRESULT_FROM_WIN32(GetLastError());
+			return result;
+		}
+
+		SIZE_T attrListSize = 0;
+		InitializeProcThreadAttributeList(nullptr, 1, 0, &attrListSize);
+		if (attrListSize == 0)
+		{
+			result.m_HR = HRESULT_FROM_WIN32(GetLastError());
+			return result;
+		}
+
+		unelevatedAttrListBuffer = std::make_unique<char[]>(size_t(attrListSize));
+		siex.lpAttributeList = (PPROC_THREAD_ATTRIBUTE_LIST)unelevatedAttrListBuffer.get();
+
+		if (InitializeProcThreadAttributeList(siex.lpAttributeList, 1, 0, &attrListSize) == FALSE)
+		{
+			result.m_HR = HRESULT_FROM_WIN32(GetLastError());
+			return result;
+		}
+
+		if (UpdateProcThreadAttribute(siex.lpAttributeList, 0, PROC_THREAD_ATTRIBUTE_PARENT_PROCESS, hUnelevatedParentProcess.HandlePtr(), sizeof(HANDLE), nullptr, nullptr) == FALSE)
+		{
+			result.m_HR = HRESULT_FROM_WIN32(GetLastError());
+			return result;
+		}
+
+		creationFlags |= EXTENDED_STARTUPINFO_PRESENT;
+	}
 
 	WString commandLineRw = cmd;
 	if (hUserToken != NULL && hUserToken != INVALID_HANDLE_VALUE)
@@ -2122,7 +2176,7 @@ Process::ExecuteResult Process::Execute(const wchar_t* cmd, const wchar_t* dir, 
 			DestroyEnvironmentBlock(environment);
 		});
 
-		if (CreateProcessAsUserW(hUserToken,  NULL, &commandLineRw[0], NULL, NULL, TRUE, creationFlags, environment, dir, &si, &pi) == FALSE)
+		if (CreateProcessAsUserW(hUserToken,  NULL, &commandLineRw[0], NULL, NULL, TRUE, creationFlags, environment, dir, &siex.StartupInfo, &pi) == FALSE)
 		{
 			result.m_HR = HRESULT_FROM_WIN32(GetLastError());
 			return result;
@@ -2130,7 +2184,7 @@ Process::ExecuteResult Process::Execute(const wchar_t* cmd, const wchar_t* dir, 
 	}
 	else
 	{
-		if (CreateProcessW(NULL, &commandLineRw[0], NULL, NULL, TRUE, creationFlags, NULL, dir, &si, &pi) == FALSE)
+		if (CreateProcessW(NULL, &commandLineRw[0], NULL, NULL, TRUE, creationFlags, NULL, dir, &siex.StartupInfo, &pi) == FALSE)
 		{
 			result.m_HR = HRESULT_FROM_WIN32(GetLastError());
 			return result;

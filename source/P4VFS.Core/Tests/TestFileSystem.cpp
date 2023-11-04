@@ -21,7 +21,7 @@ void TestResolveFileResidency(const TestContext& context)
 		const String p4Options = context.GetEnvironment(L"P4VFS_EXE_CONFIG");
 		Assert(p4Options.empty() == false);
 
-		Assert(TestUtilities::ExecuteWait(StringInfo::Format(L"\"%s\" %s sync -f %s", p4vfsExe.c_str(), p4Options.c_str(), depotFile.c_str())) == 0);
+		Assert(TestUtilities::ExecuteWait(context, StringInfo::Format(L"\"%s\" %s sync -f %s", p4vfsExe.c_str(), p4Options.c_str(), depotFile.c_str())) == 0);
 		const String clientFile = StringInfo::ToWide(client.Run<DepotResultWhere>("where", DepotStringArray{ StringInfo::ToAnsi(depotFile) })->Node().LocalPath());
 		Assert(FileInfo::IsRegular(clientFile.c_str()));
 		Assert(context.m_IsPlaceholderFile(clientFile));

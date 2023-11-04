@@ -86,8 +86,7 @@ namespace TestCore {
 	struct P4VFS_CORE_API TestUtilities
 	{
 		static void WorkspaceReset(const TestContext& context);
-		static DWORD ExecuteWait(const FileCore::String& cmd, FileCore::String* stdOutput = nullptr);
-		static DWORD ExecuteLogWait(const FileCore::String& cmd, const TestContext& context, const wchar_t* logLinePrefix = nullptr);
+		static DWORD ExecuteWait(const TestContext& context, const FileCore::String& cmd, FileCore::String* stdOutput = nullptr, FileCore::Process::ExecuteFlags::Enum flags = FileCore::Process::ExecuteFlags::None);
 	};
 }}}
 

@@ -87,33 +87,67 @@ void TestFileOperationsOpenReparsePointFile(const TestContext& context)
 
 void TestFileOperationsAccess(const TestContext& context)
 {
+	const String rootFolder = context.GetEnvironment(TEXT("P4ROOT"));
+	Assert(rootFolder.size() > 0);
+
+	const String localRootFolder = StringInfo::Format(TEXT("%s\\TestFileOperationsAccess"), rootFolder.c_str());
+	Assert(FileInfo::DeleteDirectoryRecursively(localRootFolder.c_str()));
+	Assert(FileInfo::IsDirectory(localRootFolder.c_str()) == false);
+	Assert(FileInfo::CreateDirectory(localRootFolder.c_str()));
+
+	auto AssertTypeLogFile = [&context](const String& filePath, const wchar_t* logLinePrefix) -> void
+	{
+		Assert(FileInfo::ReadFileLines(filePath.c_str(), [logLinePrefix, &context](const AString& logLine) -> bool 
+		{ 
+			String logLineOut(logLinePrefix ? logLinePrefix : TEXT(""));
+			logLineOut += StringInfo::ToWide(logLine);
+			context.Log()->Info(StringInfo::TrimRight(logLineOut.c_str()));
+			return true;
+		}));
+		LogSystem::StaticInstance().Flush();
+	};
+
+	auto AssertFileContains = [](const String& filePath, const wchar_t* findText) -> void
+	{
+		bool found = false;
+		Assert(FileInfo::ReadFileLines(filePath.c_str(), [&found, findText](const AString& logLine) -> bool 
+		{ 
+			found = StringInfo::Contains(StringInfo::ToWide(logLine).c_str(), findText);
+			return !found;
+		}));
+		Assert(found);
+	};
+
 	const String p4vfsExe = context.GetEnvironment(TEXT("P4VFS_EXE"));
 	Assert(FileInfo::IsRegular(p4vfsExe.c_str()));
-	const String sysInternalsFolder = context.GetEnvironment(TEXT("SYSINTERNALS_FOLDER"));
-	Assert(FileInfo::IsDirectory(sysInternalsFolder.c_str()));
-	const String psexecExe = StringInfo::Format(TEXT("%s\\psexec.exe"), sysInternalsFolder.c_str());
-	Assert(FileInfo::IsRegular(psexecExe.c_str()));
 
 	// Confirm successfull run of elevated process
-	Assert(TestUtilities::ExecuteWait(TEXT("fltmc.exe")) == 0);
-	// Confirm successfull psexec run of elevated process
-	Assert(TestUtilities::ExecuteWait(StringInfo::Format(TEXT("\"%s\" -i -accepteula -nobanner fltmc.exe"), psexecExe.c_str())) == 0);
-	// Confirm unsuccessfull psexec run of unelevated process
-	Assert(TestUtilities::ExecuteWait(StringInfo::Format(TEXT("\"%s\" -i -l -accepteula -nobanner fltmc.exe"), psexecExe.c_str())) != 0);
+	Assert(TestUtilities::ExecuteWait(context, TEXT("fltmc.exe")) == 0);
+	
+	// Confirm unsuccessfull run of unelevated process
+	const String fltmcUnelevatedOutputFile = FileInfo::FullPath(StringInfo::Format(TEXT("%s\\fltmc-unelevated.txt"), localRootFolder.c_str()).c_str());
+	Assert(TestUtilities::ExecuteWait(context, StringInfo::Format(TEXT("cmd.exe /s /c fltmc.exe > \"%s\" 2>&1"), fltmcUnelevatedOutputFile.c_str()).c_str(), nullptr, Process::ExecuteFlags::Unelevated) != 0);
+	AssertFileContains(fltmcUnelevatedOutputFile, TEXT("Access is denied."));
 
 	// Confirm successfull run of p4vfs test TestFileOperationsAccessElevated
+	const String testElevatedOutputFile = FileInfo::FullPath(StringInfo::Format(TEXT("%s\\test-elevated.txt"), localRootFolder.c_str()).c_str());
 	int32_t testElevatedPriority = P4VFS_FIND_TEST(TestFileOperationsAccessElevated).m_Priority;
-	Assert(TestUtilities::ExecuteLogWait(StringInfo::Format(TEXT("\"%s\" -b test -e %d"), p4vfsExe.c_str(), testElevatedPriority), context, TEXT("[AccessElevated] ")) == 0);
+	int32_t testElevatedResult = TestUtilities::ExecuteWait(context, StringInfo::Format(TEXT("cmd.exe /s /c %s test -e %d > \"%s\" 2>&1"), p4vfsExe.c_str(), testElevatedPriority, testElevatedOutputFile.c_str()));
+	AssertTypeLogFile(testElevatedOutputFile, TEXT("[AccessElevated] "));
+	Assert(testElevatedResult == 0);
 
 	// Confirm successfull run of p4vfs test TestFileOperationsAccessUnelevated
+	const String testUnelevatedOutputFile = FileInfo::FullPath(StringInfo::Format(TEXT("%s\\test-unelevated.txt"), localRootFolder.c_str()).c_str());
 	int32_t testUnelevatedPriority = P4VFS_FIND_TEST(TestFileOperationsAccessUnelevated).m_Priority;
-	Assert(TestUtilities::ExecuteLogWait(StringInfo::Format(TEXT("\"%s\" -i -l -accepteula -nobanner \"%s\" -b test -e %d"), psexecExe.c_str(), p4vfsExe.c_str(), testUnelevatedPriority), context, TEXT("[AccessUnelevated] ")) == 0);
+	int32_t testUnelevatedResult = TestUtilities::ExecuteWait(context, StringInfo::Format(TEXT("cmd.exe /s /c %s test -e %d > \"%s\" 2>&1"), p4vfsExe.c_str(), testUnelevatedPriority, testUnelevatedOutputFile.c_str()), nullptr, Process::ExecuteFlags::Unelevated);
+	AssertTypeLogFile(testUnelevatedOutputFile, TEXT("[AccessUnelevated] "));
+	Assert(testUnelevatedResult == 0);
 }
 
 void AssertFileOperationsAccessInternal(const TestContext& context, bool isElevated)
 {
 	// Confirm successfull run of elevated process if expected
-	Assert((TestUtilities::ExecuteWait(TEXT("fltmc.exe")) == 0) == isElevated);
+	Assert((TestUtilities::ExecuteWait(context, TEXT("fltmc.exe")) == 0) == isElevated);
 
 	// Attempt to open read/write an an existing file under an elevation protected folder
 	const String adminFilePath = FileOperations::GetExpandedEnvironmentStrings(TEXT("%ProgramFiles%\\P4VFS\\P4VFS.Notes.txt"));

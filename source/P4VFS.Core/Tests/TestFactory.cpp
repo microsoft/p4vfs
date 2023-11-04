@@ -132,42 +132,27 @@ namespace TestCore {
 		context.m_WorkspaceReset();
 	}
 
-	DWORD TestUtilities::ExecuteWait(const FileCore::String& cmd, FileCore::String* stdOutput)
+	DWORD TestUtilities::ExecuteWait(const TestContext& context, const FileCore::String& cmd, FileCore::String* stdOutput, FileCore::Process::ExecuteFlags::Enum flags)
 	{
-		using namespace FileCore;
 		if (cmd.empty())
 		{
 			return DWORD(-1);
 		}
 
-		Process::ExecuteFlags::Enum flags = Process::ExecuteFlags::HideWindow | Process::ExecuteFlags::WaitForExit;
+		context.Log()->Info(cmd.c_str());
+
+		flags |= FileCore::Process::ExecuteFlags::HideWindow | FileCore::Process::ExecuteFlags::WaitForExit;
 		if (stdOutput != nullptr)
 		{
-			flags |= Process::ExecuteFlags::StdOut;
+			flags |= FileCore::Process::ExecuteFlags::StdOut;
 		}
 
-		Process::ExecuteResult result = Process::Execute(cmd.c_str(), nullptr, flags);
+		FileCore::Process::ExecuteResult result = FileCore::Process::Execute(cmd.c_str(), nullptr, flags);
 		if (stdOutput != nullptr)
 		{
 			stdOutput->assign(StringInfo::ToWide(result.m_StdOut));
 		}
 		return result.m_ExitCode;
-	}
-
-	DWORD TestUtilities::ExecuteLogWait(const FileCore::String& cmd, const TestContext& context, const wchar_t* logLinePrefix)
-	{
-		FileCore::String stdOutput;
-		DWORD exitCode = ExecuteWait(cmd, &stdOutput);
-
-		FileCore::StringArray logLines = StringInfo::Split(stdOutput.c_str(), TEXT("\n"), StringInfo::SplitFlags::None);
-		for (const String& logLine : logLines)
-		{
-			String logLineOut(logLinePrefix ? logLinePrefix : TEXT(""));
-			logLineOut += logLine;
-			context.Log()->Info(StringInfo::TrimRight(logLineOut.c_str()));
-		}
-		
-		return exitCode;
 	}
 }}}
 

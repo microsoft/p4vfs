@@ -61,7 +61,7 @@ jobs:
       sourceFolder: '$(Build.SourcesDirectory)'
       contents: |
         intermediate/*/P4VFS.Setup/*/Resource/*.nuspec
-		intermediate/*/P4VFS.Setup/*/*.exe
+        intermediate/*/P4VFS.Setup/*/*.exe
         source/**/+(*.props|*.targets)
         nuget.config
       TargetFolder: '$(Build.ArtifactStagingDirectory)'

@@ -64,7 +64,7 @@ TestFactoryInterop::Run(
 	}
 	catch (std::exception e)
 	{
-		throw gcnew System::Exception(Marshal::FromNativeAnsi(e.what()));
+		throw gcnew System::Exception(Marshal::FromNativeAnsi(e.what())->Trim());
 	}
 	catch (...)
 	{

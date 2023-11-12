@@ -10,6 +10,7 @@ Version [1.27.0.0]
   features and unicode behavior
 * Additional tests for elevated access requirements for internal p4vfsflt control port 
   operations
+* Fixing stdout display of native unit test assertions and other inner assertions
 
 Version [1.26.1.0]
 * Fixing support for file paths including non-ASCII single-byte (CP-1252) encoded characters.

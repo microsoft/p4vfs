@@ -22,16 +22,20 @@ namespace FileCore {
 
 		msg += StringInfo::Format(TEXT("%s(%d): [%s]\n"), file, line, expr);
 		if (IsDebuggerPresent())
+		{
 			OutputDebugString(msg.c_str());
+		}
 
 		AssertDebugBreak();
-		throw new std::exception(StringInfo::WtoA(msg));
+		throw std::exception(StringInfo::WtoA(msg));
 	}
 
 	void AssertDebugBreakImpl()
 	{
 		if (IsDebuggerPresent()) 
+		{
 			__debugbreak(); 
+		}
 	}
 
 }}}

@@ -149,19 +149,16 @@ void AssertFileOperationsAccessInternal(const TestContext& context, bool isEleva
 	// Confirm successfull run of elevated process if expected
 	Assert((TestUtilities::ExecuteWait(context, TEXT("fltmc.exe")) == 0) == isElevated);
 
-	// Attempt to open read/write an an existing file under an elevation protected folder
+	// Attempt to open read/write an an existing file under an elevation protected folder. In the future we may want to restrict this to isElevated only
 	const String adminFilePath = FileOperations::GetExpandedEnvironmentStrings(TEXT("%ProgramFiles%\\P4VFS\\P4VFS.Notes.txt"));
 	Assert(FileInfo::IsRegular(adminFilePath.c_str()));
 	P4VFS_FLT_FILE_HANDLE adminFileHandle = FileOperations::OpenReparsePointFile(adminFilePath.c_str(), FILE_GENERIC_READ|FILE_GENERIC_WRITE, 0);
-	if (isElevated)
-	{
-		Assert(adminFileHandle.fileHandle != NULL && adminFileHandle.fileHandle != INVALID_HANDLE_VALUE && adminFileHandle.fileObject != nullptr);
-		Assert(SUCCEEDED(FileOperations::CloseReparsePointFile(adminFileHandle)));
-	}
-	else
-	{
-		Assert(adminFileHandle.fileHandle == NULL && adminFileHandle.fileObject == nullptr);
-	}
+	Assert(adminFileHandle.fileHandle != NULL && adminFileHandle.fileHandle != INVALID_HANDLE_VALUE && adminFileHandle.fileObject != nullptr);
+	Assert(SUCCEEDED(FileOperations::CloseReparsePointFile(adminFileHandle)));
+
+	// Attempt to set a driver control message which should be elevated only (this should be a proper set and restore)
+	Assert(isElevated == SUCCEEDED(FileOperations::SetDriverFlag(TEXT("SanitizeAttributes"), 1)));
+	Assert(isElevated == SUCCEEDED(FileOperations::SetDriverFlag(TEXT("SanitizeAttributes"), 0)));
 }
 
 void TestFileOperationsAccessElevated(const TestContext& context)

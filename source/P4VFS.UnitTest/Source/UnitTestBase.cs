@@ -194,14 +194,26 @@ namespace Microsoft.P4VFS.UnitTest
 
 		public static void AssertLambda(Func<bool> expression, string message = "")
 		{
-			try { Assert(expression(), message); } 
-			catch { Assert(false, message); }
+			try 
+			{ 
+				Assert(expression(), message); 
+			} 
+			catch (Exception e)
+			{ 
+				Assert(false, String.Join("\n", message, e.ToString()).Trim()); 
+			}
 		}
 
 		public static void AssertLambda(Action expression, string message = "")
 		{
-			try { expression(); } 
-			catch { Assert(false, message); }
+			try 
+			{ 
+				expression(); 
+			} 
+			catch (Exception e)
+			{ 
+				Assert(false, String.Join("\n", message, e.ToString()).Trim()); 
+			}
 		}
 
 		public static string GetCachedFilePath(ref string filePath, Func<string> getFilePath)

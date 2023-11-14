@@ -10,30 +10,37 @@ IF NOT "%1"=="/admin" (
 	GOTO :EOF
 )
 
-PUSHD "%SCRIPT_FOLDER%\..\..\..\intermediate\1666"
-SET SERVER_FOLDER=%CD%
+PUSHD "%SCRIPT_FOLDER%\..\..\.."
+SET REPO_FOLDER=%CD%
 POPD
 
+SET SERVER_FOLDER=%REPO_FOLDER%\intermediate\1666
+SET P4D_EXE=%SERVER_FOLDER%\p4d.exe
+SET P4_EXE=p4.exe
+FOR /F "tokens=*" %%A IN ('dir /s /b "%REPO_FOLDER%\external\P4API\p4.exe"') DO (
+	SET P4_EXE=%%A
+)
+
 taskkill.exe /F /IM p4d.exe > nul 2>&1
-START cmd.exe /c ""%SERVER_FOLDER%\p4d.exe" -L "%SERVER_FOLDER%\p4d.log" -r "%SERVER_FOLDER%\db" -p 1666 -Id P4VFS_TEST -J off"
+START cmd.exe /s /c ""%P4D_EXE%" -L "%SERVER_FOLDER%\p4d.log" -r "%SERVER_FOLDER%\db" -p 1666 -Id P4VFS_TEST -J off"
 
 :P4D_WAIT
 SET P4_ARGS=-p localhost:1666
-p4.exe %P4_ARGS% info > nul
+"%P4_EXE%" %P4_ARGS% info > nul
 IF "%ERRORLEVEL%"=="0" GOTO :P4D_READY
 ECHO waiting for p4d ...
-sleep 2
+timeout /nobreak /t 2 > nul
 GOTO :P4D_WAIT
 
 :P4D_READY
 ECHO p4d ready
-ECHO Password1| p4.exe %P4_ARGS% -u p4vfstest login
+ECHO Password1| "%P4_EXE%" %P4_ARGS% -u p4vfstest login
 IF NOT "%ERRORLEVEL%"=="0" GOTO :P4D_FAILED
-p4.exe %P4_ARGS% -u p4vfstest login northamerica\gatineau
+"%P4_EXE%" %P4_ARGS% -u p4vfstest login northamerica\gatineau
 IF NOT "%ERRORLEVEL%"=="0" GOTO :P4D_FAILED
-p4.exe %P4_ARGS% -u p4vfstest login northamerica\quebec
+"%P4_EXE%" %P4_ARGS% -u p4vfstest login northamerica\quebec
 IF NOT "%ERRORLEVEL%"=="0" GOTO :P4D_FAILED
-p4.exe %P4_ARGS% -u p4vfstest login northamerica\montreal
+"%P4_EXE%" %P4_ARGS% -u p4vfstest login northamerica\montreal
 IF NOT "%ERRORLEVEL%"=="0" GOTO :P4D_FAILED
 ECHO p4d startup success
 GOTO :EOF

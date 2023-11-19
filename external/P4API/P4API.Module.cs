@@ -12,7 +12,7 @@ namespace Microsoft.P4VFS.External
 {
 	public class P4apiModule : Module
 	{
-		private const string P4API_VERSION = "r23.1";
+		private const string P4API_VERSION = "r23.2";
 		private const string P4API_VISUAL_STUDIO_EDITION = "2022";
 
 		public override string Name

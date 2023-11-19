@@ -33,6 +33,7 @@ namespace Microsoft.P4VFS.Setup
 			_ProgressLayers.Add(new ProgressLayer{ CurrentStep = 0, TotalSteps = 1 });
 			_DescriptionText = String.Format("Microsoft P4VFS {0}", Microsoft.P4VFS.CoreInterop.NativeConstants.Version);
 			_StatusText = "";
+			_Text.Clear();
 			_UpdateTimer = new DispatcherTimer();
 			_UpdateTimer.Interval = TimeSpan.FromSeconds(1.0/30.0);
 			_UpdateTimer.Tick += OnTickUpdateTimer;

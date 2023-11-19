@@ -109,6 +109,8 @@ Available commands:
               Atomic : Performs a guaranteed safe-to-terminate sync to be performed where
                        a Flush is sent to the server per file synced. This operation
                        is cancellation safe.
+    -c        Force the placeholder file size to be the expected workspace file size,
+              instead of server file size. This requires server 2023.1 or later.
 "},
 
 {"info", @"

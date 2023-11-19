@@ -20,6 +20,7 @@ namespace P4 {
 			IgnoreOutput	= 1<<3,
 			Quiet			= 1<<4,
 			Writeable		= 1<<5,
+			ClientSize		= 1<<6,
 		};
 
 		P4VFS_CORE_API static DepotString ToString(Enum value);

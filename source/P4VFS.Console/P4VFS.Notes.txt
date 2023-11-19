@@ -1,7 +1,9 @@
 Microsoft P4VFS Release Notes
 
 Version [1.27.0.0]
-* Updating to P4API 2023.1 and OpenSSL 1.1.1v. UnitTest now uses p4d.exe/p4.exe 2023.1
+* New sync -c option to force the placeholder file size to be the expected workspace 
+  file size, instead of server file size. This requires server 2023.1 or later.
+* Updating to P4API 2023.2 and OpenSSL 1.1.1v. UnitTest now uses p4d.exe/p4.exe 2023.1
 * P4VFS.External checksum verification fix to handle unexpected whitespace around SHA256
 * Driver IRP_MJ_CREATE PostCreate callback fix for properly ignoring reparse on non-P4VFS 
   files with FileTag matching our P4VFS_REPARSE_TAG.
@@ -11,6 +13,7 @@ Version [1.27.0.0]
 * Additional tests for elevated access requirements for internal p4vfsflt control port 
   operations
 * Fixing stdout display of native unit test assertions and other inner assertions
+* Fixing bug where "Text" would appear at the top of the Setup details output.
 
 Version [1.26.1.0]
 * Fixing support for file paths including non-ASCII single-byte (CP-1252) encoded characters.

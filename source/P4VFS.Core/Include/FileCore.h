@@ -66,8 +66,8 @@ namespace FileCore {
 	template <typename KeyType, typename LessType = std::less<KeyType>>
 	using Set = std::set<KeyType, LessType>;
 
-	template <typename KeyType>
-	using HashSet = std::unordered_set<KeyType, std::hash<KeyType>, std::equal_to<KeyType>>;
+	template <typename KeyType, typename EqualType = std::equal_to<KeyType>>
+	using HashSet = std::unordered_set<KeyType, std::hash<KeyType>, EqualType>;
 
 	template <typename ValueType>
 	using Array = std::vector<ValueType>;
@@ -591,8 +591,8 @@ namespace FileCore {
 			return std::find(elements.begin(), elements.end(), v) != elements.end();
 		}
 
-		template <typename KeyType>
-		static bool Contains(const HashSet<KeyType>& elements, const KeyType& v)
+		template <typename KeyType, typename EqualType>
+		static bool Contains(const HashSet<KeyType, EqualType>& elements, const KeyType& v)
 		{
 			return elements.find(v) != elements.end();
 		}

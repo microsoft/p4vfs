@@ -35,6 +35,7 @@ namespace P4 {
 
 	// https://www.perforce.com/manuals/p4sag/Content/P4SAG/protocol-levels.html
 	#define DEPOT_PROTOCOL_LEVELS(_N) \
+		_N( 2023_2, 57, 95 ) \
 		_N( 2023_1, 56, 94 ) \
 		_N( 2022_2, 55, 93 ) \
 		_N( 2022_1, 54, 92 ) \

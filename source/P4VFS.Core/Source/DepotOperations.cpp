@@ -4,6 +4,7 @@
 #include "DepotOperations.h"
 #include "DepotDateTime.h"
 #include "DepotResultPrint.h"
+#include "DepotConstants.h"
 #include "DriverVersion.h"
 #include "FileSystem.h"
 #include "FileOperations.h"
@@ -826,10 +827,15 @@ DepotOperations::SyncCommand(
 		return nullptr;
 	}
 
-	HashSet<DepotString> writeableHeadDepotFiles;
-	HashSet<DepotString> writeableHaveDepotFiles;
-	HashSet<DepotString> symlinkDepotFiles;
-	HashSet<DepotString> diffDepotFiles;
+	typedef HashSet<DepotString, StringInfo::EqualInsensitive> DepotFileHashSet; 
+	typedef Map<DepotString, FDepotResultSizesNode, StringInfo::LessInsensitive> DepotFileClientSizeMapType;
+
+	DepotFileHashSet writeableHeadDepotFiles;
+	DepotFileHashSet writeableHaveDepotFiles;
+	DepotFileHashSet symlinkDepotFiles;
+	DepotFileHashSet diffDepotFiles;
+	DepotFileClientSizeMapType depotFileClientSizeMap;
+
 	if ((syncFlags & (DepotSyncFlags::Preview | DepotSyncFlags::Flush)) != 0 && (syncFlags & DepotSyncFlags::IgnoreOutput) == 0)
 	{
 		DepotRevision haveRevision = (syncFlags & DepotSyncFlags::Force) ? FDepotRevision::New<FDepotRevisionNone>() : FDepotRevision::New<FDepotRevisionHave>();
@@ -865,6 +871,16 @@ DepotOperations::SyncCommand(
 					symlinkDepotFiles.insert(node.DepotFile());
 				if (DepotInfo::IsSymlinkFileType(node.Type2()))
 					symlinkDepotFiles.insert(node.DepotFile2());
+			}
+
+			if ((syncFlags & DepotSyncFlags::ClientSize) != 0 && depotClient->GetServerApiLevel() >= DepotProtocol::SERVER_SIZES_C)
+			{
+				DepotResultSizes sizes = Sizes(depotClient, headFileSpec, SizesFlags::ClientSize);
+				for (size_t sizesNodeIndex = 0; sizesNodeIndex < sizes->NodeCount(); ++sizesNodeIndex)
+				{
+					FDepotResultSizesNode node = sizes->Node(sizesNodeIndex);
+					depotFileClientSizeMap[node.DepotFile()] = node;
+				}
 			}
 		}
 	}
@@ -1140,6 +1156,25 @@ DepotOperations::Diff2(
 		return std::make_shared<FDepotResultDiff2>();
 	}
 	return depotClient->Run<DepotResultDiff2>("diff2", DepotStringArray{ DepotString("-q"), fileSpec1, fileSpec2 });
+}
+
+DepotResultSizes
+DepotOperations::Sizes(
+	DepotClient& depotClient,
+	const DepotString& fileSpec, 
+	SizesFlags::Enum flags
+	)
+{
+	DepotStringArray sizesArgs;
+	if (flags & SizesFlags::ClientSize)
+	{
+		sizesArgs.push_back("-C");
+	}
+	if (fileSpec.empty() == false)
+	{
+		sizesArgs.push_back(fileSpec);
+	}
+	return depotClient->Run<DepotResultSizes>("sizes", sizesArgs);
 }
 
 DepotResultFStat 

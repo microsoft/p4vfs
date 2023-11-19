@@ -6,6 +6,7 @@
 #include "DepotDateTime.h"
 #include "DepotResultDiff2.h"
 #include "DepotResultFStat.h"
+#include "DepotResultSizes.h"
 #include "DepotReconfig.h"
 #pragma managed(push, off)
 
@@ -160,6 +161,18 @@ namespace P4 {
 			const DepotString& filterType = DepotString(),
 			FDepotResultFStatField::Enum fields = FDepotResultFStatField::Default, 
 			const DepotStringArray& optionArgs = DepotStringArray()
+			);
+
+		struct SizesFlags { enum Enum {
+			None			= 0,
+			ClientSize		= 1<<0,
+		};};
+
+		static DepotResultSizes
+		Sizes(
+			DepotClient& depotClient,
+			const DepotString& fileSpec, 
+			SizesFlags::Enum flags = SizesFlags::None
 			);
 
 		static bool

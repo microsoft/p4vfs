@@ -65,7 +65,7 @@
     <P4VFSUnitTestBuildDir>$(P4VFSBuildDir)/$(P4VFSUnitTestName)</P4VFSUnitTestBuildDir>
 
     <!-- Perforce API -->
-    <PerforceApiVersion>2023.1</PerforceApiVersion>
+    <PerforceApiVersion>2023.2</PerforceApiVersion>
     <PerforceApiConfiguration>$(P4VFSConfiguration)</PerforceApiConfiguration>
     <PerforceApiDir>$(P4VFSExternalDir)/P4API/$(PerforceApiVersion)</PerforceApiDir>
     <PerforceApiIncludeDir>$(PerforceApiDir)/include</PerforceApiIncludeDir>

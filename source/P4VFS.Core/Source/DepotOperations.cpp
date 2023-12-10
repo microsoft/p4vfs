@@ -986,6 +986,15 @@ DepotOperations::SyncCommand(
 				modification->m_Revision = FDepotRevision::New<FDepotRevisionNumber>(fstatNode->HeadRev());
 			}
 		}
+
+		if (FDepotResultSizesNode* sizesNode = Algo::Find(depotFileClientSizeMap, modification->m_DepotFile))
+		{
+			int64_t clientFileSize = sizesNode->FileSize();
+			if (clientFileSize > 0)
+			{
+				modification->m_FileSize = clientFileSize;
+			}
+		}
 	}
 
 	if (syncFlags & (DepotSyncFlags::Preview | DepotSyncFlags::Flush))

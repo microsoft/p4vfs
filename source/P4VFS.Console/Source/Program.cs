@@ -474,6 +474,10 @@ Available commands:
 					}
 					explicitFlush = flushType;
 				}
+				else if (String.Compare(args[argIndex], "-c") == 0)
+				{
+					syncFlags |= DepotSyncFlags.Writeable;
+				}
 				else
 				{
 					break;

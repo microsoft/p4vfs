@@ -640,6 +640,16 @@ namespace Microsoft.P4VFS.UnitTest
 			return summary;
 		}
 
+		public IEnumerable<DepotSyncFlags> EnumerateCommonPrimaryDepotSyncFlags(bool verbose = true)
+		{
+			foreach (DepotSyncFlags primarySyncFlags in new[]{ DepotSyncFlags.Normal, DepotSyncFlags.Quiet, DepotSyncFlags.IgnoreOutput })
+			{
+				if (verbose)
+					VirtualFileSystemLog.Info("EnumerateCommonPrimaryDepotSyncFlags: {0}", primarySyncFlags);
+				yield return primarySyncFlags;
+			}
+		}
+
 		public IEnumerable<ServiceSettingsScope> EnumerateCommonServicePopulateSettings(bool verbose = true)
 		{
 			foreach (FilePopulateMethod populateMethod in new[]{ FilePopulateMethod.Copy, FilePopulateMethod.Stream })
@@ -656,7 +666,7 @@ namespace Microsoft.P4VFS.UnitTest
 		{
 			foreach (ServiceSettingsScope item in EnumerateCommonServicePopulateSettings(false))
 			{
-				foreach (DepotSyncFlags primarySyncFlags in new[]{ DepotSyncFlags.Normal, DepotSyncFlags.Quiet, DepotSyncFlags.IgnoreOutput })
+				foreach (DepotSyncFlags primarySyncFlags in EnumerateCommonPrimaryDepotSyncFlags(false))
 				{
 					item.SyncFlags = primarySyncFlags;
 					if (verbose)
@@ -682,7 +692,7 @@ namespace Microsoft.P4VFS.UnitTest
 
 		public IEnumerable<string> EnumerateCommonConsoleSyncOptions(bool verbose = true)
 		{
-			foreach (string p0 in new[]{ "-s", "-t", "-q", "-l" })
+			foreach (string p0 in new[]{ "-s", "-t", "-q", "-l", "-c" })
 			{
 				foreach (string p1 in new[]{ "-m Single", "-m Atomic", "-r" })
 				{

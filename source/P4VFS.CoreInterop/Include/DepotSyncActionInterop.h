@@ -17,6 +17,7 @@ public enum class DepotSyncFlags : System::Int32
 	IgnoreOutput	= P4::DepotSyncFlags::IgnoreOutput,
 	Quiet			= P4::DepotSyncFlags::Quiet,
 	Writeable		= P4::DepotSyncFlags::Writeable,
+	ClientSize		= P4::DepotSyncFlags::ClientSize,
 };
 
 public enum class DepotFlushType : System::Int32

@@ -2002,5 +2002,46 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(ReconcilePreview(clientRoot).Any() == false);
 			}}}
 		}
+
+		[TestMethod, Priority(35), TestRemote]
+		public void SyncClientSizeTest()
+		{
+			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSyncLineEndSettings(false))
+			{
+				settings.SyncFlags = settings.SyncFlags.Value | DepotSyncFlags.ClientSize;
+				VirtualFileSystemLog.Info("EnumerateCommonServiceSyncLineEndSettings: {0}", settings);
+
+				using (settings) {
+				using (DepotClient depotClient = new DepotClient()) {
+				
+				WorkspaceReset();
+				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
+				string clientRoot = GetClientRoot(depotClient);
+				string clientFolder = String.Format("{0}\\depot\\gears1\\Development\\External", clientRoot);
+
+				DepotResultClient.Node client = depotClient.Client();
+				client.Fields["LineEnd"] = settings.LineEnd;
+				Assert(client.LineEnd == settings.LineEnd);
+				Assert(depotClient.UpdateClient(client).HasError == false);
+				client = depotClient.Client();
+				Assert(client.LineEnd == settings.LineEnd);
+
+				DepotSyncResult syncResult = depotClient.Sync(String.Format("{0}\\...", clientFolder), null, settings.SyncFlags.Value, DepotSyncMethod.Virtual);
+				Assert(syncResult?.Status == DepotSyncStatus.Success);
+
+				string[] srcFiles = Directory.GetFiles(clientRoot, "*", SearchOption.AllDirectories);
+				Assert(srcFiles.Length == 22);
+				Dictionary<string, long> placeholderSizeMap = srcFiles.ToDictionary(path => path, path => FileUtilities.GetFileLength(path));
+				Assert(placeholderSizeMap.Count == srcFiles.Length);
+
+				Assert(ReconcilePreview(clientRoot).Any() == false);
+
+				foreach (var srcFile in srcFiles)
+				{
+					long hydrateSize = FileUtilities.GetFileLength(srcFile);
+					Assert(placeholderSizeMap[srcFile] == hydrateSize, $"ClientSize mismatch {srcFile}");
+				}
+			}}}
+		}
 	}
 }

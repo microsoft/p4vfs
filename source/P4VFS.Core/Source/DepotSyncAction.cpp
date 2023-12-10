@@ -18,6 +18,7 @@ DepotString DepotSyncFlags::ToString(DepotSyncFlags::Enum value)
 	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncFlags, IgnoreOutput);
 	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncFlags, Quiet);
 	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncFlags, Writeable);
+	P4VFS_ENUM_TO_STRING_APPEND_FLAG(result, value, DepotSyncFlags, ClientSize);
 	return result;
 }
 

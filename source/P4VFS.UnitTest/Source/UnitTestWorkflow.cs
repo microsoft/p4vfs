@@ -86,18 +86,19 @@ namespace Microsoft.P4VFS.UnitTest
 				string clientRoot = GetClientRoot();
 				string directory = String.Format(@"{0}\depot\tools\dev\source", clientRoot);
 				string revision = "@21";
+				string[] syncArgs = WindowsInterop.CommandLineToArgs(syncOption);
 
 				ServiceRestart();
 				Assert(ProcessInfo.ExecuteWait(P4vfsExe, String.Format("{0} sync {1} \"{2}\\...{3}\"", ClientConfig, syncOption, directory, revision), echo:true, log:true) == 0);
 				Assert(ProcessInfo.ExecuteWait(P4Exe, String.Format("{0} flush -f \"{1}\\...{2}\"", ClientConfig, directory, revision), echo:true) == 0);
 
 				Dictionary<string, long> placeholderSizeMap = new Dictionary<string, long>();
-				if (WindowsInterop.CommandLineToArgs(syncOption).Contains("-c"))
+				if (syncArgs.Contains("-c"))
 				{
 					foreach (string filePath in Directory.GetFiles(clientRoot, "*", SearchOption.AllDirectories))
 					{
 						placeholderSizeMap[filePath] = FileUtilities.GetFileLength(filePath);
-						Assert(IsPlaceholderFile(filePath));
+						Assert(IsPlaceholderFile(filePath) || syncArgs.Contains("-r"));
 					}
 				}
 

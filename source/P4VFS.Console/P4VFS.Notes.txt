@@ -7,14 +7,14 @@ Version [1.27.0.0]
 * P4VFS.External checksum verification fix to handle unexpected whitespace around SHA256
 * Driver IRP_MJ_CREATE PostCreate callback fix for properly ignoring reparse on non-P4VFS 
   files with FileTag matching our P4VFS_REPARSE_TAG.
-* Driver now requires process to be elevated in order to set control paramters (p4vfs ctrl)
+* Driver now requires process to be elevated in order to set control parameters (p4vfs ctrl)
 * Addition of DepotClient accessor for server protocol level used for testing for server 
   features and unicode behavior
 * Additional tests for elevated access requirements for internal p4vfsflt control port 
   operations
 * Fixing stdout display of native unit test assertions and other inner assertions
 * Fixing bug where "Text" would appear at the top of the Setup details output.
-* Additional tests for both both internal ClientSize sync API and p4vfs sync -c
+* Additional tests for both internal ClientSize sync API and p4vfs sync -c
 
 Version [1.26.1.0]
 * Fixing support for file paths including non-ASCII single-byte (CP-1252) encoded characters.

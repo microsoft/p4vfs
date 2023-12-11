@@ -7,6 +7,7 @@ using System.IO;
 using System.Text;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.P4VFS.Extensions;
 using Microsoft.P4VFS.Extensions.Utilities;
@@ -83,14 +84,31 @@ namespace Microsoft.P4VFS.UnitTest
 				WorkspaceReset();
 
 				string clientRoot = GetClientRoot();
-				string directory = String.Format(@"{0}\depot\tools\dev\source\CinematicCapture", clientRoot);
-				string revision = "@16";
+				string directory = String.Format(@"{0}\depot\tools\dev\source", clientRoot);
+				string revision = "@21";
 
 				ServiceRestart();
 				Assert(ProcessInfo.ExecuteWait(P4vfsExe, String.Format("{0} sync {1} \"{2}\\...{3}\"", ClientConfig, syncOption, directory, revision), echo:true, log:true) == 0);
 				Assert(ProcessInfo.ExecuteWait(P4Exe, String.Format("{0} flush -f \"{1}\\...{2}\"", ClientConfig, directory, revision), echo:true) == 0);
+
+				Dictionary<string, long> placeholderSizeMap = new Dictionary<string, long>();
+				if (WindowsInterop.CommandLineToArgs(syncOption).Contains("-c"))
+				{
+					foreach (string filePath in Directory.GetFiles(clientRoot, "*", SearchOption.AllDirectories))
+					{
+						placeholderSizeMap[filePath] = FileUtilities.GetFileLength(filePath);
+						Assert(IsPlaceholderFile(filePath));
+					}
+				}
+
 				Assert(ReconcilePreview(directory).Any() == false);
 				ServiceRestart();
+
+				foreach (string filePath in placeholderSizeMap.Keys)
+				{
+					long hydrateSize = FileUtilities.GetFileLength(filePath);
+					Assert(placeholderSizeMap[filePath] == hydrateSize, $"ClientSize mismatch {filePath}");
+				}
 			}
 		}
 

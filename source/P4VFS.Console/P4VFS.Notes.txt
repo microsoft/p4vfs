@@ -14,6 +14,7 @@ Version [1.27.0.0]
   operations
 * Fixing stdout display of native unit test assertions and other inner assertions
 * Fixing bug where "Text" would appear at the top of the Setup details output.
+* Additional tests for both both internal ClientSize sync API and p4vfs sync -c
 
 Version [1.26.1.0]
 * Fixing support for file paths including non-ASCII single-byte (CP-1252) encoded characters.

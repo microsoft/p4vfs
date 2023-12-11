@@ -2029,17 +2029,20 @@ namespace Microsoft.P4VFS.UnitTest
 				DepotSyncResult syncResult = depotClient.Sync(String.Format("{0}\\...", clientFolder), null, settings.SyncFlags.Value, DepotSyncMethod.Virtual);
 				Assert(syncResult?.Status == DepotSyncStatus.Success);
 
-				string[] srcFiles = Directory.GetFiles(clientRoot, "*", SearchOption.AllDirectories);
-				Assert(srcFiles.Length == 22);
-				Dictionary<string, long> placeholderSizeMap = srcFiles.ToDictionary(path => path, path => FileUtilities.GetFileLength(path));
-				Assert(placeholderSizeMap.Count == srcFiles.Length);
+				Dictionary<string, long> placeholderSizeMap = new Dictionary<string, long>();
+				foreach (string filePath in Directory.GetFiles(clientRoot, "*", SearchOption.AllDirectories))
+				{
+					placeholderSizeMap[filePath] = FileUtilities.GetFileLength(filePath);
+					Assert(IsPlaceholderFile(filePath));
+				}
 
+				Assert(placeholderSizeMap.Count == 22);
 				Assert(ReconcilePreview(clientRoot).Any() == false);
 
-				foreach (var srcFile in srcFiles)
+				foreach (string filePath in placeholderSizeMap.Keys)
 				{
-					long hydrateSize = FileUtilities.GetFileLength(srcFile);
-					Assert(placeholderSizeMap[srcFile] == hydrateSize, $"ClientSize mismatch {srcFile}");
+					long hydrateSize = FileUtilities.GetFileLength(filePath);
+					Assert(placeholderSizeMap[filePath] == hydrateSize, $"ClientSize mismatch {filePath}");
 				}
 			}}}
 		}

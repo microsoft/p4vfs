@@ -476,7 +476,7 @@ Available commands:
 				}
 				else if (String.Compare(args[argIndex], "-c") == 0)
 				{
-					syncFlags |= DepotSyncFlags.Writeable;
+					syncFlags |= DepotSyncFlags.ClientSize;
 				}
 				else
 				{

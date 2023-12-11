@@ -589,7 +589,7 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
 				Int64 localSize = FileUtilities.GetFileLength(filePath);
 				Int64 depotSize = depotClient.GetDepotSize(new[]{ String.Format("{0}#have", filePath) });
-				Assert(localSize >= 0 && depotSize >= 0 && depotSize == localSize);
+				Assert(localSize >= 0 && depotSize >= 0 && depotSize <= localSize);
 				Int64 diskSize = NativeMethods.GetFileDiskSize(filePath);
 				Assert(diskSize == 0);
 			}

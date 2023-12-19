@@ -111,6 +111,9 @@
     <ClInclude Include="Include\DepotResultSizes.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="Include\DepotName.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource\Core.rc">
@@ -230,6 +233,9 @@
       <Filter>Tests</Filter>
     </ClCompile>
     <ClCompile Include="Source\DepotReconfig.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DepotName.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

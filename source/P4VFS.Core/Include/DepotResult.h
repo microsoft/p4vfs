@@ -1,17 +1,13 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 #pragma once
-#include "FileCore.h"
+#include "DepotName.h"
 #pragma managed(push, off)
 
 namespace Microsoft {
 namespace P4VFS {
 namespace P4 {
 	
-	using namespace FileCore;
-	typedef AString DepotString;
-	typedef StringInfo::LessInsensitive DepotStringLess;
-	typedef Array<DepotString> DepotStringArray;
 	struct IDepotClientCommand;
 
 	enum class DepotResultChannel
@@ -29,18 +25,18 @@ namespace P4 {
 
 	struct FDepotResultTag
 	{
-		bool ContainsKey(const DepotString& tagKey) const;
-		void RemoveKey(const DepotString& tagKey);
-		void SetValue(const DepotString& tagKey, const DepotString& tagValue);
+		bool ContainsKey(const FDepotName& tagKey) const;
+		void RemoveKey(const FDepotName& tagKey);
+		void SetValue(const FDepotName& tagKey, const DepotString& tagValue);
 
-		bool TryGetValue(const DepotString& tagKey, DepotString& value) const;
-		const DepotString& GetValue(const DepotString& tagKey) const;
-		const DepotString* GetValuePtr(const DepotString& tagKey) const;
+		bool TryGetValue(const FDepotName& tagKey, DepotString& value) const;
+		const DepotString& GetValue(const FDepotName& tagKey) const;
+		const DepotString* GetValuePtr(const FDepotName& tagKey) const;
 
-		int32_t GetValueInt32(const char* tagKey, int32_t defaultValue = 0) const;
-		int64_t GetValueInt64(const char* tagKey, int64_t defaultValue = 0) const;
+		int32_t GetValueInt32(const FDepotName& tagKey, int32_t defaultValue = 0) const;
+		int64_t GetValueInt64(const FDepotName& tagKey, int64_t defaultValue = 0) const;
 
-		typedef Map<DepotString, DepotString, DepotStringLess> FieldsType;
+		typedef Map<FDepotName, DepotString> FieldsType;
 		FieldsType m_Fields;
 	};
 
@@ -95,12 +91,12 @@ namespace P4 {
 			return m_Tag.get() ? *m_Tag : Empty;
 		}
 
-		bool ContainsTagKey(const DepotString& tagKey) const
+		bool ContainsTagKey(const FDepotName& tagKey) const
 		{
 			return Tag().ContainsKey(tagKey);
 		}
 
-		void RemoveTagKey(const DepotString& tagKey)
+		void RemoveTagKey(const FDepotName& tagKey)
 		{
 			if (m_Tag.get())
 			{
@@ -108,7 +104,7 @@ namespace P4 {
 			}
 		}
 
-		void SetTagValue(const DepotString& tagKey, const DepotString& tagValue)
+		void SetTagValue(const FDepotName& tagKey, const DepotString& tagValue)
 		{
 			if (m_Tag.get() == nullptr)
 			{
@@ -117,17 +113,17 @@ namespace P4 {
 			m_Tag->SetValue(tagKey, tagValue);
 		}
 
-		const DepotString& GetTagValue(const DepotString& tagKey) const
+		const DepotString& GetTagValue(const FDepotName& tagKey) const
 		{
 			return Tag().GetValue(tagKey);
 		}
 
-		int32_t GetTagValueInt32(const char* tagKey, int32_t defaultValue = 0) const
+		int32_t GetTagValueInt32(const FDepotName& tagKey, int32_t defaultValue = 0) const
 		{
 			return Tag().GetValueInt32(tagKey, defaultValue);
 		}
 
-		int64_t GetTagValueInt64(const char* tagKey, int64_t defaultValue = 0) const
+		int64_t GetTagValueInt64(const FDepotName& tagKey, int64_t defaultValue = 0) const
 		{
 			return Tag().GetValueInt64(tagKey, defaultValue);
 		}

@@ -30,6 +30,7 @@
     <ClInclude Include="Include\DepotSyncAction.h" />
     <ClInclude Include="Include\DepotSyncOptions.h" />
     <ClInclude Include="Include\DepotDateTime.h" />
+    <ClInclude Include="Include\DepotName.h" />
     <ClInclude Include="Include\DirectoryOperations.h" />
     <ClInclude Include="Include\DriverOperations.h" />
     <ClInclude Include="Include\FileAssert.h" />
@@ -52,6 +53,7 @@
     <ClCompile Include="Source\DepotClientCache.cpp" />
     <ClCompile Include="Source\DepotConfig.cpp" />
     <ClCompile Include="Source\DepotDateTime.cpp" />
+    <ClCompile Include="Source\DepotName.cpp" />
     <ClCompile Include="Source\DepotOperations.cpp" />
     <ClCompile Include="Source\DepotReconfig.cpp" />
     <ClCompile Include="Source\DepotResult.cpp" />

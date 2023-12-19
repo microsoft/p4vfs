@@ -26,7 +26,7 @@ DepotResultTag^ DepotResultTag::FromNative(const P4::DepotResultTag& src)
 		dst = gcnew DepotResultTag();
 		for (P4::FDepotResultTag::FieldsType::const_iterator i = src->m_Fields.begin(); i != src->m_Fields.end(); ++i)
 		{
-			dst->m_Fields->Add(Marshal::FromNativeAnsi(i->first.c_str()), Marshal::FromNativeAnsi(i->second.c_str()));
+			dst->m_Fields->Add(Marshal::FromNativeAnsi(i->first.ToString().c_str()), Marshal::FromNativeAnsi(i->second.c_str()));
 		}
 	}
 	return dst;

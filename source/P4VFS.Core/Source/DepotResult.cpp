@@ -14,25 +14,25 @@ FDepotResultText::FDepotResultText(DepotResultChannel channel, const DepotString
 {
 }
 
-bool FDepotResultTag::ContainsKey(const DepotString& tagKey) const
+bool FDepotResultTag::ContainsKey(const FDepotName& tagKey) const
 {
 	return GetValuePtr(tagKey) != nullptr;
 }
 
-void FDepotResultTag::RemoveKey(const DepotString& tagKey)
+void FDepotResultTag::RemoveKey(const FDepotName& tagKey)
 {
 	m_Fields.erase(tagKey);
 }
 
-void FDepotResultTag::SetValue(const DepotString& tagKey, const DepotString& tagValue)
+void FDepotResultTag::SetValue(const FDepotName& tagKey, const DepotString& tagValue)
 {
-	if (tagKey.empty() == false)
+	if (tagKey.IsNone() == false)
 	{
 		m_Fields[tagKey] = tagValue;
 	}
 }
 
-bool FDepotResultTag::TryGetValue(const DepotString& tagKey, DepotString& tagValue) const
+bool FDepotResultTag::TryGetValue(const FDepotName& tagKey, DepotString& tagValue) const
 {
 	if (const DepotString* valuePtr = GetValuePtr(tagKey))
 	{
@@ -42,15 +42,15 @@ bool FDepotResultTag::TryGetValue(const DepotString& tagKey, DepotString& tagVal
 	return false;
 }
 
-const DepotString& FDepotResultTag::GetValue(const DepotString& tagKey) const
+const DepotString& FDepotResultTag::GetValue(const FDepotName& tagKey) const
 {
 	const DepotString* valuePtr = GetValuePtr(tagKey);
 	return valuePtr ? *valuePtr : StringInfo::EmptyA();
 }
 
-const DepotString* FDepotResultTag::GetValuePtr(const DepotString& tagKey) const
+const DepotString* FDepotResultTag::GetValuePtr(const FDepotName& tagKey) const
 {
-	if (tagKey.empty() == false)
+	if (tagKey.IsNone() == false)
 	{
 		DepotResultFields::const_iterator v = m_Fields.find(tagKey);
 		if (v != m_Fields.end())
@@ -59,13 +59,13 @@ const DepotString* FDepotResultTag::GetValuePtr(const DepotString& tagKey) const
 	return nullptr;
 }
 
-int32_t FDepotResultTag::GetValueInt32(const char* tagKey, int32_t defaultValue) const
+int32_t FDepotResultTag::GetValueInt32(const FDepotName& tagKey, int32_t defaultValue) const
 {
 	const DepotString* valuePtr = GetValuePtr(tagKey);
 	return valuePtr && valuePtr->empty() == false ? atoi(valuePtr->c_str()) : defaultValue;
 }
 
-int64_t FDepotResultTag::GetValueInt64(const char* tagKey, int64_t defaultValue) const
+int64_t FDepotResultTag::GetValueInt64(const FDepotName& tagKey, int64_t defaultValue) const
 {
 	const DepotString* valuePtr = GetValuePtr(tagKey);
 	return valuePtr && valuePtr->empty() == false ? _atoi64(valuePtr->c_str()) : defaultValue;

@@ -25,6 +25,12 @@ namespace DriverOperations {
 		);
 
 	P4VFS_CORE_API HRESULT
+	SetDevDriveFilterAllowed(
+		const WCHAR* driverName,
+		bool isAllowed
+		);
+
+	P4VFS_CORE_API HRESULT
 	GetLoadedFilters(
 		FileCore::StringArray& driverNames
 		);

@@ -182,9 +182,9 @@ String LogDeviceFile::GetLogHeaderText() const
 	HKEY hVersionKey = NULL;
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 0, KEY_READ, &hVersionKey) == ERROR_SUCCESS)
 	{
-		text += StringInfo::Format(L"OS Name: %s\n", RegistryInfo::GetValueAsString(hVersionKey, L"ProductName").c_str());
-		text += StringInfo::Format(L"OS Architecture: %s\n", RegistryInfo::GetValueAsString(hVersionKey, L"BuildLabEx").c_str());
-		text += StringInfo::Format(L"OS Version: %s.%s.%s\n", RegistryInfo::GetValueAsString(hVersionKey, L"CurrentMajorVersionNumber").c_str(), RegistryInfo::GetValueAsString(hVersionKey, L"CurrentMinorVersionNumber").c_str(), RegistryInfo::GetValueAsString(hVersionKey, L"CurrentBuildNumber").c_str());
+		text += StringInfo::Format(L"OS Name: %s\n", RegistryInfo::GetValue(hVersionKey, L"ProductName").ToString().c_str());
+		text += StringInfo::Format(L"OS Architecture: %s\n", RegistryInfo::GetValue(hVersionKey, L"BuildLabEx").ToString().c_str());
+		text += StringInfo::Format(L"OS Version: %s.%s.%s\n", RegistryInfo::GetValue(hVersionKey, L"CurrentMajorVersionNumber").ToString().c_str(), RegistryInfo::GetValue(hVersionKey, L"CurrentMinorVersionNumber").ToString().c_str(), RegistryInfo::GetValue(hVersionKey, L"CurrentBuildNumber").ToString().c_str());
 		RegCloseKey(hVersionKey);
 	}
 

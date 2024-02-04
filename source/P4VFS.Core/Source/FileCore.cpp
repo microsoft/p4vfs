@@ -2258,52 +2258,144 @@ String Process::GetProcessNameById(DWORD processId)
 	return String();
 }
 
-String RegistryInfo::GetValueAsString(HKEY hKey, const wchar_t* valueName, LSTATUS* pstatus)
+String RegistryValue::ToString(LSTATUS* pstatus) const
 {
 	LSTATUS tstatus = 0;
 	LSTATUS& status = pstatus ? *pstatus : tstatus;
-	
+	String result;
+
+	if (m_Type == REG_SZ || m_Type == REG_EXPAND_SZ)
+	{
+		status = ERROR_SUCCESS;
+		if (m_Data.size() > 0)
+		{
+			result.assign(reinterpret_cast<const wchar_t*>(m_Data.data()), m_Data.size()/sizeof(wchar_t));
+		}
+	}
+	else if (m_Type == REG_DWORD)
+	{
+		status = ERROR_SUCCESS;
+		if (m_Data.size() >= sizeof(DWORD))
+		{
+			result = StringInfo::Format(TEXT("%u"), *reinterpret_cast<const DWORD*>(m_Data.data()));
+		}
+	}
+	else
+	{
+		status = ERROR_UNSUPPORTED_TYPE;
+	}
+	return result;
+}
+
+StringArray RegistryValue::ToStringArray(LSTATUS* pstatus) const
+{
+	LSTATUS tstatus = 0;
+	LSTATUS& status = pstatus ? *pstatus : tstatus;
+	StringArray result;
+
+	if (m_Type == REG_MULTI_SZ)
+	{
+		status = ERROR_SUCCESS;
+		const WCHAR* p = reinterpret_cast<const wchar_t*>(m_Data.data());
+		const WCHAR* pend = p + (m_Data.size()/sizeof(WCHAR)) + 1;
+		for (; p < pend; ++p)
+		{
+			if (*p != TEXT('\0'))
+			{
+				result.emplace_back(String());
+				for (; p < pend && *p != TEXT('\0'); ++p)
+				{
+					result.back() += *p;
+				}
+			}
+		}
+	}
+	else
+	{
+		status = ERROR_UNSUPPORTED_TYPE;
+	}
+	return result;
+}
+
+RegistryValue RegistryValue::FromString(const String& value)
+{
+	RegistryValue result;
+	result.m_Type = REG_SZ;
+	const wchar_t* strBegin = value.c_str();
+	const wchar_t* strEnd = strBegin + value.size() + 1;
+	result.m_Data.assign(reinterpret_cast<const BYTE*>(strBegin), reinterpret_cast<const BYTE*>(strEnd));
+	return result;
+}
+
+RegistryValue RegistryValue::FromStringArray(const StringArray& value)
+{
+	RegistryValue result;
+	result.m_Type = REG_MULTI_SZ;
+	for (const String& str : value)
+	{
+		const wchar_t* strBegin = str.c_str();
+		const wchar_t* strEnd = strBegin + str.size() + 1;
+		Algo::Append(result.m_Data, std::initializer_list(reinterpret_cast<const BYTE*>(str.c_str()), reinterpret_cast<const BYTE*>(strEnd)));
+	}
+	result.m_Data.resize(result.m_Data.size()+sizeof(WCHAR), 0);
+	return result;
+}
+
+RegistryValue RegistryInfo::GetValue(HKEY hKey, const wchar_t* valueName, LSTATUS* pstatus)
+{
+	LSTATUS tstatus = 0;
+	LSTATUS& status = pstatus ? *pstatus : tstatus;
+
 	if (StringInfo::IsNullOrEmpty(valueName))
 	{
 		status = ERROR_INVALID_PARAMETER;
-		return String();
+		return RegistryValue();
 	}
 
+	DWORD valueSize = 0;
 	DWORD valueType = 0;
-	uint8_t valueData[1024] = {0};
-	DWORD valueSize = sizeof(valueData)-sizeof(wchar_t);
-	status = RegQueryValueExW(hKey, valueName, NULL, &valueType, valueData, &valueSize);
+	status = RegQueryValueExW(hKey, valueName, NULL, &valueType, NULL, &valueSize);
 	if (status != ERROR_SUCCESS)
-		return String();
+	{
+		return RegistryValue();
+	}
 
-	if (valueType == REG_SZ || valueType ==  REG_MULTI_SZ || valueType == REG_EXPAND_SZ)
-		return String(reinterpret_cast<wchar_t*>(valueData));
-	if (valueType == REG_DWORD)
-		return StringInfo::Format(TEXT("%u"), *reinterpret_cast<DWORD*>(valueData));
+	RegistryValue result;
+	result.m_Type = valueType;
+	result.m_Data.resize(valueSize, 0);
+	if (valueSize > 0)
+	{
+		status = RegQueryValueExW(hKey, valueName, NULL, NULL, result.m_Data.data(), &valueSize);
+		if (status != ERROR_SUCCESS)
+		{
+			return RegistryValue();
+		}
+	}
 
-	status = ERROR_UNSUPPORTED_TYPE;
-	return String();
+	return result;
 }
-
-String RegistryInfo::GetKeyValueAsString(HKEY hKey, const wchar_t* subkeyName, const wchar_t* valueName, LSTATUS* pstatus)
+		
+RegistryValue RegistryInfo::GetKeyValue(HKEY hKey, const wchar_t* subkeyName, const wchar_t* valueName, LSTATUS* pstatus)
 {
 	LSTATUS tstatus = 0;
 	LSTATUS& status = pstatus ? *pstatus : tstatus;
-	
+
 	if (StringInfo::IsNullOrEmpty(subkeyName))
 	{
 		status = ERROR_INVALID_PARAMETER;
-		return String();
+		return RegistryValue();
 	}
 
 	HKEY hSubKey = NULL;
-	status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, subkeyName, 0, KEY_READ, &hSubKey);
+	status = RegOpenKeyEx(hKey, subkeyName, 0, KEY_READ, &hSubKey);
 	if (status != ERROR_SUCCESS)
-		return String();
+	{
+		return RegistryValue();
+	}
 
-	String value = RegistryInfo::GetValueAsString(hSubKey, valueName, pstatus);
+	RegistryValue result = RegistryInfo::GetValue(hSubKey, valueName, &status);
 	RegCloseKey(hSubKey);
-	return value;
+	return result;
 }
 
 }}}

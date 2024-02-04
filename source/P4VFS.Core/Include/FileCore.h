@@ -603,16 +603,22 @@ namespace FileCore {
 			return std::any_of(elements.begin(), elements.end(), predicate);
 		}
 
-		template <typename ArrayType, typename ValueType>
-		static void Remove(ArrayType& elements, const ValueType& v)
+		template <typename ArrayType, typename Predicate>
+		static void RemoveIf(ArrayType& elements, Predicate predicate)
 		{
 			for (ArrayType::iterator i = elements.begin(); i != elements.end();)
 			{
-				if (*i == v)
+				if (predicate(*i))
 					i = elements.erase(i);
 				else
 					++i;
 			}
+		}
+
+		template <typename ArrayType, typename ValueType>
+		static void Remove(ArrayType& elements, const ValueType& v)
+		{
+			return RemoveIf(elements, [&v](const auto& i) -> bool { return i == v; });
 		}
 
 		template <typename DstArrayType, typename SrcArrayType>
@@ -709,10 +715,21 @@ namespace FileCore {
 		static String			GetProcessNameById(DWORD processID);
 	};
 
+	struct RegistryValue
+	{
+		DWORD m_Type = REG_NONE;
+		Array<BYTE> m_Data;
+
+		P4VFS_CORE_API String					ToString(LSTATUS* pstatus = nullptr) const;
+		P4VFS_CORE_API StringArray				ToStringArray(LSTATUS* pstatus = nullptr) const;
+		P4VFS_CORE_API static RegistryValue		FromString(const String& value);
+		P4VFS_CORE_API static RegistryValue		FromStringArray(const StringArray& value);
+	};
+
 	struct P4VFS_CORE_API RegistryInfo
 	{
-		static String	GetValueAsString(HKEY hKey, const wchar_t* valueName, LSTATUS* pstatus = nullptr);
-		static String	GetKeyValueAsString(HKEY hKey, const wchar_t* subkeyName, const wchar_t* valueName, LSTATUS* pstatus = nullptr);
+		static RegistryValue	GetValue(HKEY hKey, const wchar_t* valueName, LSTATUS* pstatus = nullptr);
+		static RegistryValue	GetKeyValue(HKEY hKey, const wchar_t* subkeyName, const wchar_t* valueName, LSTATUS* pstatus = nullptr);
 	};
 
 	#define P4VFS_ENUM_TO_STRING_APPEND_FLAG(s, v, ns, ev) \

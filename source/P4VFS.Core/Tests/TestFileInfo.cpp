@@ -119,7 +119,7 @@ void TestFileInfoDirectory(const TestContext& context)
 void TestFileInfoLongPathSupport(const TestContext& context)
 {
 	TestUtilities::WorkspaceReset(context);
-	AssertMsg(RegistryInfo::GetKeyValueAsString(HKEY_LOCAL_MACHINE, TEXT("SYSTEM\\CurrentControlSet\\Control\\FileSystem"), TEXT("LongPathsEnabled")) == TEXT("1"), TEXT("Expecting long path support to be enabled on this machine"));
+	AssertMsg(RegistryInfo::GetKeyValue(HKEY_LOCAL_MACHINE, TEXT("SYSTEM\\CurrentControlSet\\Control\\FileSystem"), TEXT("LongPathsEnabled")).ToString() == TEXT("1"), TEXT("Expecting long path support to be enabled on this machine"));
 
 	Assert(FileInfo::IsExtendedPath(FileInfo::ExtendedPathPrefix));
 	Assert(FileInfo::IsExtendedPath(StringInfo::Format(TEXT("%sC:\\Temp"), FileInfo::ExtendedPathPrefix).c_str()));

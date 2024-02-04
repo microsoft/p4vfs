@@ -268,7 +268,7 @@ public:
 		StrRef var, val;
 		for (int32_t varIndex = 0; varList->GetVar(varIndex, var, val); ++varIndex)
 		{
-			if (var != P4Tag::v_func && var != P4Tag::v_specFormatted)
+			if (var != P4Tag::v_specdef && var != P4Tag::v_specFormatted && var != P4Tag::v_func)
 				TagList().back()->m_Fields.insert(Map<DepotString, DepotString>::value_type(var.Text(), val.Text()));
 		}
 

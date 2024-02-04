@@ -3,6 +3,7 @@
 *.userosscache
 *.sln.docstates
 *.userprefs
+/debug.log
 /external/*/**
 !/external/*/*.Module.cs
 /intermediate/

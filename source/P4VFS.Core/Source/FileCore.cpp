@@ -2297,7 +2297,7 @@ StringArray RegistryValue::ToStringArray(LSTATUS* pstatus) const
 	{
 		status = ERROR_SUCCESS;
 		const WCHAR* p = reinterpret_cast<const wchar_t*>(m_Data.data());
-		const WCHAR* pend = p + (m_Data.size()/sizeof(WCHAR)) + 1;
+		const WCHAR* pend = reinterpret_cast<const wchar_t*>(m_Data.data()+m_Data.size());
 		for (; p < pend; ++p)
 		{
 			if (*p != TEXT('\0'))

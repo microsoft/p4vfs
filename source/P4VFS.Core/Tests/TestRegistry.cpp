@@ -64,3 +64,7 @@ P4VFS_REGISTER_TEST( TestFileOperationsAccessUnelevated,		11004, TestFlags::Expl
 // TestDirectoryOperations
 P4VFS_REGISTER_TEST( TestIterateDirectoryParallel,				12000 )
 
+// TestRegistryInfo
+P4VFS_REGISTER_TEST( TestRegistryInfoInstallKeys,				13000 )
+P4VFS_REGISTER_TEST( TestRegistryInfoKeyValue,					13001 )
+

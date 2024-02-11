@@ -9,5 +9,13 @@
     <DisplayString Condition="offsetBytes != 0">{(wchar_t*)(((char*)this)+offsetBytes)}</DisplayString>
     <StringView Condition="offsetBytes != 0">(wchar_t*)(((char*)this)+offsetBytes),su</StringView>
   </Type>
+
+  <Type Name="Microsoft::P4VFS::FileCore::RegistryValue">
+    <DisplayString Condition="m_Type == 0">Empty</DisplayString>
+    <DisplayString Condition="m_Type == 1">{{ m_Type=REG_SZ, m_Data={((wchar_t*)(m_Data._Mypair._Myval2._Myfirst)),[m_Data.size()/2]} }}</DisplayString>
+    <DisplayString Condition="m_Type == 2">{{ m_Type=REG_EXPAND_SZ, m_Data={((wchar_t*)(m_Data._Mypair._Myval2._Myfirst)),[m_Data.size()/2]} }}</DisplayString>
+    <DisplayString Condition="m_Type == 4">{{ m_Type=REG_DWORD, m_Data={(*(DWORD*)(m_Data._Mypair._Myval2._Myfirst)),x} }}</DisplayString>
+    <DisplayString Condition="m_Type == 7">{{ m_Type=REG_MULTI_SZ, m_Data={((wchar_t*)(m_Data._Mypair._Myval2._Myfirst)),[m_Data.size()/2]} }}</DisplayString>
+  </Type>
   
 </AutoVisualizer>

@@ -2258,6 +2258,11 @@ String Process::GetProcessNameById(DWORD processId)
 	return String();
 }
 
+bool RegistryValue::IsValid() const 
+{ 
+	return m_Type != REG_NONE && m_Data.empty() == false; 
+}
+
 String RegistryValue::ToString(LSTATUS* pstatus) const
 {
 	LSTATUS tstatus = 0;
@@ -2267,9 +2272,14 @@ String RegistryValue::ToString(LSTATUS* pstatus) const
 	if (m_Type == REG_SZ || m_Type == REG_EXPAND_SZ)
 	{
 		status = ERROR_SUCCESS;
-		if (m_Data.size() > 0)
+		if (const wchar_t* text = reinterpret_cast<const wchar_t*>(m_Data.data()))
 		{
-			result.assign(reinterpret_cast<const wchar_t*>(m_Data.data()), m_Data.size()/sizeof(wchar_t));
+			size_t length = m_Data.size()/sizeof(wchar_t);
+			while (length > 0 && text[length])
+			{
+				--length;
+			}
+			result.assign(text, length);
 		}
 	}
 	else if (m_Type == REG_DWORD)
@@ -2396,6 +2406,35 @@ RegistryValue RegistryInfo::GetKeyValue(HKEY hKey, const wchar_t* subkeyName, co
 	RegistryValue result = RegistryInfo::GetValue(hSubKey, valueName, &status);
 	RegCloseKey(hSubKey);
 	return result;
+}
+
+LSTATUS RegistryInfo::SetValue(HKEY hKey, const wchar_t* valueName, const RegistryValue& value)
+{
+	if (StringInfo::IsNullOrEmpty(valueName) || value.IsValid() == false)
+	{
+		return ERROR_INVALID_PARAMETER;
+	}
+
+	return RegSetValueExW(hKey, valueName, NULL, value.m_Type, value.m_Data.data(), static_cast<DWORD>(value.m_Data.size()));
+}
+
+LSTATUS RegistryInfo::SetKeyValue(HKEY hKey, const wchar_t* subkeyName, const wchar_t* valueName, const RegistryValue& value)
+{
+	if (StringInfo::IsNullOrEmpty(valueName) || value.IsValid() == false)
+	{
+		return ERROR_INVALID_PARAMETER;
+	}
+
+	HKEY hSubKey = NULL;
+	LSTATUS status = RegCreateKeyW(hKey, subkeyName, &hSubKey);
+	if (status != ERROR_SUCCESS)
+	{
+		return status;
+	}
+
+	status = RegistryInfo::SetValue(hSubKey, valueName, value);
+	RegCloseKey(hSubKey);
+	return status;
 }
 
 }}}

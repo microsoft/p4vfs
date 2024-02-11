@@ -720,6 +720,7 @@ namespace FileCore {
 		DWORD m_Type = REG_NONE;
 		Array<BYTE> m_Data;
 
+		P4VFS_CORE_API bool						IsValid() const;
 		P4VFS_CORE_API String					ToString(LSTATUS* pstatus = nullptr) const;
 		P4VFS_CORE_API StringArray				ToStringArray(LSTATUS* pstatus = nullptr) const;
 		P4VFS_CORE_API static RegistryValue		FromString(const String& value);
@@ -730,6 +731,8 @@ namespace FileCore {
 	{
 		static RegistryValue	GetValue(HKEY hKey, const wchar_t* valueName, LSTATUS* pstatus = nullptr);
 		static RegistryValue	GetKeyValue(HKEY hKey, const wchar_t* subkeyName, const wchar_t* valueName, LSTATUS* pstatus = nullptr);
+		static LSTATUS			SetValue(HKEY hKey, const wchar_t* valueName, const RegistryValue& value);
+		static LSTATUS			SetKeyValue(HKEY hKey, const wchar_t* subkeyName, const wchar_t* valueName, const RegistryValue& value);
 	};
 
 	#define P4VFS_ENUM_TO_STRING_APPEND_FLAG(s, v, ns, ev) \

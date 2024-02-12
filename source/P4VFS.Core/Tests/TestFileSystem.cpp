@@ -6,6 +6,8 @@
 #include "DepotResultWhere.h"
 #include "DepotResultFStat.h"
 #include "DepotOperations.h"
+#include "DriverOperations.h"
+#include "DriverVersion.h"
 #include "FileSystem.h"
 
 using namespace Microsoft::P4VFS::FileCore;
@@ -202,4 +204,65 @@ void TestFileAlternateStream(const TestContext& context)
 	Assert(FileInfo::SetReadOnly(clientFile.c_str(), false));
 	Assert(AutoHandle(CreateFile(clientFileAlt.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)).IsValid());
 	Assert(lastServiceRequestTime == TimeInfo::FileTimeToUInt64(context.m_ServiceLastRequestTime()));
+}
+
+void TestDevDriveAttachPolicy(const TestContext& context)
+{
+	auto GetFsutilAttachPolicy = []() -> StringArray
+	{
+		const wchar_t* cmd = TEXT("fsutil.exe devdrv query");
+		Process::ExecuteResult result = Process::Execute(cmd, nullptr, Process::ExecuteFlags::StdOut|Process::ExecuteFlags::HideWindow);
+		Assert(result.m_ExitCode == 0);
+		
+		StringArray names;
+		bool nameLines = false;
+		const AStringArray lines = StringInfo::Split(result.m_StdOut.c_str(), "\r\n", StringInfo::SplitFlags::RemoveEmptyEntries);
+		for (const AString& line : lines)
+		{
+			if (nameLines == false)
+			{
+				nameLines = StringInfo::StartsWith(line.c_str(), "Filters allowed on any developer volume:");
+				continue;
+			}
+			std::match_results<const char*> match;
+			if (std::regex_search(line.c_str(), match, std::regex("^\\s+(\\S.*)")))
+			{
+				Algo::Append(names, StringInfo::Split(StringInfo::ToWide(match[1]).c_str(), TEXT(", "), StringInfo::SplitFlags::RemoveEmptyEntries));
+				continue;
+			}
+			break;
+		}
+		return names;
+	};
+
+	auto SetFsutilAttachPolicy = [](const StringArray& names) -> void
+	{
+		const String cmd = StringInfo::Format(TEXT("fsutil.exe devdrv setFiltersAllowed \"%s\""), StringInfo::Join(names, TEXT(",")).c_str());
+		Assert(Process::Execute(cmd.c_str(), nullptr, Process::ExecuteFlags::WaitForExit|Process::ExecuteFlags::HideWindow).m_ExitCode == 0);
+	};
+
+	const StringArray prevNames = GetFsutilAttachPolicy();
+
+	StringArray names;
+	SetFsutilAttachPolicy(names);
+	Assert(GetFsutilAttachPolicy() == names);
+
+	names = {TEXT("osmiumflt"),TEXT("carbonflt"),TEXT("argondrv")};
+	SetFsutilAttachPolicy(names);
+	Assert(GetFsutilAttachPolicy() == names);
+
+	names.push_back(TEXT(P4VFS_DRIVER_TITLE));
+	Assert(SUCCEEDED(Microsoft::P4VFS::DriverOperations::SetDevDriveFilterAllowed(TEXT(P4VFS_DRIVER_TITLE), true)));
+	Assert(GetFsutilAttachPolicy() == names);
+
+	names.push_back(TEXT("ironflt"));
+	Assert(SUCCEEDED(Microsoft::P4VFS::DriverOperations::SetDevDriveFilterAllowed(TEXT("ironflt"), true)));
+	Assert(GetFsutilAttachPolicy() == names);
+
+	Algo::Remove(names, TEXT(P4VFS_DRIVER_TITLE));
+	Assert(SUCCEEDED(Microsoft::P4VFS::DriverOperations::SetDevDriveFilterAllowed(TEXT(P4VFS_DRIVER_TITLE), false)));
+	Assert(GetFsutilAttachPolicy() == names);
+
+	SetFsutilAttachPolicy(prevNames);
+	Assert(GetFsutilAttachPolicy() == prevNames);
 }

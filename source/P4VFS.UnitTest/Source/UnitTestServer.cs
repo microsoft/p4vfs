@@ -489,8 +489,18 @@ namespace Microsoft.P4VFS.UnitTest
 			return Regex.Replace(fileSpec, @"(/\.\.\.)?([@#].*)?", "");
 		}
 
+		public static string ServerRootFolderOverride
+		{
+			get; set;
+		}
+
 		public static string GetServerRootFolder(string p4Port = null)
 		{
+			// Special case for overriding the server root folder possibly on another drive
+			if (String.IsNullOrEmpty(ServerRootFolderOverride) == false) 
+			{
+				return ServerRootFolderOverride;
+			}
 			return String.Format("{0}\\{1}", UnitTestInstall.GetIntermediateRootFolder(), GetServerPortNumber(p4Port));
 		}
 

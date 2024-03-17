@@ -5,6 +5,7 @@ Version [1.27.1.0]
 * The P4VFS install now configures the driver as allowed by Windows Dev Drive, and
   the uninstall will remove this exemption.  
 * Additional native unit tests for windows registry utilities and devdrv installation
+* Additional DevDrive unit tests with ReFS virtual hard drive 
 
 Version [1.27.0.0]
 * New sync -c option to force the placeholder file size to be the expected workspace 

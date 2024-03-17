@@ -432,5 +432,70 @@ namespace Microsoft.P4VFS.UnitTest
 				}
 			}
 		}
+
+		[TestMethod, Priority(11)]
+		public void DevDriveSupportTest()
+		{
+			Func<string, ProcessInfo.ExecuteResultOutput> executePowershellCommand = (script) => 
+			{
+				string scriptLine = Regex.Replace(script, @"[\r\n]\s*", "");
+				string args = String.Format("-NoProfile -ExecutionPolicy Unrestricted -Command \"&{{ {0} }}\"", scriptLine);
+				return ProcessInfo.ExecuteWaitOutput("powershell.exe", args, echo:true);
+			};
+
+			string devDriveVhd = String.Format(@"{0}\p4vfstest-devdrive.vhdx", UnitTestServer.GetServerRootFolder());
+			AssertLambda(() => 
+			{
+				if (File.Exists(devDriveVhd))
+				{
+					executePowershellCommand($"Dismount-VHD -Path '{devDriveVhd}'");				
+					FileUtilities.DeleteFile(devDriveVhd);
+				}
+			});
+
+			// Create and mount a virtual hard drive (VHDX) formatted as DevDrive
+			string devDriveLetterTag = "P4VFS_DEVDRIVE_LETTER";
+			string mountDevDriveScript = $@"
+				$ProgressPreference = 'SilentlyContinue';
+				$VhdPath = '{devDriveVhd}';
+				New-VHD -Path $VhdPath -SizeBytes 10GB | Out-Null;
+				$VhdPartition = Mount-VHD -Path $VhdPath -Passthru | Initialize-Disk -PassThru | New-Partition -AssignDriveLetter -UseMaximumSize;
+				Format-Volume -DriveLetter $VhdPartition.DriveLetter -DevDrive | Out-Null;
+				Write-Host ""{devDriveLetterTag}=$($VhdPartition.DriveLetter)"";
+				Sleep 1;
+				";
+
+			ProcessInfo.ExecuteResultOutput mountOutput = executePowershellCommand(mountDevDriveScript);
+			Assert(mountOutput?.ExitCode == 0);
+			Assert(File.Exists(devDriveVhd));
+			
+			string devDriveLetter = mountOutput.Lines
+				.Select(line => Regex.Match(line, $@"{devDriveLetterTag}=(?<letter>[D-Z])", RegexOptions.IgnoreCase))
+				.Where(m => m.Success)
+				.Select(m => m.Groups["letter"].Value)
+				.FirstOrDefault();
+
+			Assert(String.IsNullOrEmpty(devDriveLetter) == false);
+			Assert(DriveInfo.GetDrives().Any(d => d.RootDirectory.FullName.StartsWith($"{devDriveLetter}:", StringComparison.InvariantCultureIgnoreCase)));
+
+			// Temporarily override the UnitTest ServerRootFolder and run some existing tests on this drive
+			UnitTestServer.ServerRootFolderOverride = $"{devDriveLetter}:\\DevDriveSupportTest";
+			ReconciledTest();
+			UnitTestServer.ServerRootFolderOverride = null;
+
+			// Dismount and delete the virtual hard drive
+			string dismountDevDriveScript = $@"
+				$ProgressPreference = 'SilentlyContinue';
+				$VhdPath = '{devDriveVhd}';
+				Dismount-VHD -Path $VhdPath;
+				Sleep 1;
+				Remove-Item -Path $VhdPath | Out-Null;
+				";
+
+			ProcessInfo.ExecuteResultOutput dismountOutput = executePowershellCommand(dismountDevDriveScript);
+			Assert(dismountOutput?.ExitCode == 0);
+			Assert(File.Exists(devDriveVhd) == false);
+			Assert(DriveInfo.GetDrives().Any(d => d.RootDirectory.FullName.StartsWith($"{devDriveLetter}:", StringComparison.InvariantCultureIgnoreCase)) == false);
+		}
 	}
 }

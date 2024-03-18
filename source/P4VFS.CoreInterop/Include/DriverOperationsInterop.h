@@ -31,6 +31,11 @@ public:
 		[System::Runtime::InteropServices::Out] array<System::String^>^% driverNames
 		);
 
+	static System::Int32
+	SetDevDriveFilterAllowed(
+		System::String^ driverName,
+		System::Boolean isAllowed
+	);
 };
 
 }}}

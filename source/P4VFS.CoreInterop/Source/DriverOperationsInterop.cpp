@@ -50,5 +50,14 @@ DriverOperations::GetLoadedFilters(
 	return hr;
 }
 
+System::Int32
+DriverOperations::SetDevDriveFilterAllowed(
+	System::String^ driverName,
+	System::Boolean isAllowed
+	)
+{
+	return P4VFS::DriverOperations::SetDevDriveFilterAllowed(marshal_as_wstring_c_str(driverName), isAllowed);
+}
+
 }}}
 

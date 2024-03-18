@@ -2275,7 +2275,7 @@ String RegistryValue::ToString(LSTATUS* pstatus) const
 		if (const wchar_t* text = reinterpret_cast<const wchar_t*>(m_Data.data()))
 		{
 			size_t length = m_Data.size()/sizeof(wchar_t);
-			while (length > 0 && text[length])
+			while (length > 0 && text[length-1] == TEXT('\0'))
 			{
 				--length;
 			}

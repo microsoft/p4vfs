@@ -864,6 +864,10 @@ Available commands:
 				VirtualFileSystemLog.Info("Driver install {0}", status.ToStatusString());
 				result &= status;
 
+				VirtualFileSystemLog.Info("Installing DevDrive {0}", VirtualFileSystem.DriverTitle);
+				bool devdrive = DriverOperations.SetDevDriveFilterAllowed(VirtualFileSystem.DriverTitle, true) == WindowsInterop.S_OK;
+				VirtualFileSystemLog.Info("DevDrive install {0}", devdrive.ToStatusString());
+
 				VirtualFileSystemLog.Info("Loading {0}", VirtualFileSystem.DriverTitle);
 				status = VirtualFileSystem.LoadDriver();
 				VirtualFileSystemLog.Info("Driver load {0}", status.ToStatusString());
@@ -959,6 +963,10 @@ Available commands:
 				bool status = VirtualFileSystem.UnloadDriver();
 				VirtualFileSystemLog.Info("Driver unload {0}", status.ToStatusString());
 				result &= status;
+
+				VirtualFileSystemLog.Info("Uninstalling DevDrive {0}", VirtualFileSystem.DriverTitle);
+				bool devdrive = DriverOperations.SetDevDriveFilterAllowed(VirtualFileSystem.DriverTitle, false) == WindowsInterop.S_OK;
+				VirtualFileSystemLog.Info("DevDrive uninstall {0}", devdrive.ToStatusString());
 
 				VirtualFileSystemLog.Info("Uninstalling {0}", VirtualFileSystem.DriverTitle);
 				status = VirtualFileSystem.UninstallDriver();

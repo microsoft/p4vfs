@@ -2,9 +2,9 @@ Microsoft P4VFS Release Notes
 
 Version [1.27.1.0]
 * Now also ignoring specdef tag from P4API results, similar to P4API.NET
-* The P4VFS install now configures the driver as allowed by Windows Dev Drive, and
+* The P4VFS install now configures the driver as allowed by Windows DevDrive, and
   the uninstall will remove this exemption.  
-* Additional native unit tests for windows registry utilities and devdrv installation
+* Additional native unit tests for windows registry utilities and DevDrive installation
 * Additional DevDrive unit tests with ReFS virtual hard drive 
 
 Version [1.27.0.0]

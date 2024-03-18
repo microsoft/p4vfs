@@ -31,6 +31,7 @@ namespace Microsoft.P4VFS.UnitTest
 			AssertRetry(() => VirtualFileSystem.IsDriverReady() == false, message:"IsDriverReady");
 			AssertRetry(() => VirtualFileSystem.IsServiceReady() == false, message:"IsServiceReady");
 			AssertRetry(() => VirtualFileSystem.IsVirtualFileSystemAvailable() == false, message:"IsVirtualFileSystemAvailable");
+			AssertRetry(() => IsDevDriveAllowed() == false, message:"IsDevDriveAllowed");
 		}
 
 		[TestMethod, Priority(1)]
@@ -45,6 +46,7 @@ namespace Microsoft.P4VFS.UnitTest
 			AssertRetry(() => VirtualFileSystem.IsDriverReady(), message:"IsDriverReady");
 			AssertRetry(() => VirtualFileSystem.IsServiceReady(), message:"IsServiceReady");
 			AssertRetry(() => VirtualFileSystem.IsVirtualFileSystemAvailable(), message:"IsVirtualFileSystemAvailable");
+			AssertRetry(() => IsDevDriveAllowed(), message:"IsDevDriveAllowed");
 
 			Assert(CoreInterop.NativeMethods.GetDriverVersion(out ushort major, out ushort minor, out ushort build, out ushort revision));
 			Assert(CoreInterop.NativeConstants.VersionMajor == major, "VersionMajor mismatch");
@@ -434,6 +436,12 @@ namespace Microsoft.P4VFS.UnitTest
 			Match m = Regex.Match(osDescription, @"\.(?<build>\d+)\s*$");
 			Assert(m.Success);
 			return Int32.Parse(m.Groups["build"].Value);
+		}
+
+		public static bool IsDevDriveAllowed()
+		{
+			return ProcessInfo.ExecuteWaitOutput("fsutil.exe", "devdrv query").Lines.
+				Any(line => Regex.IsMatch(line, String.Format(@"(^|\s|,){0}($|\s|,)", VirtualFileSystem.DriverTitle), RegexOptions.IgnoreCase));
 		}
 	}
 }

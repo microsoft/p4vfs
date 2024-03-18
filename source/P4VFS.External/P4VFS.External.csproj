@@ -86,7 +86,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.CommandLine" GeneratePathProperty="true">
-      <Version>6.8.0</Version>
+      <Version>6.9.1</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

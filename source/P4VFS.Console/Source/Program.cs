@@ -134,11 +134,12 @@ Available commands:
               p4vfs set [SettingName|SubString]
 "},
 
-{"resident,hydrate", @"
+{"resident,hydrate,dehydrate", @"
   resident    Modify current resident status of local files. This can be used
               to change existing files back to virtual state (zero downloaded size),
               or change files to a resident state (full downloaded size).
   hydrate     Synonym for 'resident -r'
+  dehydrate   Synonym for 'resident -v'
 
               p4vfs resident [-r -v -x <csx> -p <reg>] [file ...]
 
@@ -336,6 +337,9 @@ Available commands:
 						break;
 					case "hydrate":
 						status = CommandHydrate(cmdArgs);
+						break;
+					case "dehydrate":
+						status = CommandDehydrate(cmdArgs);
 						break;
 					case "populate":
 						status = CommandPopulate(cmdArgs);
@@ -815,6 +819,11 @@ Available commands:
 		private static bool CommandHydrate(string[] args)
 		{
 			return CommandResident(new[]{"-r"}.Concat(args).ToArray());
+		}
+
+		private static bool CommandDehydrate(string[] args)
+		{
+			return CommandResident(new[]{"-v"}.Concat(args).ToArray());
 		}
 
 		private static bool CommandMonitor(string[] args)

@@ -78,15 +78,33 @@ namespace FileCore {
 		}
 
 		template <typename TString>
+		static void Verbose(LogDevice* log, const TString& text) 
+		{ 
+			WriteLine(log, LogChannel::Verbose, text); 
+		}
+
+		template <typename TString>
 		void Info(const TString& text) 
 		{ 
 			WriteLine(LogChannel::Info, text); 
 		}
 
 		template <typename TString>
+		static void Info(LogDevice* log, const TString& text) 
+		{ 
+			WriteLine(log, LogChannel::Info, text); 
+		}
+
+		template <typename TString>
 		void Warning(const TString& text) 
 		{ 
 			WriteLine(LogChannel::Warning, text); 
+		}
+
+		template <typename TString>
+		static void Warning(LogDevice* log, const TString& text) 
+		{ 
+			WriteLine(log, LogChannel::Warning, text); 
 		}
 		
 		template <typename TString>
@@ -96,10 +114,23 @@ namespace FileCore {
 		}
 
 		template <typename TString>
+		static void Error(LogDevice* log, const TString& text) 
+		{ 
+			WriteLine(log, LogChannel::Error, text); 
+		}
+
+		template <typename TString>
 		static void WriteLine(LogDevice* log, LogChannel::Enum channel, const TString& text)
 		{
 			if (log != nullptr)
+			{
 				log->WriteLine(channel, text);
+			}
+		}
+
+		static bool IsFaulted(LogDevice* log)
+		{
+			return log != nullptr && log->IsFaulted();
 		}
 	};
 
@@ -154,6 +185,20 @@ namespace FileCore {
 		virtual bool IsFaulted() override;
 
 		Array<LogDevice*> m_Devices;
+	};
+
+	struct LogDeviceFilter : LogDevice
+	{
+		LogDeviceFilter(LogDevice* device, LogChannel::Enum level = LogChannel::Enum(0));
+
+		void SetLevel(LogChannel::Enum level);
+		LogChannel::Enum GetLevel() const;
+
+		virtual void Write(const LogElement& element) override;
+		virtual bool IsFaulted() override;
+
+		LogDevice* m_InnerDevice;
+		LogChannel::Enum m_Level;
 	};
 
 	class LogSystem : public LogDevice

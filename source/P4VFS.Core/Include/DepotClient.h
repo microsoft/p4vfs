@@ -70,7 +70,7 @@ namespace P4 {
 
 		P4VFS_CORE_API LogDevice* Log();
 		P4VFS_CORE_API void Log(LogChannel::Enum channel, const DepotString& text);
-		P4VFS_CORE_API bool IsFaulted() const;
+		P4VFS_CORE_API bool IsFaulted();
 
 		struct Flags { enum Enum
 		{

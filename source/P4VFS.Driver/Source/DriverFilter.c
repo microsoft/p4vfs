@@ -288,6 +288,9 @@ DriverEntry(
 		goto CLEANUP;
 	}
 
+	// Default to NonPagedPoolNx for non paged pool allocations where supported.
+	ExInitializeDriverRuntime(DrvRtPoolNxOptIn);
+
 	// Register with FltMgr to tell it our callback routines
 	status = FltRegisterFilter(pDriverObject, &kDriverFilterRegistration, &g_FltContext.pFilter);
 	if (!NT_SUCCESS(status)) 
@@ -549,8 +552,8 @@ P4vfsServicePortConnect(
 		goto CLEANUP;
 	}
 
-	pConnectionHandle = (P4VFS_SERVICE_PORT_CONNECTION_HANDLE*)ExAllocatePool2( 
-																	POOL_FLAG_NON_PAGED,
+	pConnectionHandle = (P4VFS_SERVICE_PORT_CONNECTION_HANDLE*)ExAllocatePoolZero( 
+																	NonPagedPoolNx,
 																	sizeof(P4VFS_SERVICE_PORT_CONNECTION_HANDLE),
 																	P4VFS_SERVICE_PORT_HANDLE_ALLOC_TAG);
 
@@ -657,8 +660,8 @@ P4vfsControlPortConnect(
 		goto CLEANUP;
 	}
 
-	pConnectionHandle = (P4VFS_CONTROL_PORT_CONNECTION_HANDLE*)ExAllocatePool2( 
-																	POOL_FLAG_NON_PAGED,
+	pConnectionHandle = (P4VFS_CONTROL_PORT_CONNECTION_HANDLE*)ExAllocatePoolZero( 
+																	NonPagedPoolNx,
 																	sizeof(P4VFS_CONTROL_PORT_CONNECTION_HANDLE),
 																	P4VFS_CONTROL_PORT_HANDLE_ALLOC_TAG);
 

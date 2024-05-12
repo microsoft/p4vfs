@@ -1,5 +1,14 @@
 Microsoft P4VFS Release Notes
 
+Version [1.28.0.0]
+* Addition of 'dehydrate' command as synonym for 'resident -v', for changing existing
+  files from #have to zero-byte placeholder files. Unit tests included.
+* Fixing support for p4vfsflt driver backwards compatibility for Windows Server 2019 and 
+  earlier, including Windows prior to Windows 10 version 2004. This addressed
+  down-level compatibility new zeroed allocation API's such as ExAllocatePool2
+* Fixing bug causing some perforce sync errors not to be shown when doing a quite
+  single mode sync, such as 'populate', or 'sync -q -m Single'
+
 Version [1.27.1.0]
 * Now also ignoring specdef tag from P4API results, similar to P4API.NET
 * The P4VFS install now configures the driver as allowed by Windows DevDrive, and

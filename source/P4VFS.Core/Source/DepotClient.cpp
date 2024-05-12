@@ -996,15 +996,12 @@ LogDevice* FDepotClient::Log()
 
 void FDepotClient::Log(LogChannel::Enum channel, const DepotString& text)
 {
-	if (m_P4->m_FileContext && m_P4->m_FileContext->m_LogDevice)
-	{
-		m_P4->m_FileContext->m_LogDevice->WriteLine(channel, text);
-	}
+	LogDevice::WriteLine(Log(), channel, text);
 }
 
-bool FDepotClient::IsFaulted() const
+bool FDepotClient::IsFaulted()
 {
-	return m_P4->m_FileContext && m_P4->m_FileContext->m_LogDevice && m_P4->m_FileContext->m_LogDevice->IsFaulted();
+	return LogDevice::IsFaulted(Log());
 }
 
 FDepotClient::Flags::Enum FDepotClient::GetFlags() const 

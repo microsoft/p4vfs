@@ -665,7 +665,7 @@ DepotOperations::Reconfig(
 
 				if (hr != S_OK)
 				{
-					LogDevice::WriteLine(log, LogChannel::Error, StringInfo::Format("Failed to reconfig file '%s' with error [%s]", clientFile.c_str(), CSTR_WTOA(StringInfo::ToString(hr))));
+					LogDevice::Error(log, StringInfo::Format("Failed to reconfig file '%s' with error [%s]", clientFile.c_str(), CSTR_WTOA(StringInfo::ToString(hr))));
 					status = false;
 				}
 			}
@@ -792,9 +792,15 @@ DepotOperations::SyncCommand(
 		return nullptr;
 	}
 
-	if (log == nullptr && (syncFlags & DepotSyncFlags::Quiet) == 0)
+	if (log == nullptr)
 	{
 		log = depotClient->Log();
+	}
+	
+	LogDeviceFilter errorLog(log, LogChannel::Error);
+	if (syncFlags & DepotSyncFlags::Quiet)
+	{
+		log = &errorLog;
 	}
 
 	auto reportError = [&](const DepotString& context) -> void

@@ -139,8 +139,8 @@ P4vfsUserModeExecuteRequest(
 	}
 
 	// Allocate a reply message
-	pReplyMsg = (P4VFS_SERVICE_REPLY*)ExAllocatePool2( 
-											POOL_FLAG_NON_PAGED,
+	pReplyMsg = (P4VFS_SERVICE_REPLY*)ExAllocatePoolZero( 
+											NonPagedPoolNx,
 											sizeof(P4VFS_SERVICE_REPLY),
 											P4VFS_REPLY_MSG_ALLOC_TAG);
 
@@ -238,8 +238,8 @@ P4vfsUserModeResolveFile(
 	const ULONG dataNameOffset = requestMsgSize;
 	requestMsgSize += dataNameSize;
 
-	pRequestMsg = (P4VFS_SERVICE_MSG*)ExAllocatePool2( 
-											POOL_FLAG_NON_PAGED,
+	pRequestMsg = (P4VFS_SERVICE_MSG*)ExAllocatePoolZero( 
+											NonPagedPoolNx,
 											requestMsgSize,
 											P4VFS_SERVICE_MSG_ALLOC_TAG);
 
@@ -555,13 +555,13 @@ P4vfsPushReparseActionInProgress(
 
 		if (pAction == NULL)
 		{
-			pAction = (P4VFS_REPARSE_ACTION*)ExAllocatePool2(
-												POOL_FLAG_NON_PAGED, 
+			pAction = (P4VFS_REPARSE_ACTION*)ExAllocatePoolZero(
+												NonPagedPoolNx, 
 												sizeof(P4VFS_REPARSE_ACTION), 
 												P4VFS_REPARSE_ACTION_ALLOC_TAG);
 			if (pAction == NULL)
 			{ 
-				P4vfsTraceError(Core, L"P4vfsPushReparseActionInProgress: ExAllocatePool2 failed [%wZ]", &actionFileKey); 
+				P4vfsTraceError(Core, L"P4vfsPushReparseActionInProgress: ExAllocatePoolZero failed [%wZ]", &actionFileKey); 
 			}
 			else
 			{
@@ -742,8 +742,8 @@ P4vfsAllocateUnicodeString(
 		return STATUS_INVALID_BUFFER_SIZE;
 	}
 
-	pString->Buffer = (PWCH)ExAllocatePool2(
-								POOL_FLAG_NON_PAGED, 
+	pString->Buffer = (PWCH)ExAllocatePoolZero(
+								NonPagedPoolNx, 
 								pString->MaximumLength, 
 								poolTag);
 

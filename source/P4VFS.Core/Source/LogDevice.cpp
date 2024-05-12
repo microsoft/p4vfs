@@ -225,6 +225,25 @@ bool LogDeviceAggregate::IsFaulted()
 	return false;
 }
 
+LogDeviceFilter::LogDeviceFilter(LogDevice* device, LogChannel::Enum level) :
+	m_InnerDevice(device),
+	m_Level(level)
+{
+}
+
+void LogDeviceFilter::Write(const LogElement& element)
+{
+	if (m_InnerDevice != nullptr && element.m_Channel >= m_Level)
+	{
+		m_InnerDevice->Write(element);
+	}
+}
+
+bool LogDeviceFilter::IsFaulted()
+{
+	return m_InnerDevice != nullptr ? m_InnerDevice->IsFaulted() : false;
+}
+
 LogSystem::LogSystem() :
 	m_WriteThread(NULL),
 	m_WriteMutex(NULL),

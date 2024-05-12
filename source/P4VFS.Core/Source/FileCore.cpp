@@ -744,7 +744,7 @@ WString StringInfo::Escape(const wchar_t* s, EscapeDirection::Enum direction)
 		const Encoding text[] = { {TEXT("\\\""), TEXT("\"")}, {TEXT("\\\\"), TEXT("\\")}, {TEXT("\\n"), TEXT("\n")}, {TEXT("\\r"), TEXT("\r")}, {TEXT("\\t"), TEXT("\t")} };
 		const int32_t src = (direction == EscapeDirection::Encode ? 1 : 0);
 		const int32_t dst = src ^ 1;
-		while (s != TEXT('\0'))
+		while (*s != TEXT('\0'))
 		{
 			size_t i = 0;
 			for (; i < _countof(text); ++i)

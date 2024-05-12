@@ -361,8 +361,8 @@ namespace FileCore {
 				typedef AString TString;
 				typedef char TChar;
 
-				static char* Literal(char* A, wchar_t* W) { return A; }
-				static char  Literal(char A, wchar_t W) { return A; }
+				static const char* Literal(const char* A, const wchar_t* W) { return A; }
+				static const char  Literal(const char A, const wchar_t W) { return A; }
 			};
 
 			template <> struct Type<wchar_t>
@@ -371,8 +371,8 @@ namespace FileCore {
 				typedef WString TString;
 				typedef wchar_t TChar;
 
-				static wchar_t* Literal(char* A, wchar_t* W) { return W; }
-				static wchar_t  Literal(char A, wchar_t W) { return W; }
+				static const wchar_t* Literal(const char* A, const wchar_t* W) { return W; }
+				static const wchar_t  Literal(const char A, const wchar_t W) { return W; }
 			};
 		};
 

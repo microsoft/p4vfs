@@ -29,7 +29,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-        configuration: [Debug, Release]
+        configuration: [DebugDev, ReleaseDev]
 
     steps:
     - name: Set image info in env

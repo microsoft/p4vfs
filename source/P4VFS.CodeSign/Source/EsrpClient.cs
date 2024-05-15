@@ -14,7 +14,7 @@ namespace Microsoft.P4VFS.CodeSign
 {
 	public class EsrpClient : ICodeSignClient
 	{
-		private const string _EsrpClientVersion = "1.2.85";
+		private const string _EsrpClientVersion = "1.2.102";
 		private const string _EsrpClientPkgSource = "https://microsoft.pkgs.visualstudio.com/_packaging/ESRP/nuget/v3/index.json";
 
 		public EsrpClient()

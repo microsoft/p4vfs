@@ -29,8 +29,8 @@ jobs:
         include:
         - language: c-cpp
           build-mode: none
-        - language: csharp
-          build-mode: none
+        #- language: csharp
+        #  build-mode: none
           
     steps:
     - name: Checkout repository

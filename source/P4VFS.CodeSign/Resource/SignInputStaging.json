@@ -73,11 +73,11 @@
       "SignRequestFiles": [
         {
           "CustomerCorrelationId": "01A7F55F-6CDD-4123-B255-77E6F212CDAD",
-          "SourceLocation": "libcrypto-1_1-x64.dll"
+          "SourceLocation": "libcrypto-3-x64.dll"
         },
         {
           "CustomerCorrelationId": "01A7F55F-6CDD-4123-B255-77E6F212CDAD",
-          "SourceLocation": "libssl-1_1-x64.dll"
+          "SourceLocation": "libssl-3-x64.dll"
         }
       ],
       "SigningInfo": {

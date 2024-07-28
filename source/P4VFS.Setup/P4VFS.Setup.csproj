@@ -159,8 +159,8 @@
     <InstallResource Include="$(P4VFSBuildDir)\P4VFS.CoreInterop\$(P4VFSConfiguration)\P4VFS.CoreInterop.dll" Visible="false" />
     <InstallResource Include="$(P4VFSBuildDir)\P4VFS.UnitTest\$(Configuration)\P4VFS.UnitTest.dll" Visible="false" />
     <InstallResource Include="$(P4VFSBuildDir)\P4VFS.UnitTest\$(Configuration)\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll" Visible="false" />
-    <InstallResource Include="$(P4VFSBuildDir)\P4VFS.Console\$(Configuration)\libcrypto-1_1-x64.dll" Visible="false" />
-    <InstallResource Include="$(P4VFSBuildDir)\P4VFS.Console\$(Configuration)\libssl-1_1-x64.dll" Visible="false" />
+    <InstallResource Include="$(P4VFSBuildDir)\P4VFS.Console\$(Configuration)\libcrypto-3-x64.dll" Visible="false" />
+    <InstallResource Include="$(P4VFSBuildDir)\P4VFS.Console\$(Configuration)\libssl-3-x64.dll" Visible="false" />
     <InstallResource Include="$(P4VFSBuildDir)\P4VFS.Console\$(Configuration)\p4vfs.exe" Visible="false" />
     <InstallResource Include="$(P4VFSBuildDir)\P4VFS.Console\$(Configuration)\P4VFS.Notes.txt" Visible="false" />
     <InstallResource Include="$(P4VFSBuildDir)\P4VFS.Monitor\$(P4VFSConfiguration)\P4VFS.Monitor.exe" Visible="false" />

@@ -8,6 +8,7 @@ Version [1.28.0.0]
   down-level compatibility new zeroed allocation API's such as ExAllocatePool2
 * Fixing bug causing some perforce sync errors not to be shown when doing a quite
   single mode sync, such as 'populate', or 'sync -q -m Single'
+* Update to P4API 2024.1 and OpenSSL 3.3.1. UnitTest now uses p4d.exe/p4.exe 2024.1
 
 Version [1.27.1.0]
 * Now also ignoring specdef tag from P4API results, similar to P4API.NET

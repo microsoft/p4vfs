@@ -65,7 +65,7 @@
     <P4VFSUnitTestBuildDir>$(P4VFSBuildDir)/$(P4VFSUnitTestName)</P4VFSUnitTestBuildDir>
 
     <!-- Perforce API -->
-    <PerforceApiVersion>2023.2</PerforceApiVersion>
+    <PerforceApiVersion>2024.1</PerforceApiVersion>
     <PerforceApiConfiguration>$(P4VFSConfiguration)</PerforceApiConfiguration>
     <PerforceApiDir>$(P4VFSExternalDir)/P4API/$(PerforceApiVersion)</PerforceApiDir>
     <PerforceApiIncludeDir>$(PerforceApiDir)/include</PerforceApiIncludeDir>
@@ -73,13 +73,12 @@
     <PerforceApiLibFiles>libclient.lib;libp4api.lib;libp4script.lib;libp4script_c.lib;libp4script_curl.lib;libp4script_sqlite.lib;librpc.lib;libsupp.lib</PerforceApiLibFiles>
 
     <!-- OpenSSL -->
-    <OpenSSLApiVersion>1.1.1v</OpenSSLApiVersion>
+    <OpenSSLApiVersion>3.3.1</OpenSSLApiVersion>
     <OpenSSLApiConfiguration>$(P4VFSConfiguration)</OpenSSLApiConfiguration>
     <OpenSSLApiDir>$(P4VFSExternalDir)/OpenSSL/$(OpenSSLApiVersion)</OpenSSLApiDir>
     <OpenSSLApiIncludeDir>$(OpenSSLApiDir)/include</OpenSSLApiIncludeDir>
     <OpenSSLApiLibDir>$(OpenSSLApiDir)/lib/x64.vs$(P4VFSVisualStudioEdition).dyn.$(OpenSSLApiConfiguration)</OpenSSLApiLibDir>
     <OpenSSLApiLibFiles>libcrypto.lib;libssl.lib</OpenSSLApiLibFiles>
-    <OpenSSLApiBinFiles>libcrypto-1_1-x64.dll;libssl-1_1-x64.dll</OpenSSLApiBinFiles>
 
   </PropertyGroup>
 </Project>

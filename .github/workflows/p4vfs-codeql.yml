@@ -2,6 +2,7 @@
 name: p4vfs-codeql
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - 'main'

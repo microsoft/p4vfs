@@ -75,6 +75,7 @@ namespace Microsoft.P4VFS.UnitTest
 				string[] allowedLocalSignErrors = new string[]
 				{
 					@"SignTool Error: A certificate chain processed, but terminated in a root\n(.*\n)*\s+certificate which is not trusted by the trust provider.",
+					@"SignTool Error: Signing Cert does not chain to a Microsoft Root Cert.",
 				};
 				Func<string, bool> isAllowedLocalSignError = (string text) => allowedLocalSignErrors.Any(e => Regex.IsMatch(text, e, RegexOptions.IgnoreCase|RegexOptions.Multiline));
 				Func<string, bool> isAllowedSignError = (string text) => !production && isAllowedLocalSignError(text);

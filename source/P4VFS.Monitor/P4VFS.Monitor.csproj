@@ -107,8 +107,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterBuild">
-    <Copy SourceFiles="$(OpenSSLApiLibDir)\libcrypto-1_1-x64.dll" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="$(OpenSSLApiLibDir)\libssl-1_1-x64.dll" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(OpenSSLApiLibDir)\libcrypto-3-x64.dll" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(OpenSSLApiLibDir)\libssl-3-x64.dll" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="$(P4VFSCoreBuildDir)\$(P4VFSConfiguration)\P4VFS.Core.dll" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="$(P4VFSCoreBuildDir)\$(P4VFSConfiguration)\P4VFS.Core.pdb" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
   </Target>

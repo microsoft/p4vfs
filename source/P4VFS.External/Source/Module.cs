@@ -4,7 +4,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.P4VFS.Extensions.Utilities;
@@ -174,9 +174,15 @@ namespace Microsoft.P4VFS.External
 			
 			Trace.TraceInformation("Downloading {0} -> {1}", url, filePath);
 			Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-			using (System.Net.WebClient request = new System.Net.WebClient())
+			using (HttpClient client = new HttpClient())
 			{
-				request.DownloadFile(url, filePath);
+				using (HttpResponseMessage response = client.GetAsync(url).Result)
+				{
+					using (FileStream fileStream = new FileStream(filePath, FileMode.CreateNew))
+					{
+						response.Content.CopyToAsync(fileStream).Wait();
+					}
+				}
 			}
 
 			if (File.Exists(filePath) == false)

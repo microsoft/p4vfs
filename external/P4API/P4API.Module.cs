@@ -12,7 +12,7 @@ namespace Microsoft.P4VFS.External
 {
 	public class P4apiModule : Module
 	{
-		private const string P4API_VERSION = "r23.2";
+		private const string P4API_VERSION = "r24.1";
 		private const string P4API_VISUAL_STUDIO_EDITION = "2022";
 
 		public override string Name
@@ -86,11 +86,11 @@ namespace Microsoft.P4VFS.External
 			Dictionary<string, string> checksums = ModuleInfo.LoadChecksumFile(checksumFilePath);
 
 			// Download and deploy the debug P4API
-			string p4apiDbgFile = ModuleInfo.DownloadFileToFolder($"{p4apiUrlRoot}/bin.ntx64/p4api_vs{p4apiVisualStudioEdition}_dyn_vsdebug_openssl1.1.1.zip", workingFolder, checksums);
+			string p4apiDbgFile = ModuleInfo.DownloadFileToFolder($"{p4apiUrlRoot}/bin.ntx64/p4api_vs{p4apiVisualStudioEdition}_dyn_vsdebug_openssl3.zip", workingFolder, checksums);
 			ExtractP4apiSDK(p4apiDbgFile, p4apiTargetFolder, $"x64.vs{visualStudioEdition}.dyn.debug");
 	
 			// Download and deploy the release P4API
-			string p4apiRelFile = ModuleInfo.DownloadFileToFolder($"{p4apiUrlRoot}/bin.ntx64/p4api_vs{p4apiVisualStudioEdition}_dyn_openssl1.1.1.zip", workingFolder, checksums);
+			string p4apiRelFile = ModuleInfo.DownloadFileToFolder($"{p4apiUrlRoot}/bin.ntx64/p4api_vs{p4apiVisualStudioEdition}_dyn_openssl3.zip", workingFolder, checksums);
 			ExtractP4apiSDK(p4apiRelFile, p4apiTargetFolder, $"x64.vs{visualStudioEdition}.dyn.release");
 	
 			// Download and deploy the perforce test binaries

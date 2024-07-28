@@ -27,10 +27,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - language: c-cpp
-          build-mode: none
-        #- language: csharp
+        #- language: c-cpp
         #  build-mode: none
+        - language: csharp
+          build-mode: none
           
     steps:
     - name: Checkout repository

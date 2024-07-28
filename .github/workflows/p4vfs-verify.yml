@@ -38,15 +38,15 @@ jobs:
         Write-Output "ImageVersion=$env:ImageVersion" >> $env:GITHUB_ENV
 
     - name: Checkout the repo
-      uses: actions/checkout@v3.3.0
+      uses: actions/checkout@v4.1.7
 
     - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.3.1
+      uses: microsoft/setup-msbuild@v2
       with:
         msbuild-architecture: x64
 
     - name: Cache OpenSSL ${{env.ImageOS}} ${{env.ImageVersion}}
-      uses: actions/cache@v3.3.0
+      uses: actions/cache@v4.0.2
       with:
         path: |
           external/OpenSSL

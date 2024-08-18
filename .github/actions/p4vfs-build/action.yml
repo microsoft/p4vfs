@@ -20,6 +20,7 @@ runs:
   using: "composite"
   steps:
   - name: Set image info in env
+    shell: pwsh
     run: |
       Write-Output "ImageOS=$env:ImageOS" >> $env:GITHUB_ENV
       Write-Output "ImageVersion=$env:ImageVersion" >> $env:GITHUB_ENV

@@ -13,14 +13,6 @@ on:
       - 'main'
       - 'dev/*'
 
-env:
-  SOLUTION_FILE_PATH: source/P4VFS.sln
-  BUILD_PLATFORM: x64
-
-  DOTNET_CLI_TELEMETRY_OPTOUT: 1
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-  DOTNET_NOLOGO: true
-
 permissions:
   contents: read
   
@@ -33,27 +25,7 @@ jobs:
         configuration: [Debug, Release]
 
     steps:
-    - name: Set image info in env
-      run: |
-        Write-Output "ImageOS=$env:ImageOS" >> $env:GITHUB_ENV
-        Write-Output "ImageVersion=$env:ImageVersion" >> $env:GITHUB_ENV
-
-    - name: Checkout the repo
-      uses: actions/checkout@v3.3.0
-
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.3.1
+    - id: Build ${{matrix.configuration}}
+      uses: ./.github/actions/p4vfs-build
       with:
-        msbuild-architecture: x64
-
-    - name: Cache OpenSSL ${{env.ImageOS}} ${{env.ImageVersion}}
-      uses: actions/cache@v3.3.0
-      with:
-        path: |
-          external/OpenSSL
-          !external/OpenSSL/OpenSSL.Module.cs
-        key: build-openssl-${{env.ImageOS}}-${{env.ImageVersion}}-${{ hashFiles('external/OpenSSL/OpenSSL.Module.cs') }}
-
-    - name: Build ${{matrix.configuration}}
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild.exe -clp:Summary -nologo -nodeReuse:false -verbosity:m -restore -maxcpucount "-p:Configuration=${{matrix.configuration}}" "-p:Platform=${{env.BUILD_PLATFORM}}" ${{env.SOLUTION_FILE_PATH}}
+        configuration: '${{matrix.configuration}}'

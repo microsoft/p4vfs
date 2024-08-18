@@ -13,6 +13,9 @@ on:
       - 'dev/*'
 
 jobs:
+  call-verify-workflow:
+    use: ./.github/workflows/p4vfs-codeql.yml
+    
   analyze:
     name: Analyze (${{ matrix.language }})
     runs-on: 'windows-latest'
@@ -27,8 +30,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        #- language: c-cpp
-        #  build-mode: none
+        - language: c-cpp
+          build-mode: none
         - language: csharp
           build-mode: none
           

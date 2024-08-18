@@ -22,6 +22,9 @@ env:
 
 permissions:
   contents: read
+  
+on:
+  workflow_call:
 
 jobs:
   build:

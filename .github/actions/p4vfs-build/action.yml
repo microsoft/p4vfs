@@ -39,5 +39,6 @@ runs:
       key: build-openssl-${{env.ImageOS}}-${{env.ImageVersion}}-${{ hashFiles('external/OpenSSL/OpenSSL.Module.cs') }}
 
   - name: Build ${{matrix.configuration}}
+    shell: pwsh
     working-directory: ${{env.GITHUB_WORKSPACE}}
     run: msbuild.exe -clp:Summary -nologo -nodeReuse:false -verbosity:m -restore -maxcpucount "-p:Configuration=${{inputs.configuration}}" "-p:Platform=${{env.BUILD_PLATFORM}}" ${{env.SOLUTION_FILE_PATH}}

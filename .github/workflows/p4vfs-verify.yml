@@ -31,3 +31,4 @@ jobs:
       uses: ./.github/actions/p4vfs-build
       with:
         configuration: '${{matrix.configuration}}'
+        workspace: '${{env.GITHUB_WORKSPACE}}'

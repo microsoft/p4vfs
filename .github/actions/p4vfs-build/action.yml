@@ -5,6 +5,8 @@ inputs:
   configuration:
     required: True
     default: Release
+  workspace_directory:
+    required: True
 
 env:
   SOLUTION_FILE_PATH: source/P4VFS.sln
@@ -24,7 +26,7 @@ runs:
     run: |
       Write-Output "ImageOS=$env:ImageOS" >> $env:GITHUB_ENV
       Write-Output "ImageVersion=$env:ImageVersion" >> $env:GITHUB_ENV
-      Write-Output ("Workspace" + ${{env.GITHUB_WORKSPACE}})
+      Write-Output "Workspace: ${{inputs.workspace_directory}}"
 
   - name: Setup MSBuild
     uses: microsoft/setup-msbuild@v1.3.1
@@ -41,5 +43,5 @@ runs:
 
   - name: Build ${{matrix.configuration}}
     shell: pwsh
-    working-directory: ${{env.GITHUB_WORKSPACE}}
+    working-directory: ${{inputs.workspace_directory}}
     run: msbuild.exe -clp:Summary -nologo -nodeReuse:false -verbosity:m -restore -maxcpucount "-p:Configuration=${{inputs.configuration}}" "-p:Platform=${{env.BUILD_PLATFORM}}" ${{env.SOLUTION_FILE_PATH}}

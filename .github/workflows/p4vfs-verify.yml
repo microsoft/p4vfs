@@ -27,8 +27,8 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4.1.7
       
-    - id: Build
-      uses: .github/actions/p4vfs-build
+    - name: Build
+      uses: ./.github/actions/p4vfs-build
       with:
         configuration: '${{matrix.configuration}}'
         workspace: '${{github.workspace}}'

@@ -25,7 +25,7 @@ jobs:
         configuration: [Debug, Release]
 
     steps:
-    - id: 'Build ${{matrix.configuration}}'
+    - id: 'Build'
       uses: ./.github/actions/p4vfs-build
       with:
         configuration: '${{matrix.configuration}}'

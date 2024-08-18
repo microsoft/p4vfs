@@ -24,6 +24,7 @@ runs:
     run: |
       Write-Output "ImageOS=$env:ImageOS" >> $env:GITHUB_ENV
       Write-Output "ImageVersion=$env:ImageVersion" >> $env:GITHUB_ENV
+      Write-Output ("Workspace" + ${{env.GITHUB_WORKSPACE}}")
 
   - name: Setup MSBuild
     uses: microsoft/setup-msbuild@v1.3.1

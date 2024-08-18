@@ -2,11 +2,11 @@
 name: p4vfs-build
 
 inputs:
+  workspace:
+    required: True
   configuration:
     required: False
     default: Release
-  workspace:
-    required: True
   solution:
     required: False
     default: source/P4VFS.sln
@@ -27,15 +27,14 @@ runs:
     run: |
       Write-Output "ImageOS=$env:ImageOS" >> $env:GITHUB_ENV
       Write-Output "ImageVersion=$env:ImageVersion" >> $env:GITHUB_ENV
-      Write-Output "Workspace: ${{inputs.workspace}}"
 
   - name: Setup MSBuild
-    uses: microsoft/setup-msbuild@v1.3.1
+    uses: microsoft/setup-msbuild@v2
     with:
       msbuild-architecture: x64
 
   - name: Cache OpenSSL ${{env.ImageOS}} ${{env.ImageVersion}}
-    uses: actions/cache@v3.3.0
+    uses: actions/cache@v4.0.2
     with:
       path: |
         external/OpenSSL

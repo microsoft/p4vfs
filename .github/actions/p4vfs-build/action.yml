@@ -3,14 +3,15 @@ name: p4vfs-build
 
 inputs:
   configuration:
-    required: True
+    required: False
     default: Release
   workspace:
     required: True
+  solution:
+    required: False
+    default: source/P4VFS.sln
 
 env:
-  SOLUTION_FILE_PATH: source/P4VFS.sln
-  BUILD_PLATFORM: x64
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   DOTNET_NOLOGO: true
@@ -44,4 +45,4 @@ runs:
   - name: Build ${{matrix.configuration}}
     shell: pwsh
     working-directory: ${{inputs.workspace}}
-    run: msbuild.exe -clp:Summary -nologo -nodeReuse:false -verbosity:m -restore -maxcpucount "-p:Configuration=${{inputs.configuration}}" "-p:Platform=${{env.BUILD_PLATFORM}}" ${{env.SOLUTION_FILE_PATH}}
+    run: msbuild.exe -clp:Summary -nologo -nodeReuse:false -verbosity:m -restore -maxcpucount "-p:Configuration=${{inputs.configuration}}" -p:Platform=x64 ${{inputs.solution}}

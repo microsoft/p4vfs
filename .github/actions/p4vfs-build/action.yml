@@ -5,7 +5,7 @@ inputs:
   configuration:
     required: True
     default: Release
-  workspace_directory:
+  workspace:
     required: True
 
 env:
@@ -26,7 +26,7 @@ runs:
     run: |
       Write-Output "ImageOS=$env:ImageOS" >> $env:GITHUB_ENV
       Write-Output "ImageVersion=$env:ImageVersion" >> $env:GITHUB_ENV
-      Write-Output "Workspace: ${{inputs.workspace_directory}}"
+      Write-Output "Workspace: ${{inputs.workspace}}"
 
   - name: Setup MSBuild
     uses: microsoft/setup-msbuild@v1.3.1
@@ -43,5 +43,5 @@ runs:
 
   - name: Build ${{matrix.configuration}}
     shell: pwsh
-    working-directory: ${{inputs.workspace_directory}}
+    working-directory: ${{inputs.workspace}}
     run: msbuild.exe -clp:Summary -nologo -nodeReuse:false -verbosity:m -restore -maxcpucount "-p:Configuration=${{inputs.configuration}}" "-p:Platform=${{env.BUILD_PLATFORM}}" ${{env.SOLUTION_FILE_PATH}}

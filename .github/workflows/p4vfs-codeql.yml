@@ -3,10 +3,6 @@ name: p4vfs-codeql
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - 'main'
-      - 'dev/*'
   pull_request:
     branches:
       - 'main'
@@ -28,25 +24,25 @@ jobs:
       matrix:
         include:
         - language: c-cpp
-          build-mode: none
+          build-mode: manual
         - language: csharp
           build-mode: manual
           
     steps:
     - name: Checkout repository 2
       uses: actions/checkout@v4
-      
-    - name: Build
-      uses: ./.github/actions/p4vfs-build
-      with:
-        configuration: 'Release'
-        workspace: '${{github.workspace}}'
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
         build-mode: ${{ matrix.build-mode }}
+        
+    - name: Build
+      uses: ./.github/actions/p4vfs-build
+      with:
+        configuration: 'Release'
+        workspace: '${{github.workspace}}'
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3

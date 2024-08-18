@@ -14,7 +14,7 @@ on:
 
 jobs:
   call-verify-workflow:
-    use: ./.github/workflows/p4vfs-codeql.yml
+    use: ./.github/workflows/p4vfs-verify.yml
     
   analyze:
     name: Analyze (${{ matrix.language }})

@@ -3,6 +3,10 @@ name: p4vfs-codeql
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - 'main'
+      - 'dev/*'
   pull_request:
     branches:
       - 'main'

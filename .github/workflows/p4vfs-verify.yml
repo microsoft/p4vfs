@@ -2,6 +2,7 @@
 name: p4vfs-verify
 
 on:
+  workflow_call:
   workflow_dispatch:
   push:
     branches:
@@ -23,9 +24,6 @@ env:
 permissions:
   contents: read
   
-on:
-  workflow_call:
-
 jobs:
   build:
     runs-on: ${{matrix.os}}

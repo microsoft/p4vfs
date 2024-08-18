@@ -13,9 +13,6 @@ on:
       - 'dev/*'
 
 jobs:
-  call-verify-workflow:
-    uses: ./.github/workflows/p4vfs-verify.yml
-    
   analyze:
     name: Analyze (${{ matrix.language }})
     runs-on: 'windows-latest'
@@ -33,11 +30,17 @@ jobs:
         - language: c-cpp
           build-mode: none
         - language: csharp
-          build-mode: none
+          build-mode: manual
           
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      
+    - name: Build
+      uses: ./.github/actions/p4vfs-build
+      with:
+        configuration: 'Release'
+        workspace: '${{github.workspace}}'
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3

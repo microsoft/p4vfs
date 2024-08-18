@@ -26,6 +26,6 @@ jobs:
 
     steps:
     - id: 'Build'
-      uses: ./.github/actions/p4vfs-build
+      uses: ./.github/actions/p4vfs-build.yml
       with:
         configuration: '${{matrix.configuration}}'

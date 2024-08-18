@@ -24,9 +24,6 @@ runs:
       Write-Output "ImageOS=$env:ImageOS" >> $env:GITHUB_ENV
       Write-Output "ImageVersion=$env:ImageVersion" >> $env:GITHUB_ENV
 
-  - name: Checkout the repo
-    uses: actions/checkout@v3.3.0
-
   - name: Setup MSBuild
     uses: microsoft/setup-msbuild@v1.3.1
     with:

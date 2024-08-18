@@ -25,6 +25,9 @@ jobs:
         configuration: [Debug, Release]
 
     steps:
+    - name: Checkout the repo
+      uses: actions/checkout@v3.3.0
+      
     - id: 'Build'
       uses: ./.github/actions/p4vfs-build
       with:

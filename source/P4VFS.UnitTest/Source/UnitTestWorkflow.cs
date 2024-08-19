@@ -376,7 +376,8 @@ namespace Microsoft.P4VFS.UnitTest
 		{
 			var AssertFileSyncStatus = new Action<string,string,bool>((string depotSpec, string syncOption, bool valid) =>
 			{
-				int exitCode = ProcessInfo.ExecuteWait(P4vfsExe, String.Format("{0} sync {1} {2}", ClientConfig, syncOption, depotSpec), echo:true, log:true);
+				ProcessInfo.ExecuteResultOutput syncOutput = ProcessInfo.ExecuteWaitOutput(P4vfsExe, String.Format("{0} sync {1} {2}", ClientConfig, syncOption, depotSpec), echo:true, log:true);
+				int exitCode = syncOutput.ExitCode == 0 && syncOutput.HasStdErr == false ? 0 : 1;
 				Assert((valid == true && exitCode == 0) || (valid == false && exitCode != 0));
 				ProcessInfo.ExecuteResultOutput flushOutput = ProcessInfo.ExecuteWaitOutput(P4Exe, String.Format("{0} flush -f {1}", ClientConfig, depotSpec), echo:true);
 				exitCode = (exitCode == 0 && flushOutput.HasStdErr == false) ? 0 : 1;

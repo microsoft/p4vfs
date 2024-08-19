@@ -22,7 +22,7 @@ parameters:
 
 jobs:
 - job: P4VFS_CI
-  timeoutInMinutes: 240
+  timeoutInMinutes: 540
   workspace:
     clean: all
   

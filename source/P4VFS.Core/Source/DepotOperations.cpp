@@ -72,7 +72,7 @@ DepotOperations::SyncVirtual(
 		}
 	}
 
-	depotClient->Log(LogChannel::Warning, StringInfo::Join(DepotStringArray{ "Virtual Sync:", ToString(syncOptions.m_Files), DepotSyncFlags::ToString(syncOptions.m_SyncFlags), DepotFlushType::ToString(syncOptions.m_FlushType), revision->ToString() }, " "));
+	depotClient->Log(LogChannel::Info, StringInfo::Join(DepotStringArray{ "Virtual Sync:", ToString(syncOptions.m_Files), DepotSyncFlags::ToString(syncOptions.m_SyncFlags), DepotFlushType::ToString(syncOptions.m_FlushType), revision->ToString() }, " "));
 	depotClient->Log(LogChannel::Info, StringInfo::Format("Started at [%s] version [%s]", DepotDateTime::Now().ToDisplayString().c_str(), CSTR_WTOA(FileSystem::GetModuleVersion())));
 	if (depotClient->IsFaulted())
 	{
@@ -797,10 +797,10 @@ DepotOperations::SyncCommand(
 		log = depotClient->Log();
 	}
 	
-	LogDeviceFilter errorLog(log, LogChannel::Error);
+	LogDeviceFilter quietLog(log, syncFlags & DepotSyncFlags::Flush ? LogChannel::Error : LogChannel::Warning);
 	if (syncFlags & DepotSyncFlags::Quiet)
 	{
-		log = &errorLog;
+		log = &quietLog;
 	}
 
 	auto reportError = [&](const DepotString& context) -> void

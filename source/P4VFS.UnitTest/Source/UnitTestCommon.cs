@@ -1507,7 +1507,7 @@ namespace Microsoft.P4VFS.UnitTest
 					DepotSyncResult syncResult = depotClient.Sync("//...", null, DepotSyncFlags.Flush|DepotSyncFlags.Quiet);
 					Assert(syncResult != null && syncResult.Modifications != null);
 					Assert((syncResult.Status == DepotSyncStatus.Success && syncResult.Modifications.Length > clientFileCount) || 
-						   (syncResult.Status == DepotSyncStatus.Warning && syncResult.Modifications.Length == 1 && syncResult.Modifications[0].SyncActionType == DepotSyncActionType.UpToDate));
+						   (syncResult.Status == DepotSyncStatus.Success && syncResult.Modifications.Length == 1 && syncResult.Modifications[0].SyncActionType == DepotSyncActionType.UpToDate));
 
 					syncResult = depotClient.Sync("//...");
 					Assert(syncResult?.Status == DepotSyncStatus.Success);

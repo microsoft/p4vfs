@@ -22,7 +22,6 @@
 #include <string>
 #include <algorithm>
 #include <functional>
-#include <cvt/wstring>
 #include <regex>
 
 #define WIN32_LEAN_AND_MEAN

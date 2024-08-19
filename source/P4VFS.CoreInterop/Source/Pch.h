@@ -14,7 +14,6 @@
 #include <string>
 #include <algorithm>
 #include <functional>
-#include <cvt/wstring>
 #include <codecvt>
 #include <regex>
 

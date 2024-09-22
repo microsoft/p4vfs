@@ -176,6 +176,7 @@ namespace FileCore {
 	{
 		virtual void Write(const LogElement& element) override;
 
+	private:
 		List<LogElement> m_Elements;
 	};
 
@@ -184,6 +185,7 @@ namespace FileCore {
 		virtual void Write(const LogElement& element) override;
 		virtual bool IsFaulted() override;
 
+	private:
 		Array<LogDevice*> m_Devices;
 	};
 
@@ -197,6 +199,7 @@ namespace FileCore {
 		virtual void Write(const LogElement& element) override;
 		virtual bool IsFaulted() override;
 
+	private;
 		LogDevice* m_InnerDevice;
 		LogChannel::Enum m_Level;
 	};

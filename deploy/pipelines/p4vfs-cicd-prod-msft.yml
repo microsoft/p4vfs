@@ -1,6 +1,7 @@
 
 variables:
   configuration: 'ReleaseSign'
+  Codeql.Enabled: false
 
 pool: 
   name: TC GFWLCSS

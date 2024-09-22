@@ -359,7 +359,7 @@ DepotSyncStatus::Enum DepotSyncStatus::FromLog(const LogDeviceMemory& log)
 {
 	StaticAssert(DepotSyncStatus::Success == 0);
 	DepotSyncStatus::Enum status = DepotSyncStatus::Success;
-	for (const LogElement& element : log.m_Elements)
+	for (const LogElement& element : log.GetElements())
 	{
 		status |= FromLogElement(element);
 	}

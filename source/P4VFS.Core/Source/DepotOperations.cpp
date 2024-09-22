@@ -152,8 +152,8 @@ DepotOperations::SyncVirtual(
 
 	if (depotClient->Log() != nullptr)
 	{
-		aggregateLog.m_Devices.push_back(depotClient->Log());
-		aggregateLog.m_Devices.push_back(&memoryLog);
+		aggregateLog.AddDevice(depotClient->Log());
+		aggregateLog.AddDevice(&memoryLog);
 		log = &aggregateLog;
 	}
 
@@ -479,7 +479,7 @@ DepotOperations::ApplyVirtualModification(
 	// Flush buffered log all at once
 	if (log == &memoryLog && parentLog != nullptr)
 	{
-		for (const LogElement& element : memoryLog.m_Elements)
+		for (const LogElement& element : memoryLog.GetElements())
 		{
 			parentLog->Write(element.m_Channel, element.m_Text);
 		}
@@ -749,8 +749,8 @@ DepotOperations::SyncRegular(
 
 	if (depotClient->Log() != nullptr)
 	{
-		aggregateLog.m_Devices.push_back(depotClient->Log());
-		aggregateLog.m_Devices.push_back(&memoryLog);
+		aggregateLog.AddDevice(depotClient->Log());
+		aggregateLog.AddDevice(&memoryLog);
 		log = &aggregateLog;
 	}
 
@@ -1430,10 +1430,10 @@ DepotOperations::LogWarningErrorSummary(
 		return e.m_Channel == LogChannel::Warning || e.m_Channel == LogChannel::Error;
 	};
 
-	if (Algo::Any(memoryLog.m_Elements, std::not_fn(inSummary)))
+	if (Algo::Any(memoryLog.GetElements(), std::not_fn(inSummary)))
 	{
 		bool writeHeader = true;
-		for (const LogElement& element : memoryLog.m_Elements)
+		for (const LogElement& element : memoryLog.GetElements())
 		{
 			if (inSummary(element))
 			{

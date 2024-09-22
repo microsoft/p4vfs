@@ -1,5 +1,9 @@
 Microsoft P4VFS Release Notes
 
+Version [1.28.1.0]
+* Fixing possible memory leak during sync operation while accumulating logging 
+  elements for statistics
+
 Version [1.28.0.0]
 * Addition of 'dehydrate' command as synonym for 'resident -v', for changing existing
   files from #have to zero-byte placeholder files. Unit tests included.

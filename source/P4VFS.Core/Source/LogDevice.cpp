@@ -197,9 +197,20 @@ String LogDeviceFile::ExpandVariables(const String& text) const
 	return StringInfo::Replace(text.c_str(), VariableUserName, StringInfo::ToLower(GetDesiredUserName().c_str()).c_str(), StringInfo::SearchCase::Insensitive);
 }
 
+LogDeviceMemory::LogDeviceMemory() :
+	m_ElementsMutex(CreateMutex(NULL, FALSE, NULL))
+{
+}
+
 void LogDeviceMemory::Write(const LogElement& element)
 {
+	AutoMutex elementsScope(m_ElementsMutex);
 	m_Elements.push_back(element);
+}
+
+const List<LogElement>& LogDeviceMemory::GetElements() const
+{
+	return m_Elements;
 }
 
 void LogDeviceAggregate::Write(const LogElement& element)
@@ -223,6 +234,11 @@ bool LogDeviceAggregate::IsFaulted()
 		}
 	}
 	return false;
+}
+
+void LogDeviceAggregate::AddDevice(LogDevice* device)
+{
+	m_Devices.push_back(device);
 }
 
 LogDeviceFilter::LogDeviceFilter(LogDevice* device, LogChannel::Enum level) :

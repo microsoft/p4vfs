@@ -174,16 +174,23 @@ namespace FileCore {
 
 	struct LogDeviceMemory : LogDevice
 	{
-		virtual void Write(const LogElement& element) override;
+		LogDeviceMemory();
 
+		virtual void Write(const LogElement& element) override;
+		const List<LogElement>& GetElements() const;
+
+	private:
 		List<LogElement> m_Elements;
+		AutoHandle m_ElementsMutex;
 	};
 
 	struct LogDeviceAggregate : LogDevice
 	{
 		virtual void Write(const LogElement& element) override;
 		virtual bool IsFaulted() override;
+		void AddDevice(LogDevice* device);
 
+	private:
 		Array<LogDevice*> m_Devices;
 	};
 
@@ -197,6 +204,7 @@ namespace FileCore {
 		virtual void Write(const LogElement& element) override;
 		virtual bool IsFaulted() override;
 
+	private:
 		LogDevice* m_InnerDevice;
 		LogChannel::Enum m_Level;
 	};

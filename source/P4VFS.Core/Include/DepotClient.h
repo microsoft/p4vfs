@@ -53,6 +53,7 @@ namespace P4 {
 		P4VFS_CORE_API DepotString GetTrustFilePath() const;
 		P4VFS_CORE_API DepotString GetClientOwnerUserName(const DepotString& clientName, const DepotString& portName);
 		P4VFS_CORE_API DepotString GetHostName() const;
+		P4VFS_CORE_API DepotString GetConfigEnv(const char* envVarName) const;
 		P4VFS_CORE_API const DepotConfig& Config() const;
 
 		P4VFS_CORE_API void Run(const DepotCommand& cmd, FDepotResult& result);

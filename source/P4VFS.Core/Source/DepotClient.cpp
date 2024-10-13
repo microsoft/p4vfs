@@ -18,6 +18,7 @@
 #include "p4/i18napi.h"
 #include "p4/charcvt.h"
 #include "p4/enviro.h"
+#include "p4/strarray.h"
 #include "p4/debug.h"
 #pragma warning(pop)
 
@@ -623,6 +624,16 @@ DepotString FDepotClient::GetTicketsFilePath() const
 		}
 	}
 
+	const DepotString configTicketsPath = GetConfigEnv(DepotConstants::P4TICKETS);
+	if (configTicketsPath.empty() == false)
+	{
+		const WString configTicketsPathW = StringInfo::ToWide(configTicketsPath);
+		if (FileInfo::CreateWritableFile(configTicketsPathW.c_str()))
+		{
+			return StringInfo::ToAnsi(FileInfo::FullPath(configTicketsPathW.c_str()));
+		}
+	}
+
 	const WString profileFolder = GetEnvImpersonatedW(DepotConstants::USERPROFILE);
 	if (FileInfo::IsDirectory(profileFolder.c_str()))
 	{
@@ -767,6 +778,26 @@ DepotString FDepotClient::GetHostName() const
 	}
 
 	return GetEnv(DepotConstants::COMPUTERNAME);
+}
+
+DepotString FDepotClient::GetConfigEnv(const char* envVarName) const
+{
+	if (m_P4->m_ClientApi.get() != nullptr)
+	{
+		const StrArray* configFiles = m_P4->m_ClientApi->GetConfigs();
+		if (configFiles != nullptr && configFiles->Count() > 0)
+		{
+			if (Enviro* apiEnv = m_P4->m_ClientApi->GetEnviro())
+			{
+				const char* envVarValue = apiEnv->Get(envVarName);
+				if (StringInfo::IsNullOrEmpty(envVarValue) == false)
+				{
+					return DepotString(envVarValue);
+				}
+			}
+		}
+	}
+	return DepotString();
 }
 
 bool FDepotClient::Login()

@@ -1475,6 +1475,17 @@ namespace Microsoft.P4VFS.UnitTest
 					Assert(depotClient.ConnectionClient().Client == "p4vfstest-depot");
 					Assert(depotClient.Info().UserName == "p4vfstest");
 					Assert(ProcessInfo.ExecuteWaitOutput(P4vfsExe, "info", directory:subFolder, echo:true, log:true).Lines.Contains("P4 UserName: p4vfstest"));
+					// Override P4TICKETS from P4CONFIG
+					string configTicketsFile = Path.Combine(subFolder, "tix.txt");
+					AssertLambda(() => FileUtilities.DeleteFile(configTicketsFile));
+					AssertLambda(() => File.WriteAllLines(Path.Combine(rootFolder, configFileName), configFileLines.Append($"P4TICKETS={configTicketsFile}").ToArray()));
+					Assert(depotClient.Connect(directoryPath:rootFolder) == false);
+					Assert(File.Exists(configTicketsFile) && FileUtilities.GetFileLength(configTicketsFile) == 0);
+					ProcessInfo.ExecuteResultOutput xr = ProcessInfo.ExecuteWaitOutput(P4Exe, "depots", directory:rootFolder, echo:true);
+					Assert(xr.ExitCode != 0 && xr.Data.Any(s => s.Text.Contains("Perforce password (P4PASSWD) invalid or unset.")));
+					Assert(depotClient.Connect(directoryPath:rootFolder, depotPasswd:UnitTestServer.GetUserP4Passwd(_P4User)));
+					Assert(depotClient.Depots().HasError == false);
+					Assert(File.Exists(configTicketsFile) && FileUtilities.GetFileLength(configTicketsFile) > 0);
 				}}
 			};
 

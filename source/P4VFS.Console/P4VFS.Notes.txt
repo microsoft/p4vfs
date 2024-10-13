@@ -1,5 +1,11 @@
 Microsoft P4VFS Release Notes
 
+Version [1.28.2.0]
+* Fixing support for specifying a value for P4TICKETS from within a P4CONFIG file,
+  and correctly used from working directory of p4vfs.exe, or placeholder file folder
+  during service hydration. Service requires P4CONFIG set in system environment or
+  system registry.
+
 Version [1.28.1.0]
 * Fixing possible memory leak during sync operation while accumulating logging 
   elements for statistics

@@ -200,6 +200,7 @@ ResolveFileResidency(
 	config.m_Port = P4::DepotOperations::ResolveDepotServerName(StringInfo::ToAnsi(populateInfo->depotServer.c_str()));
 	config.m_User = StringInfo::ToAnsi(populateInfo->depotUser.c_str());
 	config.m_Client = StringInfo::ToAnsi(populateInfo->depotClient.c_str());
+	config.m_Directory = StringInfo::ToAnsi(FileInfo::FolderPath(filePath));
 	const P4::DepotConfig& configKey = config;
 
 	// Make sure we go through all existing clients and a new one before giving up

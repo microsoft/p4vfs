@@ -334,6 +334,43 @@ namespace Microsoft.P4VFS.UnitTest
 			Assert(VirtualFileSystem.IsVirtualFileSystemAvailable());
 		}
 
+		[TestMethod, Priority(9)]
+		public void InstalledSettingsFilePathTest()
+		{
+			// Verifications of the simple settings file path
+			Assert(String.IsNullOrEmpty(VirtualFileSystem.UserSettingsFilePath) == false);
+			Assert(String.IsNullOrEmpty(VirtualFileSystem.AssemblySettingsFilePath) == false);
+
+			// Verifications of the public settings file path given differences in the PUBLIC environment variable
+			string originalPublicSettingsFilePath = VirtualFileSystem.PublicSettingsFilePath;
+			Assert(String.IsNullOrEmpty(VirtualFileSystem.PublicSettingsFilePath) == false);
+			using (new SetEnvironmentVariableScope("PUBLIC", ""))
+				Assert(String.IsNullOrEmpty(VirtualFileSystem.PublicSettingsFilePath));
+			using (new SetEnvironmentVariableScope("PUBLIC", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)))
+				Assert(String.Equals(VirtualFileSystem.PublicSettingsFilePath, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), VirtualFileSystem.SettingsFile), StringComparison.InvariantCultureIgnoreCase));
+			using (new SetEnvironmentVariableScope("PUBLIC", $"\"{Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}\""))
+				Assert(String.Equals(VirtualFileSystem.PublicSettingsFilePath, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), VirtualFileSystem.SettingsFile), StringComparison.InvariantCultureIgnoreCase));
+			Assert(originalPublicSettingsFilePath == VirtualFileSystem.PublicSettingsFilePath);
+
+			// Verifications of the installed settings file path given the service registry key
+			string originalInstalledSettingsFilePath = VirtualFileSystem.InstalledSettingsFilePath;
+			Assert(String.IsNullOrEmpty(VirtualFileSystem.InstalledSettingsFilePath) == false);
+			Assert(String.Equals(VirtualFileSystem.InstalledSettingsFilePath, Path.Combine(Path.GetDirectoryName(InstalledP4vfsExe), VirtualFileSystem.SettingsFile), StringComparison.InvariantCultureIgnoreCase));
+			Assert(RegistryInfo.GetValueKind(Microsoft.Win32.Registry.LocalMachine, VirtualFileSystem.ServiceRegistryKey, "ImagePath") == Microsoft.Win32.RegistryValueKind.ExpandString);
+			string installedImagePath = null;
+			Assert(RegistryInfo.GetTypedValue(Microsoft.Win32.Registry.LocalMachine, VirtualFileSystem.ServiceRegistryKey, "ImagePath", ref installedImagePath));
+			Assert(Directory.Exists(Path.GetDirectoryName(installedImagePath)));
+			Assert(String.Equals(Path.GetDirectoryName(installedImagePath), Path.GetDirectoryName(InstalledP4vfsExe), StringComparison.InvariantCultureIgnoreCase));
+			AssertLambda(() => RegistryInfo.SetValue(Microsoft.Win32.Registry.LocalMachine, VirtualFileSystem.ServiceRegistryKey, "ImagePath", $"\"{installedImagePath}\"", Win32.RegistryValueKind.ExpandString));
+			string quotedInstalledImagePath = null;
+			Assert(RegistryInfo.GetTypedValue(Microsoft.Win32.Registry.LocalMachine, VirtualFileSystem.ServiceRegistryKey, "ImagePath", ref quotedInstalledImagePath));
+			Assert(quotedInstalledImagePath == $"\"{installedImagePath}\"");
+			Assert(originalInstalledSettingsFilePath == VirtualFileSystem.InstalledSettingsFilePath);
+			AssertLambda(() => RegistryInfo.SetValue(Microsoft.Win32.Registry.LocalMachine, VirtualFileSystem.ServiceRegistryKey, "ImagePath", installedImagePath, Win32.RegistryValueKind.ExpandString));
+			Assert(RegistryInfo.GetValueKind(Microsoft.Win32.Registry.LocalMachine, VirtualFileSystem.ServiceRegistryKey, "ImagePath") == Microsoft.Win32.RegistryValueKind.ExpandString);
+			Assert(originalInstalledSettingsFilePath == VirtualFileSystem.InstalledSettingsFilePath);
+		}
+
 		public bool IsInstallationSigned()
 		{
 			string p4vfsExe = InstalledP4vfsExe;

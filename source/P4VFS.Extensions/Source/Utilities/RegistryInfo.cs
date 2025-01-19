@@ -1,20 +1,16 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Security;
-using System.Security.Permissions;
 using Microsoft.Win32;
 using Microsoft.Win32.SafeHandles;
 
 namespace Microsoft.P4VFS.Extensions.Utilities
 {
 	/// <summary>
-	/// Class to help with the nitty-gritty details of accessing the two registries (32 and 64 bit)
-	/// from managed code.
+	/// Class to help with the nitty-gritty details of accessing the two registries (32 and 64 bit) from managed code.
 	/// </summary>
 	public static class RegistryInfo
 	{
@@ -34,19 +30,6 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 		/// Retrieves the specified key/value and casts to type T, where possible. Expected errors (such as could not open key)
 		/// stored in StrRegError. Use GetValueType() or T=object if uncertain what type of value the key stores.
 		/// </summary>
-		/// <typeparam name="T">The type to cast the key value to.</typeparam>
-		/// <param name="hive_key">Identifies which hive to look in, such as Microsoft.Win32.Registry.LocalMachine.</param>
-		/// <param name="sub_key">Path from hive key to target node. Such as "SOFTWARE\\MICROSOFT\\Notepad\DefaultFonts.</param>
-		/// <param name="name">The key to act on. Such as "ifFaceName".</param>
-		/// <param name="value">Stores the casted value if RegistryCmd access succeeded.</param>
-		/// <returns>Success true/false.</returns>
-		/// <exception cref="System.ArgumentNullException">A null argument was passed in.</exception>
-		/// <exception cref="System.ArgumentException">sub_key or name is longer than the maximum length allowed (255 characters).</exception>
-		/// <exception cref="System.ObjectDisposedException">The Microsoft.Win32.RegistryKey is closed (closed keys cannot be accessed).</exception>
-		/// <exception cref="System.Security.SecurityException">The user does not have the permissions required to read the registry key.</exception>
-		/// <exception cref="System.IO.IOException">The Microsoft.Win32.RegistryKey that contains the specified key has been marked for deletion.</exception>
-		/// <exception cref="System.UnauthorizedAccessException">The user does not have the necessary registry rights.</exception>
-		/// <exception cref="System.InvalidCastException">The key value could not be cast to requested type.</exception>
 		public static bool GetTypedValue<T>(RegistryKey hive_key, string sub_key, string name, ref T value)
 		{
 			return RegistryInfo.GetTypedValueWithOptions<T>(hive_key, sub_key, name, RegistryValueOptions.None, ref value);
@@ -56,20 +39,6 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 		/// Retrieves the specified key/value and casts to type T, where possible. Expected errors (such as could not open key)
 		/// stored in StrRegError. Use GetValueType() or T=object if uncertain what type of value the key stores.
 		/// </summary>
-		/// <typeparam name="T">The type to cast the key value to.</typeparam>
-		/// <param name="hive_key">Identifies which hive to look in, such as Microsoft.Win32.Registry.LocalMachine.</param>
-		/// <param name="sub_key">Path from hive key to target node. Such as "SOFTWARE\\MICROSOFT\\Notepad\DefaultFonts.</param>
-		/// <param name="name">The key to act on. Such as "ifFaceName".</param>
-		/// <param name="options">The options to use when querying the registry.</param>
-		/// <param name="value">Stores the casted value if RegistryCmd access succeeded.</param>
-		/// <returns>Success true/false.</returns>
-		/// <exception cref="System.ArgumentNullException">A null argument was passed in.</exception>
-		/// <exception cref="System.ArgumentException">sub_key or name is longer than the maximum length allowed (255 characters).</exception>
-		/// <exception cref="System.ObjectDisposedException">The Microsoft.Win32.RegistryKey is closed (closed keys cannot be accessed).</exception>
-		/// <exception cref="System.Security.SecurityException">The user does not have the permissions required to read the registry key.</exception>
-		/// <exception cref="System.IO.IOException">The Microsoft.Win32.RegistryKey that contains the specified key has been marked for deletion.</exception>
-		/// <exception cref="System.UnauthorizedAccessException">The user does not have the necessary registry rights.</exception>
-		/// <exception cref="System.InvalidCastException">The key value could not be cast to requested type.</exception>
 		public static bool GetTypedValueWithOptions<T>(RegistryKey hive_key, string sub_key, string name, RegistryValueOptions options, ref T value)
 		{
 			object obj_data = RegistryInfo.GetValue(hive_key, sub_key, name, options);
@@ -85,16 +54,6 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 		/// <summary>
 		/// Sets/creates the specified String value. Exceptions/errors stored in StrRegError.
 		/// </summary>
-		/// <param name="hive_key">Identifies which hive to look in, such as Microsoft.Win32.Registry.LocalMachine.</param>
-		/// <param name="sub_key">Path from hive key to target node. Such as "SOFTWARE\\MICROSOFT\\Notepad\DefaultFonts.</param>
-		/// <param name="name">The key to act on. Such as "ifFaceName".</param>
-		/// <param name="value">String data value to write.</param>
-		/// <exception cref="System.ArgumentNullException">A null argument was passed in.</exception>
-		/// <exception cref="System.ArgumentException">value is an unsupported data type.  -or- name is longer than the maximum length allowed (255 characters).</exception>
-		/// <exception cref="System.ObjectDisposedException">The Microsoft.Win32.RegistryKey is closed (closed keys cannot be accessed).</exception>
-		/// <exception cref="System.Security.SecurityException">The user does not have the permissions required to read the registry key.</exception>
-		/// <exception cref="System.IO.IOException">The Microsoft.Win32.RegistryKey that contains the specified key has been marked for deletion.</exception>
-		/// <exception cref="System.UnauthorizedAccessException">The user does not have the necessary registry rights.</exception>
 		public static void SetStringValue(RegistryKey hive_key, string sub_key, string name, string value)
 		{
 			RegistryInfo.SetValue(hive_key, sub_key, name, value, RegistryValueKind.String);
@@ -103,16 +62,6 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 		/// <summary>
 		/// Sets/creates the specified ExpandString value. Exceptions/errors stored in StrRegError.
 		/// </summary>
-		/// <param name="hive_key">Identifies which hive to look in, such as Microsoft.Win32.Registry.LocalMachine.</param>
-		/// <param name="sub_key">Path from hive key to target node. Such as "SOFTWARE\\MICROSOFT\\Notepad\DefaultFonts.</param>
-		/// <param name="name">The key to act on. Such as "ifFaceName".</param>
-		/// <param name="value">String data value to write.</param>
-		/// <exception cref="System.ArgumentNullException">A null argument was passed in.</exception>
-		/// <exception cref="System.ArgumentException">value is an unsupported data type.  -or- name is longer than the maximum length allowed (255 characters).</exception>
-		/// <exception cref="System.ObjectDisposedException">The Microsoft.Win32.RegistryKey is closed (closed keys cannot be accessed).</exception>
-		/// <exception cref="System.Security.SecurityException">The user does not have the permissions required to read the registry key.</exception>
-		/// <exception cref="System.IO.IOException">The Microsoft.Win32.RegistryKey that contains the specified key has been marked for deletion.</exception>
-		/// <exception cref="System.UnauthorizedAccessException">The user does not have the necessary registry rights.</exception>
 		public static void SetStringExpandValue(RegistryKey hive_key, string sub_key, string name, string value)
 		{
 			RegistryInfo.SetValue(hive_key, sub_key, name, value, RegistryValueKind.ExpandString);
@@ -121,16 +70,6 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 		/// <summary>
 		/// Sets/creates the specified DWORD value. Exceptions/errors stored in StrRegError.
 		/// </summary>
-		/// <param name="hive_key">Identifies which hive to look in, such as Microsoft.Win32.Registry.LocalMachine.</param>
-		/// <param name="sub_key">Path from hive key to target node. Such as "SOFTWARE\\MICROSOFT\\Notepad\DefaultFonts.</param>
-		/// <param name="name">The key to act on. Such as "iPointSize".</param>
-		/// <param name="value">DWORD data value to write.</param>
-		/// <exception cref="System.ArgumentNullException">A null argument was passed in.</exception>
-		/// <exception cref="System.ArgumentException">value is an unsupported data type.  -or- name is longer than the maximum length allowed (255 characters).</exception>
-		/// <exception cref="System.ObjectDisposedException">The Microsoft.Win32.RegistryKey is closed (closed keys cannot be accessed).</exception>
-		/// <exception cref="System.Security.SecurityException">The user does not have the permissions required to read the registry key.</exception>
-		/// <exception cref="System.IO.IOException">The Microsoft.Win32.RegistryKey that contains the specified key has been marked for deletion.</exception>
-		/// <exception cref="System.UnauthorizedAccessException">The user does not have the necessary registry rights.</exception>
 		public static void SetDWORDValue(RegistryKey hive_key, string sub_key, string name, int value)
 		{
 			RegistryInfo.SetValue(hive_key, sub_key, name, value, RegistryValueKind.DWord);
@@ -139,16 +78,6 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 		/// <summary>
 		/// Sets/creates the specified Binary value. Exceptions/errors stored in StrRegError.
 		/// </summary>
-		/// <param name="hive_key">Identifies which hive to look in, such as Microsoft.Win32.Registry.LocalMachine.</param>
-		/// <param name="sub_key">Path from hive key to target node. Such as "SOFTWARE\\MICROSOFT\\Notepad\DefaultFonts.</param>
-		/// <param name="name">The key to act on. Such as "iPointSize" sic.</param>
-		/// <param name="value">Binary data value to write.</param>
-		/// <exception cref="System.ArgumentNullException">A null argument was passed in.</exception>
-		/// <exception cref="System.ArgumentException">value is an unsupported data type.  -or- name is longer than the maximum length allowed (255 characters).</exception>
-		/// <exception cref="System.ObjectDisposedException">The Microsoft.Win32.RegistryKey is closed (closed keys cannot be accessed).</exception>
-		/// <exception cref="System.Security.SecurityException">The user does not have the permissions required to read the registry key.</exception>
-		/// <exception cref="System.IO.IOException">The Microsoft.Win32.RegistryKey that contains the specified key has been marked for deletion.</exception>
-		/// <exception cref="System.UnauthorizedAccessException">The user does not have the necessary registry rights.</exception>
 		public static void SetBinaryValue(RegistryKey hive_key, string sub_key, string name, byte[] value)
 		{
 			RegistryInfo.SetValue(hive_key, sub_key, name, value, RegistryValueKind.Binary);
@@ -157,16 +86,6 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 		/// <summary>
 		/// Sets/creates the specified String Array value. Exceptions/errors stored in StrRegError.
 		/// </summary>
-		/// <param name="hive_key">Identifies which hive to look in, such as Microsoft.Win32.Registry.LocalMachine.</param>
-		/// <param name="sub_key">Path from hive key to target node. Such as "SOFTWARE\\MICROSOFT\\Notepad\DefaultFonts.</param>
-		/// <param name="name">The key to act on. Such as "iPointSize" sic.</param>
-		/// <param name="value">String Array value to write.</param>
-		/// <exception cref="System.ArgumentNullException">A null argument was passed in.</exception>
-		/// <exception cref="System.ArgumentException">value is an unsupported data type.  -or- name is longer than the maximum length allowed (255 characters).</exception>
-		/// <exception cref="System.ObjectDisposedException">The Microsoft.Win32.RegistryKey is closed (closed keys cannot be accessed).</exception>
-		/// <exception cref="System.Security.SecurityException">The user does not have the permissions required to read the registry key.</exception>
-		/// <exception cref="System.IO.IOException">The Microsoft.Win32.RegistryKey that contains the specified key has been marked for deletion.</exception>
-		/// <exception cref="System.UnauthorizedAccessException">The user does not have the necessary registry rights.</exception>
 		public static void SetStringArrayValue(RegistryKey hive_key, string sub_key, string name, string[] value)
 		{
 			RegistryInfo.SetValue(hive_key, sub_key, name, value, RegistryValueKind.MultiString);
@@ -175,17 +94,6 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 		/// <summary>
 		/// Sets/creates the specified value. Casts where able to RegistryValueKind. Exceptions/errors stored in StrRegError.
 		/// </summary>
-		/// <param name="hive_key">Identifies which hive to look in, such as Microsoft.Win32.Registry.LocalMachine.</param>
-		/// <param name="sub_key">Path from hive key to target node. Such as "SOFTWARE\\MICROSOFT\\Notepad\DefaultFonts.</param>
-		/// <param name="name">The key to act on. Such as "iPointSize" sic.</param>
-		/// <param name="value">Binary data value to write.</param>
-		/// <param name="kind">Microsoft.Win32.RegistryValueKind to store the value as.</param>
-		/// <exception cref="System.ArgumentNullException">A null argument was passed in.</exception>
-		/// <exception cref="System.ArgumentException">value is an unsupported data type.  -or- name is longer than the maximum length allowed (255 characters).</exception>
-		/// <exception cref="System.ObjectDisposedException">The Microsoft.Win32.RegistryKey is closed (closed keys cannot be accessed).</exception>
-		/// <exception cref="System.Security.SecurityException">The user does not have the permissions required to read the registry key.</exception>
-		/// <exception cref="System.IO.IOException">The Microsoft.Win32.RegistryKey that contains the specified key has been marked for deletion.</exception>
-		/// <exception cref="System.UnauthorizedAccessException">The user does not have the necessary registry rights.</exception>
 		public static void SetValue(RegistryKey hive_key, string sub_key, string name, object value, RegistryValueKind kind)
 		{
 			StrRegError = null;
@@ -204,15 +112,6 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 		/// <summary>
 		/// Creates a new subkey or opens an existing subkey. Exceptions/errors stored in StrRegError.
 		/// </summary>
-		/// <param name="hive_key">Identifies which hive to look in, such as Microsoft.Win32.Registry.LocalMachine.</param>
-		/// <param name="sub_key">Path from hive key to target node. Such as "SOFTWARE\\MICROSOFT\\Notepad\DefaultFonts.</param>
-		/// <exception cref="System.ArgumentNullException">A null argument was passed in.</exception>
-		/// <exception cref="System.ArgumentException">sub_key is longer than the maximum length allowed (255 characters).</exception>
-		/// <exception cref="System.ObjectDisposedException">The Microsoft.Win32.RegistryKey is closed (closed keys cannot be accessed).</exception>
-		/// <exception cref="System.Security.SecurityException">The user does not have the permissions required to read the registry key.</exception>
-		/// <exception cref="System.IO.IOException">The Microsoft.Win32.RegistryKey that contains the specified key has been marked for deletion.</exception>
-		/// <exception cref="System.UnauthorizedAccessException">The user does not have the necessary registry rights.</exception>
-		/// <returns>The Microsoft.Win32.RegistryKey created from hive_key and sub_key.</returns>
 		public static RegistryKey CreateSubKey(RegistryKey hive_key, string sub_key)
 		{
 			StrRegError = null;
@@ -228,13 +127,6 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 		/// <summary>
 		/// Deletes a subkey and any child subkeys recursively. Exceptions/errors stored in StrRegError.
 		/// </summary>
-		/// <param name="hive_key">Identifies which hive to look in, such as Microsoft.Win32.Registry.LocalMachine.</param>
-		/// <param name="sub_key">Path from hive key to target node. Such as "SOFTWARE\\MICROSOFT\\Notepad\DefaultFonts.</param>
-		/// <exception cref="System.ArgumentNullException">A null argument was passed in.</exception>
-		/// <exception cref="System.ArgumentException">Deletion of a root hive is attempted.  -or- subkey does not specify a valid registry subkey.</exception>
-		/// <exception cref="System.ObjectDisposedException">The Microsoft.Win32.RegistryKey is closed (closed keys cannot be accessed).</exception>
-		/// <exception cref="System.Security.SecurityException">The user does not have the permissions required to read the registry key.</exception>
-		/// <exception cref="System.UnauthorizedAccessException">The user does not have the necessary registry rights.</exception>
 		public static void DeleteSubKeyTree(RegistryKey hive_key, string sub_key)
 		{
 			StrRegError = null;
@@ -244,15 +136,6 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 		/// <summary>
 		/// Deletes the specified value from this (current) key. Exceptions/errors stored in StrRegError.
 		/// </summary>
-		/// <param name="hive_key">Identifies which hive to look in, such as Microsoft.Win32.Registry.LocalMachine.</param>
-		/// <param name="sub_key">Path from hive key to target node. Such as "SOFTWARE\\MICROSOFT\\Notepad\DefaultFonts.</param>
-		/// <param name="name">The key to act on. Such as "iPointSize".</param>
-		/// <exception cref="System.ArgumentNullException">A null argument was passed in.</exception>
-		/// <exception cref="System.ArgumentException">name is not a valid reference to a value.</exception>
-		/// <exception cref="System.ObjectDisposedException">The Microsoft.Win32.RegistryKey is closed (closed keys cannot be accessed).</exception>
-		/// <exception cref="System.Security.SecurityException">The user does not have the permissions required to read the registry key.</exception>
-		/// <exception cref="System.IO.IOException">The Microsoft.Win32.RegistryKey that contains the specified key has been marked for deletion.</exception>
-		/// <exception cref="System.UnauthorizedAccessException">The user does not have the necessary registry rights.</exception>
 		public static void DeleteValue(RegistryKey hive_key, string sub_key, string name)
 		{
 			StrRegError = null;
@@ -277,34 +160,40 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 		/// <summary>
 		/// Retrieves the type of the specified RegistryCmd value. Exceptions/errors stored in StrRegError.
 		/// </summary>
-		/// <param name="hive_key">Identifies which hive to look in, such as Microsoft.Win32.Registry.LocalMachine.</param>
-		/// <param name="sub_key">Path from hive key to target node. Such as "SOFTWARE\\MICROSOFT\\Notepad\DefaultFonts.</param>
-		/// <param name="name">The key to act on. Such as "iPointSize".</param>
-		/// <returns>System.Type. Exceptions/errors stored in StrRegError.</returns>
-		/// <exception cref="System.ArgumentNullException">A null argument was passed in.</exception>
-		/// <exception cref="System.ArgumentException">sub_key or name is longer than the maximum length allowed (255 characters).</exception>
-		/// <exception cref="System.ObjectDisposedException">The Microsoft.Win32.RegistryKey is closed (closed keys cannot be accessed).</exception>
-		/// <exception cref="System.Security.SecurityException">The user does not have the permissions required to read the registry key.</exception>
-		/// <exception cref="System.IO.IOException">The Microsoft.Win32.RegistryKey that contains the specified key has been marked for deletion.</exception>
-		/// <exception cref="System.UnauthorizedAccessException">The user does not have the necessary registry rights.</exception>
 		public static Type GetValueType(RegistryKey hive_key, string sub_key, string name)
 		{
 			return RegistryInfo.GetValue(hive_key, sub_key, name, RegistryValueOptions.None).GetType();
 		}
 
 		/// <summary>
+		/// Retrieves the RegistryValueKind of the specified RegistryCmd value. Exceptions/errors stored in StrRegError.
+		/// </summary>
+		public static RegistryValueKind GetValueKind(RegistryKey hive_key, string sub_key, string name)
+		{
+			StrRegError = null;
+			using (RegistryKey subKey = hive_key.OpenSubKey(sub_key))
+			{
+				if (subKey == null)
+				{
+					StrRegError = "Cannot open the specified sub-key";
+					return RegistryValueKind.Unknown;
+				}
+
+				try
+				{
+					return subKey.GetValueKind(name);
+				}
+				catch (Exception ex)
+				{
+					StrRegError = ex.Message;
+					return RegistryValueKind.Unknown;
+				}
+			}
+		}
+
+		/// <summary>
 		/// Determines the existence of a value. Exceptions/errors stored in StrRegError.
 		/// </summary>
-		/// <param name="hive_key">Identifies which hive to look in, such as Microsoft.Win32.Registry.LocalMachine.</param>
-		/// <param name="sub_key">Path from hive key to target node. Such as "SOFTWARE\\MICROSOFT\\Notepad\DefaultFonts.</param>
-		/// <param name="name">The key to act on. Such as "iPointSize".</param>
-		/// <returns>Whether the value exists by boolean. Exceptions/errors stored in StrRegError.</returns>
-		/// <exception cref="System.ArgumentNullException">A null argument was passed in.</exception>
-		/// <exception cref="System.ArgumentException">sub_key or name is longer than the maximum length allowed (255 characters).</exception>
-		/// <exception cref="System.ObjectDisposedException">The Microsoft.Win32.RegistryKey is closed (closed keys cannot be accessed).</exception>
-		/// <exception cref="System.Security.SecurityException">The user does not have the permissions required to read the registry key.</exception>
-		/// <exception cref="System.IO.IOException">The Microsoft.Win32.RegistryKey that contains the specified key has been marked for deletion.</exception>
-		/// <exception cref="System.UnauthorizedAccessException">The user does not have the necessary registry rights.</exception>
 		public static bool ValueExists(RegistryKey hive_key, string sub_key, string name)
 		{
 			StrRegError = null;
@@ -333,10 +222,6 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 		/// Wraps up the Win32 RegistryCmd access to a single line. OpenSubKey and GetValue can throw several exceptions,
 		/// but for now we will let those hit the user (exceptions listed on public accessors to this function).
 		/// </summary>
-		/// <param name="hive_key">Identifies which hive to look in, such as Microsoft.Win32.RegistryCmd.LocalMachine.</param>
-		/// <param name="sub_key">Path from hive key to target node. Such as "SOFTWARE\\MICROSOFT\\Notepad\DefaultFonts.</param>
-		/// <param name="name">The key to act on. Such as "iPointSize".</param>
-		/// <returns>Object from RegistryKey.OpenSubKey.</returns>
 		private static object GetValue(RegistryKey hive_key, string sub_key, string name, RegistryValueOptions options)
 		{
 			object objData = null;
@@ -657,14 +542,8 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 
 
 			/// <summary>
-			/// Horrible stuff to be able to access the 64-bit registry from a managed app, regardless of
-			/// the app's bitness.
+			/// Horrible stuff to be able to access the 64-bit registry from a managed app, regardless of the app's bitness.
 			/// </summary>
-			/// <param name="reg_hive">The hive to read from (HKLM, HKCU, etc).</param>
-			/// <param name="key">The key itself.</param>
-			/// <param name="value">The value to query.</param>
-			/// <param name="flags">Additional flags to pass directly to the Win32 API.</param>
-			/// <returns>String value stored in the registry, or empty string if not available.</returns>
 			public static string GetStringValueFromRegistryWithFlags(RegistryHive reg_hive, string key, string value, int flags)
 			{
 				string return_value = String.Empty;
@@ -684,26 +563,16 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 			}
 
 			/// <summary>
-			/// Horrible stuff to be able to access the 32-bit registry from a managed app, regardless of
-			/// the app's bitness.
+			/// Horrible stuff to be able to access the 32-bit registry from a managed app, regardless of the app's bitness.
 			/// </summary>
-			/// <param name="reg_hive">The hive to read from (HKLM, HKCU, etc).</param>
-			/// <param name="key">The key itself.</param>
-			/// <param name="value">The value to query.</param>
-			/// <returns>String value stored in the 32-bit registry, or empty string if not available.</returns>
 			public string GetStringValueFrom32BitRegistry(RegistryHive reg_hive, string key, string value)
 			{
 				return GetStringValueFromRegistryWithFlags(reg_hive, key, value, KEY_WOW64_32KEY);
 			}
 
 			/// <summary>
-			/// Horrible stuff to be able to access the 64-bit registry from a managed app, regardless of
-			/// the app's bitness.
+			/// Horrible stuff to be able to access the 64-bit registry from a managed app, regardless of the app's bitness.
 			/// </summary>
-			/// <param name="reg_hive">The hive to read from (HKLM, HKCU, etc).</param>
-			/// <param name="key">The key itself.</param>
-			/// <param name="value">The value to query.</param>
-			/// <returns>String value stored in the 64-bit registry, or empty string if not available.</returns>
 			public string GetStringValueFrom64BitRegistry(RegistryHive reg_hive, string key, string value)
 			{
 				return GetStringValueFromRegistryWithFlags(reg_hive, key, value, KEY_WOW64_64KEY);

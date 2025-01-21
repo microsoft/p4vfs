@@ -4,6 +4,7 @@ Version [1.28.3.0]
 * Fixing service initialization error if registry ImagePath value contains quotes
   under key "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\P4VFS.Service".
   Including a new unit test to verify handling of user settings paths.
+* Updating driver WDK to 10.0.26100
 
 Version [1.28.2.0]
 * Fixing support for specifying a value for P4TICKETS from within a P4CONFIG file,

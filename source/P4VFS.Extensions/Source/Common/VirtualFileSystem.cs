@@ -231,7 +231,7 @@ namespace Microsoft.P4VFS.Extensions
 		{
 			get	
 			{ 
-				string publicProfile = Environment.GetEnvironmentVariable("PUBLIC");
+				string publicProfile = Environment.GetEnvironmentVariable("PUBLIC")?.Trim('"');
 				return String.IsNullOrEmpty(publicProfile) ? String.Empty : Path.GetFullPath(String.Format("{0}\\{1}", publicProfile, SettingsFile)); 
 			}
 		}
@@ -247,6 +247,7 @@ namespace Microsoft.P4VFS.Extensions
 			{
 				string serviceFilePath = null;
 				RegistryInfo.GetTypedValue(Microsoft.Win32.Registry.LocalMachine, ServiceRegistryKey, "ImagePath", ref serviceFilePath);
+				serviceFilePath = serviceFilePath?.Trim('"');
 				return String.IsNullOrEmpty(serviceFilePath) ? String.Empty : Path.GetFullPath(String.Format("{0}\\{1}", Path.GetDirectoryName(serviceFilePath), SettingsFile));
 			}
 		}

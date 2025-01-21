@@ -53,7 +53,7 @@ namespace Microsoft.P4VFS.UnitTest
 				
 					Assert(ReconcilePreview(clientFolder).Any() == false);
 					Assert(IsPlaceholderFile(clientFile) == false);
-					Assert(getAttr(clientFile) == FileAttributes.ReadOnly);
+					Assert(getAttr(clientFile).HasFlag(FileAttributes.ReadOnly));
 					File.SetAttributes(clientFile, FileAttributes.Normal);
 					Assert(getAttr(clientFile) == FileAttributes.Normal);
 

@@ -7,7 +7,7 @@ For example, you can use the P4VFS to perform a "virtual sync" to a Perforce fil
 
 # Installation
 You can install the latest signed release of P4VFS from here:
-> [P4VFS.Setup](https://github.com/microsoft/p4vfs/releases/download/v1.28.0.0/P4VFS.Setup-1.28.0.0.exe)
+> [P4VFS.Setup](https://github.com/microsoft/p4vfs/releases/download/v1.28.3.0/P4VFS.Setup-1.28.3.0.exe)
 
 The entire history of release notes is included with the installer.
 > [Release Notes](https://github.com/microsoft/p4vfs/blob/main/source/P4VFS.Console/P4VFS.Notes.txt)
@@ -49,8 +49,8 @@ The tool respects P4CONFIG file usage, as well as supports typical configuration
 ### Build Requirments:
 
 1. Visual Studio 2022 version 17.5.0 or later
-1. Windows SDK version 10.0.22621.0 (22H2) 
-1. Windows WDK version 10.0.22621.382 (22H2)
+1. Windows SDK version 10.0.26100.1742
+1. Windows WDK version 10.0.26100.2454
 
 Details for installing Visual Studio 2022, the Windows Software Development Kit (SDK), and the Windows Driver Kit (WDK) can be found here: 
 > [Download the Windows Driver Kit](https://learn.microsoft.com/en-us/windows-hardware/drivers/download-the-wdk)

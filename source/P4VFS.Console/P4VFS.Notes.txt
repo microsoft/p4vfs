@@ -1,5 +1,11 @@
 Microsoft P4VFS Release Notes
 
+Version [1.28.4.0]
+* Addition of optional service commandline argument to launch with debugger attached. 
+  This is done as needed from admin command prompt "sc.exe start P4VFS.Service --break"
+* Moving service logging system to initialize before ExtensionsInterop. This avoids
+  missed logging from service communication initialization.
+
 Version [1.28.3.0]
 * Fixing service initialization error if registry ImagePath value contains quotes
   under key "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\P4VFS.Service".

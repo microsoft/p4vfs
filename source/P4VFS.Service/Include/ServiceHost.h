@@ -10,8 +10,8 @@ class ServiceHost : public ExtensionsInterop::ServiceHost
 {
 public:
 
-	static ServiceHost* 
-	GetInstance(
+	static ServiceHost&
+	StaticInstance(
 		);
 
 	static VOID WINAPI 
@@ -83,11 +83,17 @@ public:
 		int64_t timeout
 		) override;
 
-public:
-	static WCHAR* SERVICE_NAME;
+private:
+	static bool
+	HasArgument(
+		DWORD dwNumServicesArgs,
+		LPWSTR* lpServiceArgVectors,
+		LPCWSTR lpArgName
+		);
 
 private:
-	static ServiceHost*				s_instance;
+	static const WCHAR*				SERVICE_NAME;
+	static ServiceHost*				m_Instance;
 
 	SERVICE_STATUS					m_SrvStatus;
 	SERVICE_STATUS_HANDLE			m_SrvStatusHandle; 

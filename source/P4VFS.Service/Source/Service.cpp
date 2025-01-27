@@ -9,8 +9,6 @@ ServiceHost g_SrvHost;
 
 int _tmain()
 {
-	ServiceHost* pSrvHost = ServiceHost::GetInstance();
-	Assert(pSrvHost != nullptr);
-	pSrvHost->Start();
+	ServiceHost::StaticInstance().Start();
 	return 0;
 }

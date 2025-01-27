@@ -149,24 +149,30 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 			else if (msg.Type == typeof(SocketModelRequestSetServiceSetting).Name)
 			{
 				SocketModelRequestSetServiceSetting request = msg.GetData<SocketModelRequestSetServiceSetting>();
-				SocketModelReply reply = new SocketModelReply() { Success = ServiceSettings.SetProperty(request.Value, request.Name) };
+				SocketModelReply reply = new SocketModelReply{ Success = ServiceSettings.SetProperty(request.Value, request.Name) };
 				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply));
 			}
 			else if (msg.Type == typeof(SocketModelRequestGetServiceSetting).Name)
 			{
 				SocketModelRequestGetServiceSetting request = msg.GetData<SocketModelRequestGetServiceSetting>();
-				SocketModelReplyGetServiceSetting reply = new SocketModelReplyGetServiceSetting() { Value = ServiceSettings.GetProperty(request.Name) };
+				SocketModelReplyGetServiceSetting reply = new SocketModelReplyGetServiceSetting{ Value = ServiceSettings.GetProperty(request.Name) };
 				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply));
 			}
 			else if (msg.Type == typeof(SocketModelRequestGetServiceSettings).Name)
 			{
-				SocketModelReplyGetServiceSettings reply = new SocketModelReplyGetServiceSettings() { Settings = SettingManager.GetProperties() };
+				SocketModelReplyGetServiceSettings reply = new SocketModelReplyGetServiceSettings{ Settings = SettingManager.GetProperties() };
 				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply));
 			}
 			else if (msg.Type == typeof(SocketModelRequestGarbageCollect).Name)
 			{
 				SocketModelRequestGarbageCollect request = msg.GetData<SocketModelRequestGarbageCollect>();
-				SocketModelReply reply = new SocketModelReply() { Success = VirtualFileSystem.ServiceHost != null ? VirtualFileSystem.ServiceHost.GarbageCollect(request.Timeout) : false };
+				SocketModelReply reply = new SocketModelReply{ Success = VirtualFileSystem.ServiceHost != null ? VirtualFileSystem.ServiceHost.GarbageCollect(request.Timeout) : false };
+				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply));
+			}
+			else if (msg.Type == typeof(SocketModelRequestReflectPackage).Name)
+			{
+				SocketModelRequestReflectPackage request = msg.GetData<SocketModelRequestReflectPackage>();
+				SocketModelReplyReflectPackage reply = new SocketModelReplyReflectPackage{ Package = request.Package };
 				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply));
 			}
 			else
@@ -229,7 +235,7 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 			{ 
 				if (IsFaulted() == false)
 				{
-					SocketModelMessage msg = new SocketModelMessage(new SocketModelRequestLog(){ Element = element });
+					SocketModelMessage msg = new SocketModelMessage(new SocketModelRequestLog{ Element = element });
 					lock (_StreamMutex)
 					{
 						SocketModelProtocol.SendMessage(_NetworkStream, msg);
@@ -293,10 +299,19 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 		public bool GarbageCollect(Int64 timeout = 0)
 		{
 			List<SocketModelMessage> result = new List<SocketModelMessage>();
-			if (SendCommand(new SocketModelRequestGarbageCollect(){ Timeout = timeout }, result) == false)
+			if (SendCommand(new SocketModelRequestGarbageCollect{ Timeout = timeout }, result) == false)
 				return false;
 			SocketModelReply reply = SocketModelMessage.GetData<SocketModelReply>(result);
 			return reply != null && reply.Success;
+		}
+
+		public byte[] ReflectPackage(byte[] package)
+		{
+			List<SocketModelMessage> result = new List<SocketModelMessage>();
+			if (SendCommand(new SocketModelRequestReflectPackage{ Package = package }, result) == false)
+				return null;
+			SocketModelReplyReflectPackage reply = SocketModelMessage.GetData<SocketModelReplyReflectPackage>(result);
+			return reply?.Package;
 		}
 
 		private bool SendCommand<CommandType>(CommandType cmd, List<SocketModelMessage> result = null)
@@ -556,5 +571,15 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 	public class SocketModelRequestGarbageCollect
 	{
 		public Int64 Timeout;
+	}
+
+	public class SocketModelRequestReflectPackage
+	{
+		public byte[] Package;
+	}
+
+	public class SocketModelReplyReflectPackage
+	{
+		public byte[] Package;
 	}
 }

@@ -1428,6 +1428,26 @@ namespace Microsoft.P4VFS.UnitTest
 			Assert(client.SetServiceSetting("NonExistingSetting", SettingNode.FromBool(false)) == false);
 			Assert(client.GetServiceSetting("NonExistingSetting") == null);
 
+			RandomFast random = new RandomFast(291481);
+			const int maxPackageSize = 1<<25; // 32*1024*1024 (32 MiB)
+			for (int packageSize = 1; packageSize <= maxPackageSize; packageSize <<= 5)
+			{
+				byte[] packageBytes = new byte[packageSize];
+				uint data = 0;
+				for (int index = 0; index < packageSize; ++index)
+				{
+					if (index % 4 == 0)
+					{
+						data = random.Next();
+					}
+					packageBytes[index] = (byte)(data & 0xFF);
+					data >>= 8;
+				}
+				byte[] receiveBytes = client.ReflectPackage(packageBytes);
+				Assert(receiveBytes.Length == packageBytes.Length);
+				Assert(Array.Equals(receiveBytes, packageBytes));
+			}
+
 			ServiceRestart();
 		}
 

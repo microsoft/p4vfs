@@ -1432,6 +1432,7 @@ namespace Microsoft.P4VFS.UnitTest
 			const int maxPackageSize = 1<<25; // 32*1024*1024 (32 MiB)
 			for (int packageSize = 1; packageSize <= maxPackageSize; packageSize <<= 5)
 			{
+				VirtualFileSystemLog.Info("SocketModelCommunicationTest ReflectPackage size {0}", packageSize);
 				byte[] packageBytes = new byte[packageSize];
 				uint data = 0;
 				for (int index = 0; index < packageSize; ++index)
@@ -1444,8 +1445,8 @@ namespace Microsoft.P4VFS.UnitTest
 					data >>= 8;
 				}
 				byte[] receiveBytes = client.ReflectPackage(packageBytes);
-				Assert(receiveBytes.Length == packageBytes.Length);
-				Assert(Array.Equals(receiveBytes, packageBytes));
+				Assert(receiveBytes?.Length == packageBytes.Length);
+				Assert(receiveBytes.SequenceEqual(packageBytes));
 			}
 
 			ServiceRestart();

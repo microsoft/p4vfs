@@ -266,3 +266,125 @@ void TestDevDriveAttachPolicy(const TestContext& context)
 	SetFsutilAttachPolicy(prevNames);
 	Assert(GetFsutilAttachPolicy() == prevNames);
 }
+
+void TestReadDirectoryChanges(const TestContext& context)
+{
+	TestUtilities::WorkspaceReset(context);
+
+	DepotClient client = FDepotClient::New(context.m_FileContext);
+	Assert(client->Connect(context.GetDepotConfig()));
+
+	Assert(client->Connection().get() != nullptr);
+	const String clientRootFolder = StringInfo::ToWide(client->Connection()->Root());
+	Assert(FileInfo::IsDirectory(clientRootFolder.c_str()));
+	const String clientSearchFolder = StringInfo::Format(L"%s\\depot\\gears1", clientRootFolder.c_str());
+	Assert(FileInfo::IsDirectory(clientSearchFolder.c_str()) == false);
+
+	FDepotSyncOptions syncOptions;
+	syncOptions.m_SyncFlags = DepotSyncFlags::Quiet;
+	syncOptions.m_Files.push_back(StringInfo::Format("%s\\...", clientSearchFolder.c_str()));
+	DepotSyncResult syncResult = DepotOperations::SyncVirtual(client, syncOptions);
+	Assert(syncResult.get() != nullptr);
+	Assert(syncResult->m_Status == DepotSyncStatus::Success);
+	Assert(FileInfo::IsDirectory(clientSearchFolder.c_str()));
+
+	struct FReadChangesThread
+	{
+		struct FChange
+		{
+			String m_File;
+			DWORD m_Action;
+		};
+
+		struct FData
+		{
+			String m_FolderPath;
+			HANDLE m_hCancelationEvent;
+			Array<FChange> m_Changes;
+		};
+
+		static DWORD Execute(void* threadData)
+		{
+			FData* data = reinterpret_cast<FData*>(threadData);
+			Assert(data != nullptr);
+			Assert(data->m_hCancelationEvent != NULL);
+
+			AutoHandle hFolder = CreateFileW(data->m_FolderPath.c_str(),
+					FILE_LIST_DIRECTORY,
+					FILE_SHARE_READ | FILE_SHARE_DELETE,
+					NULL,
+					OPEN_EXISTING,
+					FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
+					NULL);
+			Assert(hFolder.IsValid());
+
+			while (WaitForSingleObject(data->m_hCancelationEvent, 0) != WAIT_OBJECT_0)
+			{
+				const DWORD changesNotifyFlags =
+					FILE_NOTIFY_CHANGE_CREATION |
+					FILE_NOTIFY_CHANGE_LAST_WRITE |
+					FILE_NOTIFY_CHANGE_SIZE |
+					FILE_NOTIFY_CHANGE_ATTRIBUTES |
+					FILE_NOTIFY_CHANGE_DIR_NAME |
+					FILE_NOTIFY_CHANGE_FILE_NAME;
+
+				BYTE changesBuffer[8*1024] = {0};
+				DWORD changesBufferLen = 0;
+				OVERLAPPED changesOverlapped = {};
+
+				if (ReadDirectoryChangesW(hFolder.Handle(), changesBuffer, sizeof(changesBuffer), true, changesNotifyFlags, &changesBufferLen, &changesOverlapped, NULL) == FALSE)
+				{
+					AssertMsg(false, TEXT("ReadDirectoryChanges failed"));
+					return 1;
+				}
+ 
+				// Wait indefinitely for any directory changes or a cancellation
+				const HANDLE handles[] = { hFolder.Handle(), data->m_hCancelationEvent };
+				const DWORD waitResult = WaitForMultipleObjects(_countof(handles), handles, FALSE, INFINITE);
+
+				if (waitResult == WAIT_OBJECT_0)
+				{
+					// ReadDirectoryChanges done and changesBuffer ready
+					for (const BYTE* changesPos = changesBuffer; changesPos < changesBuffer+changesBufferLen;)
+					{
+						const FILE_NOTIFY_INFORMATION* fni = reinterpret_cast<const FILE_NOTIFY_INFORMATION*>(changesPos); 
+						if (fni->NextEntryOffset == 0)
+						{
+							break;
+						}
+
+						// Getting fni.Action == FILE_ACTION_MODIFIED here when p4vfs gets file resident
+						data->m_Changes.push_back(FChange{ String(fni->FileName, fni->FileNameLength), fni->Action });
+						changesPos += fni->NextEntryOffset;
+					}
+				}
+				else if (waitResult == WAIT_OBJECT_0+1)
+				{
+					// Expected thread cancellation
+				}
+				else
+				{
+					AssertMsg(false, TEXT("Unexpected wait result %d"), waitResult);
+					return 1;
+				}
+			}
+
+			return 0;
+		}
+	};
+
+	// Start the thread to watch for changes under clientSearchFolder
+	AutoHandle hThreadCancelation = CreateEvent(NULL, TRUE, FALSE, NULL);
+	FReadChangesThread::FData threadData{ clientSearchFolder, hThreadCancelation.Handle() };
+	AutoHandle hThread = CreateThread(NULL, 0, FReadChangesThread::Execute, &threadData, 0, NULL);
+		
+	// Gracefully cancel the thread now that we're done testing for changes
+	SetEvent(hThreadCancelation.Handle());
+	Assert(WaitForSingleObject(hThreadCancelation.Handle(), 5*60*1000) == WAIT_OBJECT_0);
+	DWORD dwThreadExitCode = 1;
+	Assert(GetExitCodeThread(hThread.Handle(), &dwThreadExitCode));
+	Assert(dwThreadExitCode == 0);
+
+	Assert(threadData.m_Changes.size() == 0);
+}
+

@@ -222,6 +222,10 @@ typedef enum _POOL_TYPE {
 	NonPagedPoolNx = 512,
 } POOL_TYPE;
 
+typedef struct _FILE_INTERNAL_INFORMATION {
+    LARGE_INTEGER IndexNumber;
+} FILE_INTERNAL_INFORMATION, *PFILE_INTERNAL_INFORMATION;
+
 #define	P4vfsTraceError(...)			__noop
 #define	P4vfsTraceWarning(...)			__noop
 #define	P4vfsTraceInfo(...)				__noop
@@ -261,6 +265,7 @@ typedef enum _POOL_TYPE {
 
 #define	FILE_OPEN								0x00000001
 #define	FILE_SYNCHRONOUS_IO_NONALERT			0x00000020
+#define FILE_NON_DIRECTORY_FILE                 0x00000040
 #define	FILE_NO_INTERMEDIATE_BUFFERING			0x00000008
 #define	FILE_OPEN_REPARSE_POINT					0x00200000
 #define	FILE_OPEN_BY_FILE_ID					0x00002000

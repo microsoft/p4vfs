@@ -218,13 +218,14 @@ typedef	struct _FILE_STANDARD_INFORMATION_EX {
 	BOOLEAN	MetadataAttribute;
 } FILE_STANDARD_INFORMATION_EX,	*PFILE_STANDARD_INFORMATION_EX;
 
+typedef struct _FILE_ID_INFORMATION {
+    ULONGLONG VolumeSerialNumber;
+    FILE_ID_128 FileId;
+} FILE_ID_INFORMATION, *PFILE_ID_INFORMATION;
+
 typedef enum _POOL_TYPE {
 	NonPagedPoolNx = 512,
 } POOL_TYPE;
-
-typedef struct _FILE_INTERNAL_INFORMATION {
-    LARGE_INTEGER IndexNumber;
-} FILE_INTERNAL_INFORMATION, *PFILE_INTERNAL_INFORMATION;
 
 #define	P4vfsTraceError(...)			__noop
 #define	P4vfsTraceWarning(...)			__noop
@@ -262,10 +263,11 @@ typedef struct _FILE_INTERNAL_INFORMATION {
 #define	FileBasicInformation					4
 #define FileStandardInformation					5
 #define	FileInternalInformation					6
+#define FileIdInformation						59
 
 #define	FILE_OPEN								0x00000001
 #define	FILE_SYNCHRONOUS_IO_NONALERT			0x00000020
-#define FILE_NON_DIRECTORY_FILE                 0x00000040
+#define	FILE_NON_DIRECTORY_FILE					0x00000040
 #define	FILE_NO_INTERMEDIATE_BUFFERING			0x00000008
 #define	FILE_OPEN_REPARSE_POINT					0x00200000
 #define	FILE_OPEN_BY_FILE_ID					0x00002000
@@ -287,6 +289,8 @@ std::function<NTSTATUS(HANDLE)> FltClose;
 std::function<NTSTATUS(PFLT_INSTANCE, PFILE_OBJECT, PVOID, ULONG, FILE_INFORMATION_CLASS, PULONG)> FltQueryInformationFile;
 std::function<NTSTATUS(PFLT_INSTANCE, PFLT_VOLUME*)> FltGetVolumeFromInstance;
 std::function<NTSTATUS(PFLT_VOLUME, PUNICODE_STRING, PULONG)> FltGetVolumeName;
+std::function<NTSTATUS(PFLT_FILTER, PFILE_OBJECT, PFLT_VOLUME*)> FltGetVolumeFromFileObject;
+std::function<NTSTATUS(PFLT_FILTER, PFLT_VOLUME, PCUNICODE_STRING, PFLT_INSTANCE*)> FltGetVolumeInstanceFromName;
 
 std::function<PVOID(POOL_TYPE, SIZE_T, ULONG)> ExAllocatePoolZero;
 std::function<VOID(PVOID, ULONG)> ExFreePoolWithTag;
@@ -437,6 +441,9 @@ static void InternalTestDriverReset(const TestContext& context)
 	FltClose = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
 	FltQueryInformationFile = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
 	FltGetVolumeFromInstance = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
+	FltGetVolumeName = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
+	FltGetVolumeFromFileObject = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
+	FltGetVolumeInstanceFromName = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
 
 	ExAllocatePoolZero = [](POOL_TYPE, SIZE_T s, ULONG) -> PVOID { return GAlloc(s); };
 	ExFreePoolWithTag = [](PVOID p, ULONG) -> VOID { GFree(p); };

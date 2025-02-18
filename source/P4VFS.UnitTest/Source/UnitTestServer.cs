@@ -496,12 +496,18 @@ namespace Microsoft.P4VFS.UnitTest
 
 		public static string GetServerRootFolder(string p4Port = null)
 		{
-			// Special case for overriding the server root folder possibly on another drive
 			if (String.IsNullOrEmpty(ServerRootFolderOverride) == false) 
 			{
 				return ServerRootFolderOverride;
 			}
-			return String.Format("{0}\\{1}", UnitTestInstall.GetIntermediateRootFolder(), GetServerPortNumber(p4Port));
+
+			string serverRoot = Environment.GetEnvironmentVariable("P4VFS_TEST_SERVER_ROOT");
+			if (String.IsNullOrEmpty(serverRoot))
+			{
+				serverRoot = UnitTestInstall.GetIntermediateRootFolder();
+			}
+
+			return String.Format("{0}\\{1}", serverRoot, GetServerPortNumber(p4Port));
 		}
 
 		public static string GetServerClientRootFolder(string clientName, string p4Port = null)

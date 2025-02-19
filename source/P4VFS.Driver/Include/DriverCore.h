@@ -117,6 +117,7 @@ NTSTATUS
 P4vfsGetFileIdByFileName(
 	_In_opt_ PFLT_INSTANCE pFltInstance,
 	_In_ PUNICODE_STRING pFileName,
+	_In_opt_ ACCESS_MASK desiredAccess,
 	_Out_ PUNICODE_STRING pOutFileIdPath
 	);
 

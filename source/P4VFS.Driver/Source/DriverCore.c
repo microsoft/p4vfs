@@ -789,6 +789,7 @@ NTSTATUS
 P4vfsGetFileIdByFileName(
 	_In_opt_ PFLT_INSTANCE pFltInstance,
 	_In_ PUNICODE_STRING pFileName,
+	_In_opt_ ACCESS_MASK desiredAccess,
 	_Out_ PUNICODE_STRING pOutFileIdPath
 	)
 {
@@ -818,6 +819,9 @@ P4vfsGetFileIdByFileName(
 		goto CLEANUP;
 	}
 
+	const ULONG fileDesiredWritable = FlagOn(desiredAccess, FILE_WRITE_DATA | FILE_APPEND_DATA);
+	const ULONG fileAccessMask = fileDesiredWritable ? (FILE_READ_ATTRIBUTES | FILE_WRITE_ATTRIBUTES | SYNCHRONIZE) : 0;
+
 	InitializeObjectAttributes(&objAttributes,
 								pFileName,
 								OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE,
@@ -828,7 +832,7 @@ P4vfsGetFileIdByFileName(
 								pFltInstance,
 								&hLocalFile,
 								&pLocalFileObject,
-								0,
+								fileAccessMask,
 								&objAttributes,
 								&ioStatus,
 								NULL,
@@ -934,6 +938,41 @@ P4vfsGetFileIdByFileName(
 		goto CLEANUP;
 	}
 
+	if (fileDesiredWritable)
+	{
+		FILE_BASIC_INFORMATION fileBasicInfo = {0};
+
+		status = FltQueryInformationFile(pFltInstance,
+										 pLocalFileObject,
+										 &fileBasicInfo,
+										 sizeof(fileBasicInfo),
+										 FileBasicInformation,
+										 NULL);
+
+		if (!NT_SUCCESS(status))
+		{
+			P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: FltQueryInformationFile FileBasicInformation failed [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
+			goto CLEANUP;
+		}
+
+		if (FlagOn(fileBasicInfo.FileAttributes, FILE_ATTRIBUTE_READONLY))
+		{
+			ClearFlag(fileBasicInfo.FileAttributes, FILE_ATTRIBUTE_READONLY);
+
+			status = FltSetInformationFile(pFltInstance,
+										   pLocalFileObject,
+										   &fileBasicInfo,
+										   sizeof(fileBasicInfo),
+										   FileBasicInformation);
+
+			if (!NT_SUCCESS(status))
+			{
+				P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: FltSetInformationFile FileBasicInformation failed [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
+				goto CLEANUP;
+			}
+		}
+	}
+
 	*pOutFileIdPath = fileIdPath;
 	fileIdPath.Buffer = NULL;
 
@@ -987,9 +1026,14 @@ P4vfsOpenReparsePoint(
 	PAGED_CODE();
 
 	// We wish to open an existing reparse point file by using FILE_OPEN_BY_FILE_ID so as to avoid 
-	// directory notifications. Begin by finding the unique fileId by file path.
+	// directory notifications. The desiredAccess is specified to ensure the result fileIdPath can
+	// be used to open as requested
 
-	status = P4vfsGetFileIdByFileName(pFltInstance, pFileName, &fileIdPath);
+	status = P4vfsGetFileIdByFileName(pFltInstance, 
+									  pFileName, 
+									  desiredAccess,
+									  &fileIdPath);
+
 	if (!NT_SUCCESS(status))
 	{
 		P4vfsTraceError(Core, L"P4vfsOpenReparsePoint: P4vfsGetFileIdByFileName failed [%wZ] [%!STATUS!]", pFileName, status); 

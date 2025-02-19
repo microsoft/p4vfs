@@ -232,6 +232,7 @@ typedef enum _POOL_TYPE {
 #define	P4vfsTraceInfo(...)				__noop
 #define	PAGED_CODE()					__noop
 #define	FlagOn(_F,_SF)					((_F) &	(_SF))
+#define ClearFlag(_F,_SF)				((_F) &= ~(_SF))
 #define	ObDereferenceObject(f)			__noop
 #define PsGetCurrentProcess()			GetCurrentProcess()
 #define	PsGetCurrentProcessId()			GetCurrentProcessId()
@@ -287,6 +288,7 @@ std::function<NTSTATUS(PFLT_FILTER, PFLT_INSTANCE, PHANDLE, PFILE_OBJECT*, ACCES
 std::function<VOID(PVOID)> FltObjectDereference;
 std::function<NTSTATUS(HANDLE)> FltClose;
 std::function<NTSTATUS(PFLT_INSTANCE, PFILE_OBJECT, PVOID, ULONG, FILE_INFORMATION_CLASS, PULONG)> FltQueryInformationFile;
+std::function<NTSTATUS(PFLT_INSTANCE, PFILE_OBJECT, PVOID, ULONG, FILE_INFORMATION_CLASS)> FltSetInformationFile;
 std::function<NTSTATUS(PFLT_INSTANCE, PFLT_VOLUME*)> FltGetVolumeFromInstance;
 std::function<NTSTATUS(PFLT_VOLUME, PUNICODE_STRING, PULONG)> FltGetVolumeName;
 std::function<NTSTATUS(PFLT_FILTER, PFILE_OBJECT, PFLT_VOLUME*)> FltGetVolumeFromFileObject;
@@ -440,6 +442,7 @@ static void InternalTestDriverReset(const TestContext& context)
 	FltObjectDereference = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
 	FltClose = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
 	FltQueryInformationFile = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
+	FltSetInformationFile = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
 	FltGetVolumeFromInstance = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
 	FltGetVolumeName = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
 	FltGetVolumeFromFileObject = P4VFS_DEFAULT_FUNCTION_NTSTATUS();

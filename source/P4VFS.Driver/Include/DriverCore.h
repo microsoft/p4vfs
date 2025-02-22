@@ -114,19 +114,22 @@ P4vfsToUnicodeString(
 	);
 
 NTSTATUS
+P4vfsSetFileWritable(
+	_In_ PFLT_INSTANCE pFltInstance,
+	_In_ PUNICODE_STRING pFileIdPath
+	);
+
+NTSTATUS
 P4vfsGetFileIdByFileName(
-	_In_opt_ PFLT_INSTANCE pFltInstance,
 	_In_ PUNICODE_STRING pFileName,
-	_In_opt_ ACCESS_MASK desiredAccess,
-	_Out_ PUNICODE_STRING pOutFileIdPath
+	_Out_ PUNICODE_STRING pOutFileIdPath,
+	_Outptr_opt_ PFLT_INSTANCE* ppFltInstance
 	);
 
 NTSTATUS
 P4vfsOpenReparsePoint(
-	_In_opt_ PFLT_INSTANCE pFltInstance,
 	_In_ PUNICODE_STRING pFileName,
 	_In_ ACCESS_MASK desiredAccess,
-	_In_ ULONG objectAttributes,
 	_Out_ PHANDLE pTargetHandle,
 	_Outptr_ PFILE_OBJECT* ppTargetFileObject
 	);

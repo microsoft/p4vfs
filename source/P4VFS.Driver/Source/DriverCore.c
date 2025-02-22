@@ -598,6 +598,7 @@ P4vfsPopReparseActionInProgress(
 	NTSTATUS					status			= STATUS_SUCCESS;
 	P4VFS_REPARSE_ACTION*		pAction			= NULL;
 	P4VFS_REPARSE_ACTION*		pPrevAction		= NULL;
+	P4VFS_REPARSE_ACTION*		pFreeAction		= NULL;
 	UNICODE_STRING				actionFileKey	= {0};
 
 	PAGED_CODE();
@@ -614,7 +615,9 @@ P4vfsPopReparseActionInProgress(
 		for (pAction = g_FltContext.pReparseActionList; pAction != NULL; pAction = pAction->pNext)
 		{
 			if (P4vfsIsEqualActionFileKey(&actionFileKey, &pAction->fileKey))
+			{
 				break;
+			}
 
 			pPrevAction = pAction;
 		}
@@ -627,12 +630,15 @@ P4vfsPopReparseActionInProgress(
 			if (pAction->nRefCount <= 0)
 			{
 				if (g_FltContext.pReparseActionList == pAction)
+				{
 					g_FltContext.pReparseActionList = pAction->pNext;
+				}
 				else if (pPrevAction != NULL)
+				{
 					pPrevAction->pNext = pAction->pNext;
+				}
 
-				RtlFreeUnicodeString(&pAction->fileKey);
-				ExFreePoolWithTag(pAction, P4VFS_REPARSE_ACTION_ALLOC_TAG);
+				pFreeAction = pAction;
 				pAction = NULL;
 			}
 		}
@@ -643,6 +649,12 @@ CLEANUP:
 	if (actionFileKey.Buffer)
 	{
 		RtlFreeUnicodeString(&actionFileKey);
+	}
+
+	if (pFreeAction != NULL)
+	{
+		RtlFreeUnicodeString(&pFreeAction->fileKey);
+		ExFreePoolWithTag(pFreeAction, P4VFS_REPARSE_ACTION_ALLOC_TAG);
 	}
 }
 
@@ -786,16 +798,121 @@ P4vfsToUnicodeString(
 }
 
 NTSTATUS
-P4vfsGetFileIdByFileName(
-	_In_opt_ PFLT_INSTANCE pFltInstance,
-	_In_ PUNICODE_STRING pFileName,
-	_In_opt_ ACCESS_MASK desiredAccess,
-	_Out_ PUNICODE_STRING pOutFileIdPath
+P4vfsSetFileWritable(
+	_In_ PFLT_INSTANCE pFltInstance,
+	_In_ PUNICODE_STRING pFileIdPath
 	)
 {
 	NTSTATUS status = STATUS_SUCCESS;
 	IO_STATUS_BLOCK	ioStatus = {0};
-	OBJECT_ATTRIBUTES objAttributes = {0};
+	OBJECT_ATTRIBUTES objectAttributes = {0};
+	IO_DRIVER_CREATE_CONTEXT createContext = {0};
+	HANDLE hLocalFile = NULL;
+	PFILE_OBJECT pLocalFileObject = NULL;
+	FILE_BASIC_INFORMATION fileBasicInfo = {0};
+
+	PAGED_CODE();
+
+	if (!pFltInstance)
+	{
+		status = STATUS_INVALID_PARAMETER;
+		P4vfsTraceError(Core, L"P4vfsSetFileWritable: pFltInstance is NULL"); 
+		goto CLEANUP;
+	}
+
+	if (!pFileIdPath)
+	{
+		status = STATUS_INVALID_PARAMETER;
+		P4vfsTraceError(Core, L"P4vfsSetFileWritable: pFileIdPath is NULL"); 
+		goto CLEANUP;
+	}
+
+	IoInitializeDriverCreateContext(&createContext);
+	createContext.SiloContext =	PsGetHostSilo();
+
+	InitializeObjectAttributes(&objectAttributes,
+							   pFileIdPath,
+							   OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE,
+							   NULL,
+							   NULL);
+
+	status = FltCreateFileEx2(g_FltContext.pFilter,
+							  pFltInstance,
+							  &hLocalFile,
+							  &pLocalFileObject,
+							  FILE_READ_ATTRIBUTES | FILE_WRITE_ATTRIBUTES | SYNCHRONIZE,
+							  &objectAttributes,
+							  &ioStatus,
+							  NULL,
+							  FILE_ATTRIBUTE_NORMAL,
+							  FILE_SHARE_VALID_FLAGS,
+							  FILE_OPEN,
+							  FILE_SYNCHRONOUS_IO_NONALERT | FILE_OPEN_REPARSE_POINT | FILE_OPEN_BY_FILE_ID,
+							  NULL,
+							  0,
+							  IO_IGNORE_SHARE_ACCESS_CHECK,
+							  &createContext);
+
+	if (!NT_SUCCESS(status))
+	{
+		P4vfsTraceError(Core, L"P4vfsSetFileWritable: FltCreateFileEx2 failed fileIdPath [%wZ] [%!STATUS!]", pFileIdPath, status); 
+		goto CLEANUP;
+	}
+
+	status = FltQueryInformationFile(pFltInstance,
+									 pLocalFileObject,
+									 &fileBasicInfo,
+									 sizeof(fileBasicInfo),
+									 FileBasicInformation,
+									 NULL);
+
+	if (!NT_SUCCESS(status))
+	{
+		P4vfsTraceError(Core, L"P4vfsSetFileWritable: FltQueryInformationFile FileBasicInformation fileIdPath [%wZ] [%!STATUS!]", pFileIdPath, status); 
+		goto CLEANUP;
+	}
+
+	if (FlagOn(fileBasicInfo.FileAttributes, FILE_ATTRIBUTE_READONLY))
+	{
+		ClearFlag(fileBasicInfo.FileAttributes, FILE_ATTRIBUTE_READONLY);
+
+		status = FltSetInformationFile(pFltInstance,
+									   pLocalFileObject,
+									   &fileBasicInfo,
+									   sizeof(fileBasicInfo),
+									   FileBasicInformation);
+
+		if (!NT_SUCCESS(status))
+		{
+			P4vfsTraceError(Core, L"P4vfsSetFileWritable: FltSetInformationFile FileBasicInformation fileIdPath [%wZ] [%!STATUS!]", pFileIdPath, status); 
+			goto CLEANUP;
+		}
+	}
+
+CLEANUP:
+	if (hLocalFile != NULL)
+	{
+		FltClose(hLocalFile);
+	}
+
+	if (pLocalFileObject != NULL)
+	{
+		ObDereferenceObject(pLocalFileObject);
+	}
+
+	return status;
+}
+
+NTSTATUS
+P4vfsGetFileIdByFileName(
+	_In_ PUNICODE_STRING pFileName,
+	_Out_ PUNICODE_STRING pOutFileIdPath,
+	_Outptr_opt_ PFLT_INSTANCE* ppFltInstance
+	)
+{
+	NTSTATUS status = STATUS_SUCCESS;
+	IO_STATUS_BLOCK	ioStatus = {0};
+	OBJECT_ATTRIBUTES objectAttributes = {0};
 	HANDLE hLocalFile = NULL;
 	PFILE_OBJECT pLocalFileObject = NULL;
 	FILE_ID_INFORMATION fileIdInfo = {0};
@@ -819,31 +936,28 @@ P4vfsGetFileIdByFileName(
 		goto CLEANUP;
 	}
 
-	const ULONG fileDesiredWritable = FlagOn(desiredAccess, FILE_WRITE_DATA | FILE_APPEND_DATA);
-	const ULONG fileAccessMask = fileDesiredWritable ? (FILE_READ_ATTRIBUTES | FILE_WRITE_ATTRIBUTES | SYNCHRONIZE) : 0;
-
-	InitializeObjectAttributes(&objAttributes,
-								pFileName,
-								OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE,
-								NULL,
-								NULL);
+	InitializeObjectAttributes(&objectAttributes,
+							   pFileName,
+							   OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE,
+							   NULL,
+							   NULL);
 
 	status = FltCreateFileEx2(g_FltContext.pFilter,
-								pFltInstance,
-								&hLocalFile,
-								&pLocalFileObject,
-								fileAccessMask,
-								&objAttributes,
-								&ioStatus,
-								NULL,
-								FILE_ATTRIBUTE_NORMAL,
-								FILE_SHARE_VALID_FLAGS,
-								FILE_OPEN,
-								FILE_NON_DIRECTORY_FILE | FILE_OPEN_REPARSE_POINT,
-								NULL,
-								0,
-								IO_IGNORE_SHARE_ACCESS_CHECK,
-								NULL);
+							  NULL,
+							  &hLocalFile,
+							  &pLocalFileObject,
+							  0,
+							  &objectAttributes,
+							  &ioStatus,
+							  NULL,
+							  FILE_ATTRIBUTE_NORMAL,
+							  FILE_SHARE_VALID_FLAGS,
+							  FILE_OPEN,
+							  FILE_NON_DIRECTORY_FILE | FILE_OPEN_REPARSE_POINT,
+							  NULL,
+							  0,
+							  IO_IGNORE_SHARE_ACCESS_CHECK,
+							  NULL);
 
 	if (!NT_SUCCESS(status))
 	{
@@ -855,29 +969,26 @@ P4vfsGetFileIdByFileName(
 										pLocalFileObject,
 										&pVolume);
 
-	if (!NT_SUCCESS(status))
+	if (!NT_SUCCESS(status) || pVolume == NULL)
 	{
-		P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: FltGetVolumeFromFileObject failed [%wZ] [%!STATUS!]", pFileName, status); 
+		status = !NT_SUCCESS(status) ? status : STATUS_NOT_ALL_ASSIGNED;
+		P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: FltGetVolumeFromFileObject failed pVolume [%p] [%wZ] [%!STATUS!]", pVolume, pFileName, status); 
 		goto CLEANUP;
 	}
 
-	if (pFltInstance == NULL)
+	status = FltGetVolumeInstanceFromName(g_FltContext.pFilter, 
+										  pVolume, 
+										  NULL, 
+										  &pVolumeInstance);
+
+	if (!NT_SUCCESS(status) || pVolumeInstance == NULL)
 	{
-		status = FltGetVolumeInstanceFromName(g_FltContext.pFilter, 
-											  pVolume, 
-											  NULL, 
-											  &pVolumeInstance);
-
-		if (!NT_SUCCESS(status) || pVolumeInstance == NULL)
-		{
-			P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: FltGetVolumeInstanceFromName failed [%wZ] [%!STATUS!]", pFileName, status); 
-			goto CLEANUP;
-		}
-
-		pFltInstance = pVolumeInstance;
+		status = !NT_SUCCESS(status) ? status : STATUS_NOT_ALL_ASSIGNED;
+		P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: FltGetVolumeInstanceFromName failed pVolumeInstance [%p] [%wZ] [%!STATUS!]", pVolumeInstance, pFileName, status); 
+		goto CLEANUP;
 	}
 
-	status = FltQueryInformationFile(pFltInstance,
+	status = FltQueryInformationFile(pVolumeInstance,
 									 pLocalFileObject,
 									 &fileIdInfo,
 									 sizeof(FILE_ID_INFORMATION),
@@ -892,6 +1003,7 @@ P4vfsGetFileIdByFileName(
 
 	ULONG volumeNameLengthRequired = 0;
 	status = FltGetVolumeName(pVolume, NULL, &volumeNameLengthRequired);
+
 	if (!NT_SUCCESS(status) && (status != STATUS_BUFFER_TOO_SMALL))
 	{
 		P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: FltGetVolumeName length query failed [%wZ] [%!STATUS!]", pFileName, status); 
@@ -899,6 +1011,7 @@ P4vfsGetFileIdByFileName(
 	}
 
 	status = RtlUShortAdd((USHORT)volumeNameLengthRequired, sizeof(WCHAR)+sizeof(fileIdInfo.FileId), &fileIdPath.MaximumLength);
+	
 	if (!NT_SUCCESS(status))
 	{
 		P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: RtlUShortAdd failed [%wZ] [%!STATUS!]", pFileName, status); 
@@ -906,6 +1019,7 @@ P4vfsGetFileIdByFileName(
 	}
 
 	status = P4vfsAllocateUnicodeString(P4VFS_FILE_NAME_ALLOC_TAG, &fileIdPath);
+	
 	if (!NT_SUCCESS(status))
 	{
 		P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: P4vfsAllocateUnicodeString failed [%wZ] [%!STATUS!]", pFileName, status); 
@@ -913,6 +1027,7 @@ P4vfsGetFileIdByFileName(
 	}
 
 	status = FltGetVolumeName(pVolume, &fileIdPath, &volumeNameLengthRequired);
+	
 	if (!NT_SUCCESS(status))
 	{
 		P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: FltGetVolumeName failed [%wZ] [%!STATUS!]", pFileName, status); 
@@ -920,6 +1035,7 @@ P4vfsGetFileIdByFileName(
 	}
 
 	status = RtlAppendUnicodeToString(&fileIdPath, L"\\");
+
 	if (!NT_SUCCESS(status))
 	{
 		P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: RtlAppendUnicodeToString separator failed [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
@@ -932,49 +1048,21 @@ P4vfsGetFileIdByFileName(
 	fileIdString.Buffer = (PWCHAR)&fileIdInfo.FileId;
 
 	status = RtlAppendUnicodeStringToString(&fileIdPath, &fileIdString);
+
 	if (!NT_SUCCESS(status))
 	{
 		P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: RtlAppendUnicodeToString fileIdString failed [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
 		goto CLEANUP;
 	}
 
-	if (fileDesiredWritable)
-	{
-		FILE_BASIC_INFORMATION fileBasicInfo = {0};
-
-		status = FltQueryInformationFile(pFltInstance,
-										 pLocalFileObject,
-										 &fileBasicInfo,
-										 sizeof(fileBasicInfo),
-										 FileBasicInformation,
-										 NULL);
-
-		if (!NT_SUCCESS(status))
-		{
-			P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: FltQueryInformationFile FileBasicInformation failed [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
-			goto CLEANUP;
-		}
-
-		if (FlagOn(fileBasicInfo.FileAttributes, FILE_ATTRIBUTE_READONLY))
-		{
-			ClearFlag(fileBasicInfo.FileAttributes, FILE_ATTRIBUTE_READONLY);
-
-			status = FltSetInformationFile(pFltInstance,
-										   pLocalFileObject,
-										   &fileBasicInfo,
-										   sizeof(fileBasicInfo),
-										   FileBasicInformation);
-
-			if (!NT_SUCCESS(status))
-			{
-				P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: FltSetInformationFile FileBasicInformation failed [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
-				goto CLEANUP;
-			}
-		}
-	}
-
 	*pOutFileIdPath = fileIdPath;
 	fileIdPath.Buffer = NULL;
+
+	if (ppFltInstance != NULL)
+	{
+		*ppFltInstance = pVolumeInstance;
+		pVolumeInstance = NULL;
+	}
 
 CLEANUP:
 	if (hLocalFile != NULL)
@@ -1007,21 +1095,20 @@ CLEANUP:
 
 NTSTATUS
 P4vfsOpenReparsePoint(
-	_In_opt_ PFLT_INSTANCE pFltInstance,
 	_In_ PUNICODE_STRING pFileName,
 	_In_ ACCESS_MASK desiredAccess,
-	_In_ ULONG objectAttributes,
 	_Out_ PHANDLE pTargetHandle,
 	_Outptr_ PFILE_OBJECT* ppTargetFileObject
 	)
 {
 	NTSTATUS status = STATUS_SUCCESS;
 	IO_STATUS_BLOCK	ioStatus = {0};
-	OBJECT_ATTRIBUTES objAttributes = {0};
+	OBJECT_ATTRIBUTES objectAttributes = {0};
 	IO_DRIVER_CREATE_CONTEXT createContext = {0};
 	HANDLE hLocalFile = NULL;
 	PFILE_OBJECT pLocalFileObject = NULL;
 	UNICODE_STRING fileIdPath = {0};
+	PFLT_INSTANCE pFltInstance = NULL;
 
 	PAGED_CODE();
 
@@ -1029,10 +1116,9 @@ P4vfsOpenReparsePoint(
 	// directory notifications. The desiredAccess is specified to ensure the result fileIdPath can
 	// be used to open as requested
 
-	status = P4vfsGetFileIdByFileName(pFltInstance, 
-									  pFileName, 
-									  desiredAccess,
-									  &fileIdPath);
+	status = P4vfsGetFileIdByFileName(pFileName, 
+									  &fileIdPath,
+									  &pFltInstance);
 
 	if (!NT_SUCCESS(status))
 	{
@@ -1040,17 +1126,26 @@ P4vfsOpenReparsePoint(
 		goto CLEANUP;
 	}
 
+	if (FlagOn(desiredAccess, FILE_WRITE_DATA | FILE_APPEND_DATA))
+	{
+		status = P4vfsSetFileWritable(pFltInstance, &fileIdPath);
+
+		if (!NT_SUCCESS(status))
+		{
+			P4vfsTraceError(Core, L"P4vfsOpenReparsePoint: P4vfsSetFileWritable failed [%wZ] [%!STATUS!]", pFileName, status); 
+			goto CLEANUP;
+		}
+	}
+
 	IoInitializeDriverCreateContext(&createContext);
-#if (NTDDI_VERSION >= NTDDI_WIN10_RS1) && defined(P4VFS_KERNEL_MODE)
 	createContext.SiloContext =	PsGetHostSilo();
-#endif
 
 	// We use the fileIdPath in place of the pFileName path for FILE_OPEN_BY_FILE_ID
 	// The IO_IGNORE_SHARE_ACCESS_CHECK is used to avoid existing share conflicts
 
-	InitializeObjectAttributes(&objAttributes,
+	InitializeObjectAttributes(&objectAttributes,
 							   &fileIdPath,
-							   objectAttributes | OBJ_CASE_INSENSITIVE,
+							   OBJ_CASE_INSENSITIVE,
 							   NULL,
 							   NULL);
 
@@ -1059,11 +1154,11 @@ P4vfsOpenReparsePoint(
 							  &hLocalFile,
 							  &pLocalFileObject,
 							  desiredAccess | SYNCHRONIZE,
-							  &objAttributes,
+							  &objectAttributes,
 							  &ioStatus,
 							  NULL,
 							  FILE_ATTRIBUTE_NORMAL,
-							  FILE_SHARE_READ |	FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+							  FILE_SHARE_VALID_FLAGS,
 							  FILE_OPEN,
 							  FILE_SYNCHRONOUS_IO_NONALERT | FILE_OPEN_REPARSE_POINT | FILE_OPEN_BY_FILE_ID,
 							  NULL,
@@ -1094,6 +1189,11 @@ CLEANUP:
 	{
 		ObDereferenceObject(pLocalFileObject);
 	}
+
+    if (pFltInstance != NULL) 
+	{
+        FltObjectDereference(pFltInstance);
+    }
 
 	if (fileIdPath.Buffer != NULL)
 	{

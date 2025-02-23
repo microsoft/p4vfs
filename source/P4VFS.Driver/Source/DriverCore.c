@@ -1113,8 +1113,8 @@ P4vfsOpenReparsePoint(
 	PAGED_CODE();
 
 	// We wish to open an existing reparse point file by using FILE_OPEN_BY_FILE_ID so as to avoid 
-	// directory notifications. The desiredAccess is specified to ensure the result fileIdPath can
-	// be used to open as requested
+	// directory notifications. We take this opportunity to query our PFLT_INSTANCE for the volume
+	// which holds this file, which will be optimal for future filter operations
 
 	status = P4vfsGetFileIdByFileName(pFileName, 
 									  &fileIdPath,
@@ -1140,7 +1140,7 @@ P4vfsOpenReparsePoint(
 	IoInitializeDriverCreateContext(&createContext);
 	createContext.SiloContext =	PsGetHostSilo();
 
-	// We use the fileIdPath in place of the pFileName path for FILE_OPEN_BY_FILE_ID
+	// We use the fileIdPath in place of the pFileName path for FILE_OPEN_BY_FILE_ID.
 	// The IO_IGNORE_SHARE_ACCESS_CHECK is used to avoid existing share conflicts
 
 	InitializeObjectAttributes(&objectAttributes,

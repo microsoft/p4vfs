@@ -1,5 +1,16 @@
 Microsoft P4VFS Release Notes
 
+Version [1.29.0.0]
+* Fixing virtual file hydration to be excluded from system directory notifications.
+  This avoids unecessary FILE_NOTIFY_INFORMATION or DirectoryWatcher events indicating
+  a virtual file has been modified, when it's only been hydrated as-expected on read.
+  This technique is common across filter drivers. This is only supported for STREAM 
+  populate method (default). New unit test TestReadDirectoryChanges for verification.  
+* Additional unit test varible P4VFS_TEST_SERVER_ROOT for overriding the root directory
+  for the test servers. This better facilitates running all tests remotely on a local
+  virtual machine with including kernel mode debugging. Includes support for 
+  RestartPerforceServer script to quick spin-up of existing server on override drive
+
 Version [1.28.4.0]
 * Addition of optional service commandline argument to launch with debugger attached. 
   This is done as needed from admin command prompt "sc.exe start P4VFS.Service --break"

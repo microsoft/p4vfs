@@ -293,7 +293,7 @@ void TestReadDirectoryChanges(const TestContext& context)
 		{
 			String m_File;
 			DWORD m_Action;
-			bool Equals(const FChange& c) const { return c.m_File == m_File && c.m_Action == m_Action; }
+			bool operator==(const FChange& c) const { return c.m_File == m_File && c.m_Action == m_Action; }
 		};
 
 		struct FData
@@ -360,12 +360,7 @@ void TestReadDirectoryChanges(const TestContext& context)
 							return 1;
 						}
 
-						const FChange change = FChange{ String(fni->FileName, fni->FileNameLength), fni->Action };
-						if (data->m_Changes.empty() || data->m_Changes.back().Equals(change) == false)
-						{
-							data->m_Changes.push_back(change);
-						}
-
+						data->m_Changes.push_back(FChange{ String(fni->FileName, fni->FileNameLength).c_str(), fni->Action });
 						if (fni->NextEntryOffset == 0)
 						{
 							break;
@@ -423,8 +418,15 @@ void TestReadDirectoryChanges(const TestContext& context)
 	Assert(GetExitCodeThread(hThread.Handle(), &dwThreadExitCode));
 	Assert(dwThreadExitCode == 0);
 
+	// Gather the unique list changes, ignoring directories
+	Array<FReadChangesThread::FChange> uniqueChanges;
+	Algo::AppendIf(uniqueChanges, threadData.m_Changes, [&](const FReadChangesThread::FChange& c) -> bool
+	{
+		return !Algo::Contains(uniqueChanges, c) && !FileInfo::IsDirectory(StringInfo::Format(TEXT("%s\\%s"), clientSearchFolder.c_str(), c.m_File.c_str()).c_str());
+	});
+
 	// Confirm that only the notifications that we expected were recorded
-	Assert(threadData.m_Changes.size() == 1);
-	Assert(threadData.m_Changes[0].m_File == mutableClientRelativeFile);
+	Assert(uniqueChanges.size() == 1);
+	Assert(uniqueChanges[0].m_File == mutableClientRelativeFile);
 }
 

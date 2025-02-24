@@ -10,6 +10,7 @@ Version [1.29.0.0]
   for the test servers. This better facilitates running all tests remotely on a local
   virtual machine with including kernel mode debugging. Includes support for 
   RestartPerforceServer script to quick spin-up of existing server on override drive
+* Reconfiguring our 32 bit driver allocation pool tags to 4-byte string "Pvs*"
 
 Version [1.28.4.0]
 * Addition of optional service commandline argument to launch with debugger attached. 

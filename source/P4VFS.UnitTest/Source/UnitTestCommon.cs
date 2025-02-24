@@ -1445,8 +1445,8 @@ namespace Microsoft.P4VFS.UnitTest
 					data >>= 8;
 				}
 				byte[] receiveBytes = client.ReflectPackage(packageBytes);
-				//Assert(receiveBytes?.Length == packageBytes.Length);
-				//Assert(receiveBytes.SequenceEqual(packageBytes));
+				Assert(receiveBytes?.Length == packageBytes.Length);
+				Assert(receiveBytes.SequenceEqual(packageBytes));
 			}
 
 			ServiceRestart();

@@ -11,6 +11,10 @@ Version [1.29.0.0]
   virtual machine with including kernel mode debugging. Includes support for 
   RestartPerforceServer script to quick spin-up of existing server on override drive
 * Reconfiguring our 32 bit driver allocation pool tags to 4-byte string "Pvs*"
+* Fixing bug recieving large messages to/from the P4VFS.Service. This was typically 
+  encountered when using global "-x <file>" with a file containing many arguments. 
+  There's a new ReflectPackage message which is now used by SocketModelCommunicationTest 
+  to stress test a wide range of message sizes
 
 Version [1.28.4.0]
 * Addition of optional service commandline argument to launch with debugger attached. 

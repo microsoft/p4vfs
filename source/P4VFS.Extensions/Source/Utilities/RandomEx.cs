@@ -143,5 +143,21 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 			m_Seed = (UInt32)(((UInt64)m_Seed * 214013UL + 2531011UL) & UInt32.MaxValue);
 			return (UInt32)((m_Seed >> 16) & 0x7fff); 
 		}
+
+		public byte[] NextBytes(int count)
+		{
+			byte[] values = new byte[count];
+			for (int index = 0; index < count; ++index)
+			{
+				UInt32 data = Next();
+				byte v = 0;
+				v ^= (byte)(data & 0xFF);
+				v ^= (byte)((data>>8) & 0xFF);
+				v ^= (byte)((data>>16) & 0xFF);
+				v ^= (byte)((data>>24) & 0xFF);
+				values[index] = v;
+			}
+			return values;
+		}
 	}
 }

@@ -1433,17 +1433,7 @@ namespace Microsoft.P4VFS.UnitTest
 			for (int packageSize = 1; packageSize <= maxPackageSize; packageSize <<= 5)
 			{
 				VirtualFileSystemLog.Info("SocketModelCommunicationTest ReflectPackage size {0}", packageSize);
-				byte[] packageBytes = new byte[packageSize];
-				uint data = 0;
-				for (int index = 0; index < packageSize; ++index)
-				{
-					if (index % 4 == 0)
-					{
-						data = random.Next();
-					}
-					packageBytes[index] = (byte)(data & 0xFF);
-					data >>= 8;
-				}
+				byte[] packageBytes = random.NextBytes(packageSize);
 				byte[] receiveBytes = client.ReflectPackage(packageBytes);
 				Assert(receiveBytes?.Length == packageBytes.Length);
 				Assert(receiveBytes.SequenceEqual(packageBytes));

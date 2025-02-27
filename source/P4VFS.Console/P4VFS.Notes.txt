@@ -15,6 +15,8 @@ Version [1.29.0.0]
   encountered when using global "-x <file>" with a file containing many arguments. 
   There's a new ReflectPackage message which is now used by SocketModelCommunicationTest 
   to stress test a wide range of message sizes
+* Fixing unit tests deterministic random byte generation to more randomly include 
+  zero as randomly as possible
 
 Version [1.28.4.0]
 * Addition of optional service commandline argument to launch with debugger attached. 

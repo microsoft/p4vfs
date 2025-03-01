@@ -321,11 +321,13 @@ void TestReadDirectoryChanges(const TestContext& context)
 
 			while (WaitForSingleObject(data->m_hCancelationEvent, 0) != WAIT_OBJECT_0)
 			{
+				// Watching for notifications on all flags except the Attributes change. We need to prevent 
+				// other drivers from setting the Archive bit when hydrating
 				const DWORD changesNotifyFlags =
 					FILE_NOTIFY_CHANGE_CREATION |
 					FILE_NOTIFY_CHANGE_LAST_WRITE |
 					FILE_NOTIFY_CHANGE_SIZE |
-					FILE_NOTIFY_CHANGE_ATTRIBUTES |
+					//FILE_NOTIFY_CHANGE_ATTRIBUTES |
 					FILE_NOTIFY_CHANGE_DIR_NAME |
 					FILE_NOTIFY_CHANGE_FILE_NAME;
 
@@ -360,7 +362,7 @@ void TestReadDirectoryChanges(const TestContext& context)
 							return 1;
 						}
 
-						data->m_Changes.push_back(FChange{ String(fni->FileName, fni->FileNameLength).c_str(), fni->Action });
+						data->m_Changes.push_back(FChange{ String(fni->FileName, fni->FileNameLength/sizeof(WCHAR)).c_str(), fni->Action });
 						if (fni->NextEntryOffset == 0)
 						{
 							break;

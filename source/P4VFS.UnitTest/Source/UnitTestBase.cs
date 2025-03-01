@@ -859,6 +859,10 @@ namespace Microsoft.P4VFS.UnitTest
 			UnitTestBase.Assert(serviceClient.SetServiceSetting(Name, SettingNode.FromString(Value)));
 			UnitTestBase.Assert(serviceClient.GetServiceSetting(Name).ToString() == Value);
 		}
+		
+		public ServiceSettingScope(string name) : this(name, ServiceSettings.GetProperty(name).ToString())
+		{
+		}
 
 		public void Dispose()
 		{

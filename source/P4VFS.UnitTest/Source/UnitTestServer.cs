@@ -343,16 +343,7 @@ namespace Microsoft.P4VFS.UnitTest
 				{
 					using (FileStream file = File.Create(filePath))
 					{
-						uint data = 0;
-						for (long position = 0; position < fileSize; ++position)
-						{
-							if (data == 0)
-							{
-								data = ServerRandom.Next();
-							}
-							file.WriteByte((byte)(data & 0xFF));
-							data >>= 8;
-						}
+						file.Write(ServerRandom.NextBytes((int)fileSize), 0, (int)fileSize);
 					}
 					break;
 				}

@@ -321,8 +321,9 @@ void TestReadDirectoryChanges(const TestContext& context)
 
 			while (WaitForSingleObject(data->m_hCancelationEvent, 0) != WAIT_OBJECT_0)
 			{
-				// Watching for notifications on all flags except the Attributes change. We need to prevent 
-				// other drivers from setting the Archive bit when hydrating
+				// Watch for notifications on all flags except attributes changes. It's common for AV filter 
+				// drivers (mssecflt) to set kernel extended attributes (FsRtlSetKernelEaFile) which should 
+				// we do not expect p4vfsflt to prevent.
 				const DWORD changesNotifyFlags =
 					FILE_NOTIFY_CHANGE_CREATION |
 					FILE_NOTIFY_CHANGE_LAST_WRITE |

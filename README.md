@@ -1,5 +1,3 @@
-[![Build](https://github.com/microsoft/p4vfs/actions/workflows/p4vfs-verify.yml/badge.svg)](https://github.com/microsoft/p4vfs/actions/workflows/p4vfs-verify.yml)
-
 # Introduction 
 Microsoft Virtual File System for Perforce (**P4VFS**)
 

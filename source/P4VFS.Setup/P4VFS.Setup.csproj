@@ -104,7 +104,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Source\Configuration.cs" />
+    <Compile Include="Source\SetupConfiguration.cs" />
     <Compile Include="Source\Program.cs" />
     <Compile Include="Source\SetupWindow.xaml.cs">
       <DependentUpon>SetupWindow.xaml</DependentUpon>

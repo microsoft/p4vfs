@@ -17,6 +17,10 @@ Version [1.29.0.0]
   to stress test a wide range of message sizes
 * Fixing unit tests deterministic random byte generation to more randomly include 
   zero as randomly as possible
+* Support for additional registry keys to set defined in the setup application configuration
+  file (typically named P4VFS.Setup.xml residing in the same folder as the installer).
+  This is helpfull for setting possibly setting a version key to indicate what settings
+  template was also installed.
 
 Version [1.28.4.0]
 * Addition of optional service commandline argument to launch with debugger attached. 

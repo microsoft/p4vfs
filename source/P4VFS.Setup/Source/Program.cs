@@ -17,7 +17,7 @@ namespace Microsoft.P4VFS.Setup
 	public class Program
 	{
 		public static SetupWindow _SetupWindow;
-		public static List<string> _IncludeFiles;
+		public static SetupConfiguration _Configuration;
 		public static bool _Admin;
 		public static bool _Console;
 		public static bool _P4vfsDebug;
@@ -58,11 +58,9 @@ Commands:
 			_Admin = false;
 			_Console = false;
 			_P4vfsDebug = false;
-			_IncludeFiles = new List<string>();
+			_Configuration = new SetupConfiguration();
 
-			Configuration config = LoadConfiguration();
-			if (config != null && config.IncludeFiles != null)
-				_IncludeFiles.AddRange(config.IncludeFiles);
+			_Configuration.Import(LoadConfiguration());
 
 			int argIndex = 0;
 			for (; argIndex < args.Length; ++argIndex)
@@ -74,7 +72,7 @@ Commands:
 				else if (String.Compare(args[argIndex], "-c") == 0)
 					_Console = true;
 				else if (String.Compare(args[argIndex], "-i") == 0 && argIndex+1 < args.Length)
-					_IncludeFiles.Add(args[++argIndex]);
+					_Configuration.IncludeFiles.Add(args[++argIndex]);
 				else if (String.Compare(args[argIndex], "-d") == 0)
 					_P4vfsDebug = true;
 				else
@@ -250,7 +248,7 @@ Commands:
 				}
 
 				progress.WriteLine(6, String.Format("Installing application setup ..."));
-				if (InstallAplicationSetup() == false)
+				if (InstallApplicationSetup() == false)
 				{
 					WriteLine(String.Format("Failed installing requirements for application setup"));
 					return false;
@@ -368,7 +366,9 @@ Commands:
 
 					List<string> paths = new List<string>(srcPath.Split(new char[]{';'}, StringSplitOptions.RemoveEmptyEntries));
 					if (paths.Any(s => String.Compare(InstallFolder, Regex.Replace(s, @"[\\/]+", "\\").TrimEnd('\\'), StringComparison.InvariantCultureIgnoreCase) == 0) == false)
+					{
 						paths.Add(InstallFolder);
+					}
 					
 					string dstPath = String.Join(";", paths);
 					envKey.SetValue("PATH", dstPath, RegistryValueKind.ExpandString);
@@ -398,7 +398,7 @@ Commands:
 			Environment.SetEnvironmentVariable("P4VFS_INSTALL", null, EnvironmentVariableTarget.Machine);
 		}
 
-		private static bool InstallAplicationSetup()
+		private static bool InstallApplicationSetup()
 		{
 			try
 			{
@@ -419,6 +419,12 @@ Commands:
 					appKey.SetValue("UninstallString", String.Format("\"{0}\" uninstall", installedSetupExe), RegistryValueKind.String);
 					appKey.SetValue("Publisher", "Microsoft Corporation", RegistryValueKind.String);
 					appKey.SetValue("InstallLocation", InstallFolder, RegistryValueKind.String);
+
+					foreach (SetupRegistryKey setupKey in _Configuration.RegistryKeys)
+					{
+						WriteLine(String.Format("Setting additional registry key: {0}={1}", setupKey.Name, setupKey.Value));
+						appKey.SetValue(setupKey.Name, setupKey.Value, RegistryValueKind.String);
+					}
 				}
 			}
 			catch (Exception e)
@@ -637,13 +643,13 @@ Commands:
 			}
 
 			string[] resourceNames = Assembly.GetExecutingAssembly().GetManifestResourceNames();
-			using (LogProgress progress = new LogProgress(resourceNames.Length+_IncludeFiles.Count+2))
+			using (LogProgress progress = new LogProgress(resourceNames.Length+_Configuration.IncludeFiles.Count+2))
 			{
 				WriteLine(String.Format("Staging: {0}", stagingFolder));
 				if (ExtractResourcesToFolder(resourceNames, stagingFolder, progress) == false)
 					return null;
 
-				foreach (string includeFile in _IncludeFiles)
+				foreach (string includeFile in _Configuration.IncludeFiles)
 				{
 					progress.Increment();
 					string includeFilePath = ResolveIncludeFilePath(includeFile);
@@ -728,7 +734,7 @@ Commands:
 			return filePath;
 		}
 
-		private static Configuration LoadConfiguration()
+		private static SetupConfiguration LoadConfiguration()
 		{
 			string[] configFiles = new[]{
 				"P4VFS.Setup.xml",
@@ -740,7 +746,7 @@ Commands:
 				string configFilePath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), configFile));
 				if (File.Exists(configFilePath))
 				{
-					Configuration config = Configuration.LoadFromFile(configFilePath);
+					SetupConfiguration config = SetupConfiguration.LoadFromFile(configFilePath);
 					if (config != null)
 					{
 						WriteLine(String.Format("Loaded Configuration: {0}", configFilePath));

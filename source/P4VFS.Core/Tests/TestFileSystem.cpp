@@ -266,3 +266,170 @@ void TestDevDriveAttachPolicy(const TestContext& context)
 	SetFsutilAttachPolicy(prevNames);
 	Assert(GetFsutilAttachPolicy() == prevNames);
 }
+
+void TestReadDirectoryChanges(const TestContext& context)
+{
+	TestUtilities::WorkspaceReset(context);
+
+	DepotClient client = FDepotClient::New(context.m_FileContext);
+	Assert(client->Connect(context.GetDepotConfig()));
+
+	Assert(client->Connection().get() != nullptr);
+	const String clientRootFolder = StringInfo::ToWide(client->Connection()->Root());
+	Assert(FileInfo::IsDirectory(clientRootFolder.c_str()) == false);
+	const String clientSearchFolder = StringInfo::Format(TEXT("%s\\depot\\gears1\\Development"), clientRootFolder.c_str());
+
+	FDepotSyncOptions syncOptions;
+	syncOptions.m_SyncFlags = DepotSyncFlags::Quiet;
+	syncOptions.m_Files.push_back(StringInfo::Format("%s\\...", CSTR_WTOA(clientSearchFolder)));
+	DepotSyncResult syncResult = DepotOperations::SyncVirtual(client, syncOptions);
+	Assert(syncResult.get() != nullptr);
+	Assert(syncResult->m_Status == DepotSyncStatus::Success);
+	Assert(FileInfo::IsDirectory(clientSearchFolder.c_str()));
+
+	struct FReadChangesThread
+	{
+		struct FChange
+		{
+			String m_File;
+			DWORD m_Action;
+			bool operator==(const FChange& c) const { return c.m_File == m_File && c.m_Action == m_Action; }
+		};
+
+		struct FData
+		{
+			String m_FolderPath;
+			HANDLE m_hCancelationEvent;
+			HANDLE m_hBeginReadEvent;
+			Array<FChange> m_Changes;
+		};
+
+		static DWORD Execute(void* threadData)
+		{
+			FData* data = reinterpret_cast<FData*>(threadData);
+			Assert(data != nullptr);
+			Assert(data->m_hCancelationEvent != NULL);
+
+			AutoHandle hFolder = CreateFileW(data->m_FolderPath.c_str(),
+					FILE_LIST_DIRECTORY,
+					FILE_SHARE_READ | FILE_SHARE_DELETE,
+					NULL,
+					OPEN_EXISTING,
+					FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
+					NULL);
+			Assert(hFolder.IsValid());
+
+			while (WaitForSingleObject(data->m_hCancelationEvent, 0) != WAIT_OBJECT_0)
+			{
+				// Watch for notifications on all flags except attributes changes. It's common for AV filter 
+				// drivers (mssecflt) to set kernel extended attributes (FsRtlSetKernelEaFile) which should 
+				// we do not expect p4vfsflt to prevent.
+				const DWORD changesNotifyFlags =
+					FILE_NOTIFY_CHANGE_CREATION |
+					FILE_NOTIFY_CHANGE_LAST_WRITE |
+					FILE_NOTIFY_CHANGE_SIZE |
+					//FILE_NOTIFY_CHANGE_ATTRIBUTES |
+					FILE_NOTIFY_CHANGE_DIR_NAME |
+					FILE_NOTIFY_CHANGE_FILE_NAME;
+
+				BYTE changesBuffer[8*1024] = {0};
+				OVERLAPPED changesOverlapped = {};
+				Assert(SetEvent(data->m_hBeginReadEvent));
+
+				if (ReadDirectoryChangesW(hFolder.Handle(), changesBuffer, sizeof(changesBuffer), true, changesNotifyFlags, NULL, &changesOverlapped, NULL) == FALSE)
+				{
+					AssertMsg(false, TEXT("ReadDirectoryChanges failed"));
+					return 1;
+				}
+ 
+				// Wait indefinitely for any directory changes or a cancellation
+				const HANDLE handles[] = { hFolder.Handle(), data->m_hCancelationEvent };
+				const DWORD waitResult = WaitForMultipleObjects(_countof(handles), handles, FALSE, INFINITE);
+
+				if (waitResult == WAIT_OBJECT_0)
+				{
+					for (const BYTE* changesPos = changesBuffer;;)
+					{
+						if (changesPos >= changesBuffer+sizeof(changesBuffer)-sizeof(FILE_NOTIFY_INFORMATION))
+						{
+							AssertMsg(false, TEXT("ReadDirectoryChanges changesPos overflow"));
+							return 1;
+						}
+
+						const FILE_NOTIFY_INFORMATION* fni = reinterpret_cast<const FILE_NOTIFY_INFORMATION*>(changesPos); 
+						if (reinterpret_cast<const BYTE*>(fni->FileName+fni->FileNameLength) > changesBuffer+sizeof(changesBuffer))
+						{
+							AssertMsg(false, TEXT("ReadDirectoryChanges FileName overflow"));
+							return 1;
+						}
+
+						data->m_Changes.push_back(FChange{ String(fni->FileName, fni->FileNameLength/sizeof(WCHAR)).c_str(), fni->Action });
+						if (fni->NextEntryOffset == 0)
+						{
+							break;
+						}
+
+						changesPos += fni->NextEntryOffset;
+					}
+				}
+				else if (waitResult == WAIT_OBJECT_0+1)
+				{
+					// Expected thread cancellation
+				}
+				else
+				{
+					AssertMsg(false, TEXT("Unexpected wait result %d"), waitResult);
+					return 1;
+				}
+			}
+
+			return 0;
+		}
+	};
+
+	// Start the thread to watch for changes under clientSearchFolder
+	AutoHandle hThreadCancelation = CreateEvent(NULL, TRUE, FALSE, NULL);
+	AutoHandle hThreadBeginReadEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	FReadChangesThread::FData threadData{ clientSearchFolder, hThreadCancelation.Handle(), hThreadBeginReadEvent.Handle() };
+	AutoHandle hThread = CreateThread(NULL, 0, FReadChangesThread::Execute, &threadData, 0, NULL);
+
+	// Wait for the thread to begin reading for changes, plus a little time for it to wait
+	Assert(WaitForSingleObject(hThreadBeginReadEvent.Handle(), 5*60*1000) == WAIT_OBJECT_0);
+	Sleep(1000);
+
+	// Reconcile a single readonly file ... there should be no notifications
+	const String immutableClientRelativeFile = TEXT("Src\\Engine\\Src\\AnimationUtils.cpp");
+	const String immutableClientFile = StringInfo::Format(TEXT("%s\\%s"), clientSearchFolder.c_str(), immutableClientRelativeFile.c_str());
+	Assert(context.m_IsPlaceholderFile(immutableClientFile));
+	Assert(context.m_ReconcilePreviewAny(immutableClientFile) == false);
+	Assert(context.m_IsPlaceholderFile(immutableClientFile) == false);
+
+	// Open a placeholder file without hydrating, and write to it to trigger a notification
+	const String mutableClientRelativeFile = TEXT("Src\\Core\\Src\\BitArray.cpp");
+	const String mutableClientFile = StringInfo::Format(TEXT("%s\\%s"), clientSearchFolder.c_str(), mutableClientRelativeFile.c_str());
+	Assert(context.m_IsPlaceholderFile(mutableClientFile));
+	Assert(FileInfo::SetReadOnly(mutableClientFile.c_str(), false));
+	AutoHandle hMutableClientFile = CreateFile(mutableClientFile.c_str(), FILE_GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	Assert(hMutableClientFile.IsValid());
+	Assert(WriteFile(hMutableClientFile.Handle(), CSTR_WTOA(mutableClientRelativeFile), static_cast<DWORD>(mutableClientRelativeFile.length()), nullptr, nullptr));
+	hMutableClientFile.Close();
+		
+	// Gracefully cancel the thread now that we're done testing for changes
+	SetEvent(hThreadCancelation.Handle());
+	Assert(WaitForSingleObject(hThread.Handle(), 5*60*1000) == WAIT_OBJECT_0);
+	DWORD dwThreadExitCode = 1;
+	Assert(GetExitCodeThread(hThread.Handle(), &dwThreadExitCode));
+	Assert(dwThreadExitCode == 0);
+
+	// Gather the unique list changes, ignoring directories
+	Array<FReadChangesThread::FChange> uniqueChanges;
+	Algo::AppendIf(uniqueChanges, threadData.m_Changes, [&](const FReadChangesThread::FChange& c) -> bool
+	{
+		return !Algo::Contains(uniqueChanges, c) && !FileInfo::IsDirectory(StringInfo::Format(TEXT("%s\\%s"), clientSearchFolder.c_str(), c.m_File.c_str()).c_str());
+	});
+
+	// Confirm that only the notifications that we expected were recorded
+	Assert(uniqueChanges.size() == 1);
+	Assert(uniqueChanges[0].m_File == mutableClientRelativeFile);
+}
+

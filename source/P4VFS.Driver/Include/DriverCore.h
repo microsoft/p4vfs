@@ -6,13 +6,13 @@
 #define P4VFS_RESOLVE_FILE_FLAG_NONE			0
 #define P4VFS_RESOLVE_FILE_FLAG_IGNORE_TAG		1
 
-#define P4VFS_REPARSE_ACTION_ALLOC_TAG			'BACA'
-#define P4VFS_SERVICE_MSG_ALLOC_TAG				'BACR'
-#define P4VFS_REPLY_MSG_ALLOC_TAG				'BACY'
-#define P4VFS_REPARSE_BUFFER_ALLOC_TAG			'BACB'
-#define P4VFS_FILE_NAME_ALLOC_TAG				'BAFN'
-#define P4VFS_SERVICE_PORT_HANDLE_ALLOC_TAG		'BASH'
-#define P4VFS_CONTROL_PORT_HANDLE_ALLOC_TAG		'BACH'
+#define P4VFS_REPARSE_ACTION_ALLOC_TAG			'AsvP'
+#define P4VFS_SERVICE_MSG_ALLOC_TAG				'RsvP'
+#define P4VFS_REPLY_MSG_ALLOC_TAG				'YsvP'
+#define P4VFS_REPARSE_BUFFER_ALLOC_TAG			'BsvP'
+#define P4VFS_FILE_NAME_ALLOC_TAG				'NsvP'
+#define P4VFS_SERVICE_PORT_HANDLE_ALLOC_TAG		'SsvP'
+#define P4VFS_CONTROL_PORT_HANDLE_ALLOC_TAG		'CsvP'
 
 NTSTATUS
 P4vfsUserModeExecuteDrvRequest(
@@ -114,11 +114,22 @@ P4vfsToUnicodeString(
 	);
 
 NTSTATUS
+P4vfsSetFileWritable(
+	_In_ PFLT_INSTANCE pFltInstance,
+	_In_ PUNICODE_STRING pFileIdPath
+	);
+
+NTSTATUS
+P4vfsGetFileIdByFileName(
+	_In_ PUNICODE_STRING pFileName,
+	_Out_ PUNICODE_STRING pOutFileIdPath,
+	_Outptr_opt_ PFLT_INSTANCE* ppFltInstance
+	);
+
+NTSTATUS
 P4vfsOpenReparsePoint(
-	_In_opt_ PFLT_INSTANCE pFltInstance,
 	_In_ PUNICODE_STRING pFileName,
 	_In_ ACCESS_MASK desiredAccess,
-	_In_ ULONG objectAttributes,
 	_Out_ PHANDLE pTargetHandle,
 	_Outptr_ PFILE_OBJECT* ppTargetFileObject
 	);

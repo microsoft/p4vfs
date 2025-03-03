@@ -71,6 +71,23 @@ RestrictFileTimeChange(
 	return S_OK;
 }
 
+HRESULT 
+SetFileAttributesOnHandle(
+	HANDLE hFile,
+	DWORD dwFileAttributes
+	)
+{
+	FILE_BASIC_INFO basicInfo = {0};
+	basicInfo.FileAttributes = dwFileAttributes;
+
+	if (!SetFileInformationByHandle(hFile, FileBasicInfo, &basicInfo, sizeof(basicInfo)))
+	{
+		return HRESULT_FROM_WIN32(GetLastError());
+	}
+
+	return S_OK;
+}
+
 bool 
 SleepAndVerifyFileExists(
 	const WCHAR* filePath,
@@ -1116,12 +1133,6 @@ PopulateFileByStream(
 		return hr;
 	}
 
-	if (SetFileAttributes(fileToPopulate.c_str(), dstFileAttributes & ~FILE_ATTRIBUTE_READONLY) == FALSE)
-	{
-		hr = HRESULT_FROM_WIN32(GetLastError());
-		return hr;
-	}
-
 	FileCore::FileStream* fileToPopulateFrom = srcFileStream;
 	if (fileToPopulateFrom == nullptr || fileToPopulateFrom->CanRead() == false)
 	{
@@ -1170,17 +1181,16 @@ PopulateFileByStream(
 	hr = RemoveSparseFileSizeOnHandle(dstFile.Handle());
 	if (FAILED(hr))
 	{
-		return hr;		
-	}
-
-	dstFile.Close();
-
-	if (!SetFileAttributes(fileToPopulate.c_str(), dstFileAttributes & ~(FILE_ATTRIBUTE_OFFLINE)))
-	{
-		hr = HRESULT_FROM_WIN32(GetLastError());
 		return hr;
 	}
 
+	hr = SetFileAttributesOnHandle(dstFile.Handle(), dstFileAttributes & ~(FILE_ATTRIBUTE_OFFLINE));
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	dstFile.Close();
 	return S_OK;
 }
 

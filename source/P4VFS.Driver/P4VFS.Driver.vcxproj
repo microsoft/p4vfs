@@ -61,12 +61,14 @@
     <OutDir>$(P4VFSDriverBuildDir)\$(Configuration)\</OutDir>
     <IntDir>$(P4VFSDriverBuildDir)\$(Configuration)\</IntDir>
     <TargetName>$(P4VFSDriverTargetName)</TargetName>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win10.0.Release|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <OutDir>$(P4VFSDriverBuildDir)\$(Configuration)\</OutDir>
     <IntDir>$(P4VFSDriverBuildDir)\$(Configuration)\</IntDir>
     <TargetName>$(P4VFSDriverTargetName)</TargetName>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win10.0.Debug|x64'">
     <Link>

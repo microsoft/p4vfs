@@ -20,6 +20,7 @@ typedef	INT	FLT_FILE_NAME_OPTIONS;
 typedef	VOID* PACCESS_STATE;
 typedef INT FILE_INFORMATION_CLASS;
 typedef HANDLE PEPROCESS;
+typedef VOID* PESILO;
 
 typedef	struct _UNICODE_STRING {
 	USHORT Length;
@@ -60,7 +61,7 @@ typedef	struct _IO_DRIVER_CREATE_CONTEXT
 	PVOID DeviceObjectHint;
 	PVOID TxnParameters;
 #if	(NTDDI_VERSION >= NTDDI_WIN10_RS1)
-	PVOID SiloContext;
+	PESILO SiloContext;
 #endif
 } IO_DRIVER_CREATE_CONTEXT,	*PIO_DRIVER_CREATE_CONTEXT;
 
@@ -218,6 +219,11 @@ typedef	struct _FILE_STANDARD_INFORMATION_EX {
 	BOOLEAN	MetadataAttribute;
 } FILE_STANDARD_INFORMATION_EX,	*PFILE_STANDARD_INFORMATION_EX;
 
+typedef struct _FILE_ID_INFORMATION {
+    ULONGLONG VolumeSerialNumber;
+    FILE_ID_128 FileId;
+} FILE_ID_INFORMATION, *PFILE_ID_INFORMATION;
+
 typedef enum _POOL_TYPE {
 	NonPagedPoolNx = 512,
 } POOL_TYPE;
@@ -227,25 +233,28 @@ typedef enum _POOL_TYPE {
 #define	P4vfsTraceInfo(...)				__noop
 #define	PAGED_CODE()					__noop
 #define	FlagOn(_F,_SF)					((_F) &	(_SF))
+#define ClearFlag(_F,_SF)				((_F) &= ~(_SF))
 #define	ObDereferenceObject(f)			__noop
 #define PsGetCurrentProcess()			GetCurrentProcess()
 #define	PsGetCurrentProcessId()			GetCurrentProcessId()
 #define	PsGetCurrentThreadId()			GetCurrentThreadId()
+#define PsGetHostSilo()					NULL
 #define min(a,b)						(((a) < (b)) ? (a) : (b))
 #define max(a,b)						(((a) > (b)) ? (a) : (b))
 #define RtlUShortAdd					UShortAdd
 
 #define NT_SUCCESS(Status)				(((NTSTATUS)(Status)) >= 0)
 #define	STATUS_SUCCESS					((NTSTATUS)0x00000000L)
-#define	STATUS_DATA_ERROR				((NTSTATUS)0xC000003EL)
-#define	STATUS_INSUFFICIENT_RESOURCES	((NTSTATUS)0xC000009AL)
 #define	STATUS_UNSUCCESSFUL				((NTSTATUS)0xC0000001L)
 #define	STATUS_BUFFER_OVERFLOW			((NTSTATUS)0x80000005L)
-#define	STATUS_PORT_DISCONNECTED		((NTSTATUS)0xC0000037L)
-#define	STATUS_MEMORY_NOT_ALLOCATED		((NTSTATUS)0xC00000A0L)
-#define STATUS_INVALID_PORT_HANDLE		((NTSTATUS)0xC0000042L)
-#define STATUS_INVALID_BUFFER_SIZE		((NTSTATUS)0xC0000206L)
 #define STATUS_BUFFER_TOO_SMALL			((NTSTATUS)0xC0000023L)
+#define	STATUS_PORT_DISCONNECTED		((NTSTATUS)0xC0000037L)
+#define	STATUS_DATA_ERROR				((NTSTATUS)0xC000003EL)
+#define STATUS_INVALID_PORT_HANDLE		((NTSTATUS)0xC0000042L)
+#define	STATUS_INSUFFICIENT_RESOURCES	((NTSTATUS)0xC000009AL)
+#define	STATUS_MEMORY_NOT_ALLOCATED		((NTSTATUS)0xC00000A0L)
+#define STATUS_NOT_ALL_ASSIGNED			((NTSTATUS)0x00000106L)
+#define STATUS_INVALID_BUFFER_SIZE		((NTSTATUS)0xC0000206L)
 
 #define	IO_IGNORE_SHARE_ACCESS_CHECK			0x0800
 #define	FILE_SHARE_VALID_FLAGS					0x00000007
@@ -258,9 +267,11 @@ typedef enum _POOL_TYPE {
 #define	FileBasicInformation					4
 #define FileStandardInformation					5
 #define	FileInternalInformation					6
+#define FileIdInformation						59
 
 #define	FILE_OPEN								0x00000001
 #define	FILE_SYNCHRONOUS_IO_NONALERT			0x00000020
+#define	FILE_NON_DIRECTORY_FILE					0x00000040
 #define	FILE_NO_INTERMEDIATE_BUFFERING			0x00000008
 #define	FILE_OPEN_REPARSE_POINT					0x00200000
 #define	FILE_OPEN_BY_FILE_ID					0x00002000
@@ -280,8 +291,11 @@ std::function<NTSTATUS(PFLT_FILTER, PFLT_INSTANCE, PHANDLE, PFILE_OBJECT*, ACCES
 std::function<VOID(PVOID)> FltObjectDereference;
 std::function<NTSTATUS(HANDLE)> FltClose;
 std::function<NTSTATUS(PFLT_INSTANCE, PFILE_OBJECT, PVOID, ULONG, FILE_INFORMATION_CLASS, PULONG)> FltQueryInformationFile;
+std::function<NTSTATUS(PFLT_INSTANCE, PFILE_OBJECT, PVOID, ULONG, FILE_INFORMATION_CLASS)> FltSetInformationFile;
 std::function<NTSTATUS(PFLT_INSTANCE, PFLT_VOLUME*)> FltGetVolumeFromInstance;
 std::function<NTSTATUS(PFLT_VOLUME, PUNICODE_STRING, PULONG)> FltGetVolumeName;
+std::function<NTSTATUS(PFLT_FILTER, PFILE_OBJECT, PFLT_VOLUME*)> FltGetVolumeFromFileObject;
+std::function<NTSTATUS(PFLT_FILTER, PFLT_VOLUME, PCUNICODE_STRING, PFLT_INSTANCE*)> FltGetVolumeInstanceFromName;
 
 std::function<PVOID(POOL_TYPE, SIZE_T, ULONG)> ExAllocatePoolZero;
 std::function<VOID(PVOID, ULONG)> ExFreePoolWithTag;
@@ -431,7 +445,11 @@ static void InternalTestDriverReset(const TestContext& context)
 	FltObjectDereference = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
 	FltClose = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
 	FltQueryInformationFile = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
+	FltSetInformationFile = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
 	FltGetVolumeFromInstance = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
+	FltGetVolumeName = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
+	FltGetVolumeFromFileObject = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
+	FltGetVolumeInstanceFromName = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
 
 	ExAllocatePoolZero = [](POOL_TYPE, SIZE_T s, ULONG) -> PVOID { return GAlloc(s); };
 	ExFreePoolWithTag = [](PVOID p, ULONG) -> VOID { GFree(p); };

@@ -17,14 +17,15 @@ using namespace Microsoft::P4VFS::FileCore;
 namespace Microsoft {
 namespace P4VFS {
 
-WCHAR* ServiceHost::SERVICE_NAME = TEXT("P4VFS.Service");
-ServiceHost* ServiceHost::s_instance = nullptr;
+const WCHAR* ServiceHost::SERVICE_NAME = TEXT("P4VFS.Service");
+ServiceHost* ServiceHost::m_Instance = nullptr;
 
-ServiceHost* 
-ServiceHost::GetInstance(
+ServiceHost&
+ServiceHost::StaticInstance(
 	)
 {
-	return s_instance;
+	Assert(m_Instance != nullptr);
+	return *m_Instance;
 }
 
 VOID WINAPI 
@@ -33,7 +34,7 @@ ServiceHost::StaticSrvMain(
 	LPWSTR* lpServiceArgVectors
 	)
 {
-	ServiceHost::GetInstance()->SrvMain(dwNumServicesArgs, lpServiceArgVectors);
+	StaticInstance().SrvMain(dwNumServicesArgs, lpServiceArgVectors);
 }
 
 VOID WINAPI 
@@ -41,7 +42,7 @@ ServiceHost::StaticSrvCtrlHandler(
 	DWORD dwCtrl 
 	)
 {
-	ServiceHost::GetInstance()->SrvCtrlHandler(dwCtrl);
+	StaticInstance().SrvCtrlHandler(dwCtrl);
 }
 
 ServiceHost::ServiceHost() :
@@ -52,8 +53,8 @@ ServiceHost::ServiceHost() :
 	m_SrvLastRequestTime({0}),
 	m_SrvTickThread(NULL)
 {
-	Assert(s_instance == nullptr);
-	s_instance = this;
+	Assert(m_Instance == nullptr);
+	m_Instance = this;
 }
 
 void 
@@ -63,7 +64,7 @@ ServiceHost::Start(
 	SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
 
 	const SERVICE_TABLE_ENTRY dispatchTable[] = { 
-		{ ServiceHost::SERVICE_NAME, (LPSERVICE_MAIN_FUNCTION)StaticSrvMain }, 
+		{ (LPWSTR)ServiceHost::SERVICE_NAME, (LPSERVICE_MAIN_FUNCTION)StaticSrvMain }, 
 		{ NULL, NULL } 
 	}; 
  
@@ -79,9 +80,11 @@ ServiceHost::SrvMain(
 	LPWSTR* lpServiceArgVectors
 	)
 {
-	UNREFERENCED_PARAMETER(dwNumServicesArgs);
-	UNREFERENCED_PARAMETER(lpServiceArgVectors);
-	//ExtensionsInterop::LaunchAttachDebugger();
+	// Development option to attach debugger on launch
+	if (HasArgument(dwNumServicesArgs, lpServiceArgVectors, TEXT("--break")))
+	{
+		ExtensionsInterop::LaunchAttachDebugger();
+	}
 
 	// Note that this handle does not have to be closed
 	m_SrvStatusHandle = RegisterServiceCtrlHandler(ServiceHost::SERVICE_NAME, StaticSrvCtrlHandler);
@@ -105,8 +108,9 @@ ServiceHost::SrvMain(
 		return;
 	}
 
-	ExtensionsInterop::InitializeServiceHost(this);
 	LogSystem::StaticInstance().Initialize();
+	ExtensionsInterop::InitializeServiceHost(this);
+	
 	SrvBeginTickThread();
 	ServiceLog::Info(TEXT("ServiceHost::SrvMain Begin"));
 
@@ -268,6 +272,26 @@ ServiceHost::GarbageCollect(
 {
 	ServiceContext::m_StaticDepotClientCache.GarbageCollect(timeout);
 	return true;
+}
+
+bool
+ServiceHost::HasArgument(
+	DWORD dwNumServicesArgs,
+	LPWSTR* lpServiceArgVectors,
+	LPCWSTR lpArgName
+	)
+{
+	if (lpServiceArgVectors != nullptr)
+	{
+		for (DWORD argIndex = 0; argIndex < dwNumServicesArgs; ++argIndex)
+		{
+			if (StringInfo::Stricmp(lpArgName, lpServiceArgVectors[argIndex]) == 0)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 }}

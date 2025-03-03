@@ -48,7 +48,9 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 			try
 			{
 				if (_Cancellation != null)
+				{
 					_Cancellation.Cancel();
+				}
 
 				if (_TcpListener != null)
 				{
@@ -66,7 +68,9 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 				if (_ListenThread != null)
 				{
 					if (_ListenThread.IsAlive)
+					{
 						_ListenThread.Join(500);
+					}
 					_ListenThread = null;
 				}
 			}
@@ -96,7 +100,9 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 			catch (Exception e)
 			{
 				if (_Cancellation.IsCancellationRequested == false)
+				{
 					VirtualFileSystemLog.Error("SocketModelServer.ListenForClients exiting with exception: {0}", e.Message);
+				}
 			}
 		}
 
@@ -109,7 +115,7 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 				{
 					using (NetworkStream stream = client.GetStream())
 					{
-						SocketModelMessage msg = SocketModelProtocol.ReceiveMessage<SocketModelMessage>(stream);
+						SocketModelMessage msg = SocketModelProtocol.ReceiveMessage<SocketModelMessage>(stream, _Cancellation.Token);
 						if (msg == null)
 						{
 							VirtualFileSystemLog.Info("SocketModelServer.HandleClientConnection exiting from null message");
@@ -133,7 +139,7 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 			{
 				SocketModelRequestSync request = msg.GetData<SocketModelRequestSync>();
 				SocketModelReplySync reply = Sync(stream, request);
-				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply));
+				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply), _Cancellation.Token);
 			}
 			else if (msg.Type == typeof(SocketModelRequestServiceStatus).Name)
 			{
@@ -144,30 +150,36 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 					reply.LastModifiedTime = VirtualFileSystem.ServiceHost.GetLastModifiedTime();
 					reply.LastRequestTime = VirtualFileSystem.ServiceHost.GetLastRequestTime();
 				}
-				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply));
+				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply), _Cancellation.Token);
 			}
 			else if (msg.Type == typeof(SocketModelRequestSetServiceSetting).Name)
 			{
 				SocketModelRequestSetServiceSetting request = msg.GetData<SocketModelRequestSetServiceSetting>();
-				SocketModelReply reply = new SocketModelReply() { Success = ServiceSettings.SetProperty(request.Value, request.Name) };
-				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply));
+				SocketModelReply reply = new SocketModelReply{ Success = ServiceSettings.SetProperty(request.Value, request.Name) };
+				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply), _Cancellation.Token);
 			}
 			else if (msg.Type == typeof(SocketModelRequestGetServiceSetting).Name)
 			{
 				SocketModelRequestGetServiceSetting request = msg.GetData<SocketModelRequestGetServiceSetting>();
-				SocketModelReplyGetServiceSetting reply = new SocketModelReplyGetServiceSetting() { Value = ServiceSettings.GetProperty(request.Name) };
-				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply));
+				SocketModelReplyGetServiceSetting reply = new SocketModelReplyGetServiceSetting{ Value = ServiceSettings.GetProperty(request.Name) };
+				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply), _Cancellation.Token);
 			}
 			else if (msg.Type == typeof(SocketModelRequestGetServiceSettings).Name)
 			{
-				SocketModelReplyGetServiceSettings reply = new SocketModelReplyGetServiceSettings() { Settings = SettingManager.GetProperties() };
-				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply));
+				SocketModelReplyGetServiceSettings reply = new SocketModelReplyGetServiceSettings{ Settings = SettingManager.GetProperties() };
+				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply), _Cancellation.Token);
 			}
 			else if (msg.Type == typeof(SocketModelRequestGarbageCollect).Name)
 			{
 				SocketModelRequestGarbageCollect request = msg.GetData<SocketModelRequestGarbageCollect>();
-				SocketModelReply reply = new SocketModelReply() { Success = VirtualFileSystem.ServiceHost != null ? VirtualFileSystem.ServiceHost.GarbageCollect(request.Timeout) : false };
-				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply));
+				SocketModelReply reply = new SocketModelReply{ Success = VirtualFileSystem.ServiceHost != null ? VirtualFileSystem.ServiceHost.GarbageCollect(request.Timeout) : false };
+				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply), _Cancellation.Token);
+			}
+			else if (msg.Type == typeof(SocketModelRequestReflectPackage).Name)
+			{
+				SocketModelRequestReflectPackage request = msg.GetData<SocketModelRequestReflectPackage>();
+				SocketModelReplyReflectPackage reply = new SocketModelReplyReflectPackage{ Package = request.Package };
+				SocketModelProtocol.SendMessage(stream, new SocketModelMessage(reply), _Cancellation.Token);
 			}
 			else
 			{
@@ -229,10 +241,10 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 			{ 
 				if (IsFaulted() == false)
 				{
-					SocketModelMessage msg = new SocketModelMessage(new SocketModelRequestLog(){ Element = element });
+					SocketModelMessage msg = new SocketModelMessage(new SocketModelRequestLog{ Element = element });
 					lock (_StreamMutex)
 					{
-						SocketModelProtocol.SendMessage(_NetworkStream, msg);
+						SocketModelProtocol.SendMessage(_NetworkStream, msg, _CancelationToken);
 					}
 				}	
 			}
@@ -250,7 +262,10 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 		{
 			List<SocketModelMessage> result = new List<SocketModelMessage>();
 			if (SendCommand(new SocketModelRequestSync{ Config=config, SyncOptions=syncOptions }, result) == false)
+			{
 				return DepotSyncStatus.Error;
+			}
+
 			SocketModelReplySync reply = SocketModelMessage.GetData<SocketModelReplySync>(result);
 			return reply != null ? reply.Status : DepotSyncStatus.Error;
 		}
@@ -259,7 +274,10 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 		{
 			List<SocketModelMessage> result = new List<SocketModelMessage>();
 			if (SendCommand(new SocketModelRequestServiceStatus(), result) == false)
+			{
 				return null;
+			}
+
 			return SocketModelMessage.GetData<SocketModelReplyServiceStatus>(result);
 		}
 
@@ -267,7 +285,10 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 		{
 			List<SocketModelMessage> result = new List<SocketModelMessage>();
 			if (SendCommand(new SocketModelRequestGetServiceSettings(), result) == false)
+			{
 				return null;
+			}
+
 			SocketModelReplyGetServiceSettings reply = SocketModelMessage.GetData<SocketModelReplyGetServiceSettings>(result);
 			return reply?.Settings;
 		}
@@ -276,7 +297,10 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 		{
 			List<SocketModelMessage> result = new List<SocketModelMessage>();
 			if (SendCommand(new SocketModelRequestSetServiceSetting{ Name=name, Value=value }, result) == false)
+			{
 				return false;
+			}
+
 			SocketModelReply reply = SocketModelMessage.GetData<SocketModelReply>(result);
 			return reply != null && reply.Success;
 		}
@@ -285,7 +309,10 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 		{
 			List<SocketModelMessage> result = new List<SocketModelMessage>();
 			if (SendCommand(new SocketModelRequestGetServiceSetting{ Name=name }, result) == false)
+			{
 				return null;
+			}
+
 			SocketModelReplyGetServiceSetting reply = SocketModelMessage.GetData<SocketModelReplyGetServiceSetting>(result);
 			return reply?.Value;
 		}
@@ -293,13 +320,28 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 		public bool GarbageCollect(Int64 timeout = 0)
 		{
 			List<SocketModelMessage> result = new List<SocketModelMessage>();
-			if (SendCommand(new SocketModelRequestGarbageCollect(){ Timeout = timeout }, result) == false)
+			if (SendCommand(new SocketModelRequestGarbageCollect{ Timeout = timeout }, result) == false)
+			{
 				return false;
+			}
+
 			SocketModelReply reply = SocketModelMessage.GetData<SocketModelReply>(result);
 			return reply != null && reply.Success;
 		}
 
-		private bool SendCommand<CommandType>(CommandType cmd, List<SocketModelMessage> result = null)
+		public byte[] ReflectPackage(byte[] package)
+		{
+			List<SocketModelMessage> result = new List<SocketModelMessage>();
+			if (SendCommand(new SocketModelRequestReflectPackage{ Package = package }, result) == false)
+			{
+				return null;
+			}
+
+			SocketModelReplyReflectPackage reply = SocketModelMessage.GetData<SocketModelReplyReflectPackage>(result);
+			return reply?.Package;
+		}
+
+		private bool SendCommand<CommandType>(CommandType cmd, List<SocketModelMessage> result = null, CancellationToken cancelationToken = default)
 		{
 			try
 			{
@@ -309,15 +351,18 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 					using (NetworkStream stream = client.GetStream())
 					{
 						SocketModelMessage request = new SocketModelMessage(cmd);
-						SocketModelProtocol.SendMessage(stream, request);
+						SocketModelProtocol.SendMessage(stream, request, cancelationToken);
 						while (client.Connected)
 						{
-							SocketModelMessage msg = SocketModelProtocol.ReceiveMessage<SocketModelMessage>(stream);
+							SocketModelMessage msg = SocketModelProtocol.ReceiveMessage<SocketModelMessage>(stream, cancelationToken);
 							if (msg == null)
+							{
 								break;
+							}
 							if (result != null)
+							{
 								result.Add(msg);
-
+							}
 							HandleSocketModelMessage(stream, msg);
 						}
 					}
@@ -357,16 +402,18 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 			_Encoding = new UTF8Encoding(false, true);
 		}
 
-		public static void SendMessage<MessageType>(NetworkStream stream, MessageType msg)
+		public static void SendMessage<MessageType>(NetworkStream stream, MessageType msg, CancellationToken cancelationToken)
 		{
-			SendMessageAsync(stream, msg).Wait();
+			SendMessageAsync(stream, msg, cancelationToken).Wait(cancelationToken);
 		}
 
-		public static async Task SendMessageAsync<MessageType>(NetworkStream stream, MessageType msg)
+		public static async Task SendMessageAsync<MessageType>(NetworkStream stream, MessageType msg, CancellationToken cancelationToken)
 		{
 			string content = Serialize(msg);
 			if (content == null)
+			{
 				throw new Exception("Failed to serialize message");
+			}
 							
 			byte[] contentBytes = _Encoding.GetBytes(content);
 			
@@ -380,35 +427,52 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 			Array.Copy(headerBytes, 0, packetBytes, 0, headerBytes.Length);
 			Array.Copy(contentBytes, 0, packetBytes, headerBytes.Length, contentBytes.Length);
 
-			await stream.WriteAsync(packetBytes, 0, packetBytes.Length);
+			await stream.WriteAsync(packetBytes, 0, packetBytes.Length, cancelationToken);
 		}
 
-		public static MessageType ReceiveMessage<MessageType>(NetworkStream stream)
+		public static MessageType ReceiveMessage<MessageType>(NetworkStream stream, CancellationToken cancelationToken)
 		{
-			Task<MessageType> msg = ReceiveMessageAsync<MessageType>(stream);
-			msg.Wait();
+			Task<MessageType> msg = ReceiveMessageAsync<MessageType>(stream, cancelationToken);
+			msg.Wait(cancelationToken);
 			return msg.Result;
 		}
 
-		public static async Task<MessageType> ReceiveMessageAsync<MessageType>(NetworkStream stream)
+		public static async Task<MessageType> ReceiveMessageAsync<MessageType>(NetworkStream stream, CancellationToken cancelationToken)
 		{
 			int headerSize = Marshal.SizeOf(typeof(Header));
 			byte[] headerBytes = new byte[headerSize];
-			int headerRead = await stream.ReadAsync(headerBytes, 0, headerBytes.Length);
+			int headerRead = await stream.ReadAsync(headerBytes, 0, headerBytes.Length, cancelationToken);
 			if (headerRead == 0)
+			{
 				return default(MessageType);
+			}
 			if (headerRead != headerBytes.Length)
+			{
 				throw new Exception("Failed to read header bytes");
+			}
 
 			Header header = BytesToStruct<Header>(headerBytes);
 			if (header.MagicNumber != _MagicNumber)
+			{
 				throw new Exception(String.Format("Invalid header format 0x{0:X8} expected 0x{1:X8}", header.MagicNumber, _MagicNumber));
+			}
 			if (header.Version != _Version)
+			{
 				throw new Exception(String.Format("Invalid header version {0} expected {1}", header.Version, _Version));
+			}
 
 			byte[] contentBytes = new byte[header.ContentLength];
-			if (await stream.ReadAsync(contentBytes, 0, contentBytes.Length) != contentBytes.Length)
-				throw new Exception("Failed to read content bytes");
+			for (int contentIndex = 0; contentIndex < contentBytes.Length;)
+			{
+				cancelationToken.ThrowIfCancellationRequested();
+				int remainingCount = contentBytes.Length - contentIndex;
+				int readCount = await stream.ReadAsync(contentBytes, contentIndex, remainingCount, cancelationToken);
+				if (readCount <= 0)
+				{
+					throw new Exception($"Failed to read expected number of content bytes {contentBytes.Length}");
+				}
+				contentIndex += readCount;
+			}
 				
 			string contentString = _Encoding.GetString(contentBytes);
 			return Deserialize<MessageType>(contentString);
@@ -445,7 +509,9 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 		{
 			int valueSize = Marshal.SizeOf(typeof(T));
 			if (valueBytes.Length < valueBytes.Length)
+			{
 				throw new Exception("Invalid buffer size");
+			}
 
 			T value = default(T);
 			IntPtr valuePtr = Marshal.AllocHGlobal(valueSize);
@@ -556,5 +622,15 @@ namespace Microsoft.P4VFS.Extensions.SocketModel
 	public class SocketModelRequestGarbageCollect
 	{
 		public Int64 Timeout;
+	}
+
+	public class SocketModelRequestReflectPackage
+	{
+		public byte[] Package;
+	}
+
+	public class SocketModelReplyReflectPackage
+	{
+		public byte[] Package;
 	}
 }

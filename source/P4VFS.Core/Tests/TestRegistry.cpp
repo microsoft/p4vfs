@@ -19,6 +19,7 @@ P4VFS_REGISTER_TEST( TestResolveFileResidency,					10200 )
 P4VFS_REGISTER_TEST( TestRequireFilterOpLock,					10201 )
 P4VFS_REGISTER_TEST( TestFileAlternateStream,					10202 )
 P4VFS_REGISTER_TEST( TestDevDriveAttachPolicy,					10203 )
+P4VFS_REGISTER_TEST( TestReadDirectoryChanges,					10204 )
 
 // TestStringInfo
 P4VFS_REGISTER_TEST( TestStringInfoHash,						10300 )

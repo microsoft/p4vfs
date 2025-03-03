@@ -88,7 +88,6 @@ namespace Microsoft.P4VFS.UnitTest
 				string revision = "@21";
 				string[] syncArgs = WindowsInterop.CommandLineToArgs(syncOption);
 
-				ServiceRestart();
 				Assert(ProcessInfo.ExecuteWait(P4vfsExe, String.Format("{0} sync {1} \"{2}\\...{3}\"", ClientConfig, syncOption, directory, revision), echo:true, log:true) == 0);
 				Assert(ProcessInfo.ExecuteWait(P4Exe, String.Format("{0} flush -f \"{1}\\...{2}\"", ClientConfig, directory, revision), echo:true) == 0);
 
@@ -103,7 +102,6 @@ namespace Microsoft.P4VFS.UnitTest
 				}
 
 				Assert(ReconcilePreview(directory).Any() == false);
-				ServiceRestart();
 
 				foreach (string filePath in placeholderSizeMap.Keys)
 				{

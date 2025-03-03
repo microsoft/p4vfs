@@ -218,7 +218,7 @@ ServiceTaskManager::HandleResolveFileRequest(
 	}
 
 	ServiceLog::Verbose(StringInfo::Format(TEXT("HandleResolveFileRequest Start '%s' process [%d.%d]"), message.dataName.c_str(), message.processId, message.threadId).c_str());
-	ServiceHost::GetInstance()->NotifyLastRequestTime();
+	ServiceHost::StaticInstance().NotifyLastRequestTime();
 
 	String localFileToMakeResident;
 	HRESULT hr = ResolvePathFromMessage(message, localFileToMakeResident);

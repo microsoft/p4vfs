@@ -13,6 +13,7 @@
 /source/P4VFS.Driver/*smv*
 /source/P4VFS.Driver/Scripts/*.txt   
 /source/P4VFS.Driver/Scripts/*.etl  
+/source/P4VFS.Driver/Scripts/*.log
 **/obj/
 **/.vs/
 **/.vscode/

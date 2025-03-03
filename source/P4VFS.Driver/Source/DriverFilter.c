@@ -89,9 +89,9 @@ P4vfsControlPortDisconnect(
 NTSTATUS
 P4vfsControlPortMessage(
 	_In_opt_ PVOID pPortCookie,
-	_In_reads_bytes_opt_(InputBufferLength)	PVOID pInputBuffer,
+	_In_reads_bytes_opt_(dwInputBufferLength) PVOID pInputBuffer,
 	_In_ ULONG dwInputBufferLength,
-	_Out_writes_bytes_to_opt_(OutputBufferLength, *ReturnOutputBufferLength) PVOID pOutputBuffer,
+	_Out_writes_bytes_to_opt_(dwOutputBufferLength, *pReturnOutputBufferLength) PVOID pOutputBuffer,
 	_In_ ULONG dwOutputBufferLength,
 	_Out_ PULONG pReturnOutputBufferLength
 	);
@@ -712,9 +712,9 @@ CLEANUP:
 NTSTATUS
 P4vfsControlPortMessage(
 	_In_opt_ PVOID pPortCookie,
-	_In_reads_bytes_opt_(InputBufferLength) PVOID pInputBuffer,
+	_In_reads_bytes_opt_(dwInputBufferLength) PVOID pInputBuffer,
 	_In_ ULONG dwInputBufferLength,
-	_Out_writes_bytes_to_opt_(OutputBufferLength, *ReturnOutputBufferLength) PVOID pOutputBuffer,
+	_Out_writes_bytes_to_opt_(dwOutputBufferLength, *pReturnOutputBufferLength) PVOID pOutputBuffer,
 	_In_ ULONG dwOutputBufferLength,
 	_Out_ PULONG pReturnOutputBufferLength
 	)
@@ -810,16 +810,13 @@ P4vfsControlPortMessage(
 				break;
 			}
 
-			ULONG objectAttributes = 0;
 			ACCESS_MASK desiredAccess = 0;
 			desiredAccess |= input->data.OPEN_REPARSE_POINT.accessRead ? FILE_GENERIC_READ : 0;
 			desiredAccess |= input->data.OPEN_REPARSE_POINT.accessWrite ? FILE_GENERIC_WRITE : 0;
 			desiredAccess |= input->data.OPEN_REPARSE_POINT.accessDelete ? DELETE : 0;
 			
-			status = P4vfsOpenReparsePoint(NULL,
-										   &unicodeFilePath,
+			status = P4vfsOpenReparsePoint(&unicodeFilePath,
 										   desiredAccess,
-										   objectAttributes,
 										   &output->data.OPEN_REPARSE_POINT.handle.fileHandle,
 										   &output->data.OPEN_REPARSE_POINT.handle.fileObject);
 
@@ -957,7 +954,10 @@ P4vfsPostCreate(
 			if (!NT_SUCCESS(status))
 			{
 				P4vfsTraceInfo(Filter, L"P4vfsPostCreate: Failed ExecuteReparseAction [%wZ] [%!STATUS!]", (pFltObjects->FileObject ? &pFltObjects->FileObject->FileName : NULL), status);
-				FltCancelFileOpen(pFltObjects->Instance, pFltObjects->FileObject);
+				if (pFltObjects->FileObject != NULL)
+				{
+					FltCancelFileOpen(pFltObjects->Instance, pFltObjects->FileObject);
+				}
 				goto CLEANUP; 
 			}
 		}

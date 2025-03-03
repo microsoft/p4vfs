@@ -10,6 +10,17 @@ namespace Microsoft {
 namespace P4VFS {
 namespace FileOperations {
 
+	HRESULT 
+	RestrictFileTimeChange(
+		HANDLE hFile
+		);
+
+	HRESULT 
+	SetFileAttributesOnHandle(
+		HANDLE hFile,
+		DWORD dwFileAttributes
+		);
+
 	bool 
 	SleepAndVerifyFileExists(
 		const WCHAR* filePath, 

@@ -143,13 +143,11 @@ void LogDeviceFile::WriteInternal(time_t time, LogChannel::Enum channel, const S
 
 		if (m_Impersonate.get())
 		{
-			if (FileOperations::ImpersonateFileAppend(ExpandVariables(m_RemoteFilePath).c_str(), line.c_str(), m_Impersonate.get()))
-				return;
+			FileOperations::ImpersonateFileAppend(ExpandVariables(m_RemoteFilePath).c_str(), line.c_str(), m_Impersonate.get());
 		}
 		else
 		{
-			if (FileOperations::FileAppend(ExpandVariables(m_RemoteFilePath).c_str(), line.c_str()))
-				return;
+			FileOperations::FileAppend(ExpandVariables(m_RemoteFilePath).c_str(), line.c_str());
 		}
 	}
 

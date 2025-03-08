@@ -25,7 +25,7 @@ namespace FileCore {
 		_N( String,   SyncResidentPattern,             L"" ) \
 		_N( bool,     Unattended,                      false ) \
 		_N( String,   Verbosity,                       CSTR_ATOW(FileCore::LogChannel::ToString(FileCore::LogChannel::Info)) ) \
-		_N( String,   ExcludedProcessNames,            L"" ) \
+		_N( String,   ExcludedProcessNames,            L"MsSense.exe;MsMpEng.exe;SenseCE.exe;SenseIR.exe;SearchProtocolHost.exe" ) \
 		_N( int32_t,  CreateFileRetryCount,            8 ) \
 		_N( int32_t,  CreateFileRetryWaitMs,           250 ) \
 		_N( int32_t,  PoolDefaultNumberOfThreads,      8 ) \

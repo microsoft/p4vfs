@@ -37,7 +37,7 @@ public:
 	HRESULT Read(HANDLE hWriteHandle, UINT64* bytesWritten) override
 	{
 		P4::FDepotResultPrintHandle printResult(hWriteHandle);
-		m_DepotClient->Run(P4::DepotCommand("print", P4::DepotStringArray{m_DepotFileSpec}), printResult);
+		m_DepotClient->Run(P4::DepotCommand("print", P4::DepotStringArray{"-a",m_DepotFileSpec}), printResult);
 		if (printResult.HasError())
 		{
 			m_DepotClient->Log(LogChannel::Error, StringInfo::Format("DepotPrintFileStream failed '%s' with error [%s]", m_DepotFileSpec.c_str(), printResult.GetError().c_str()));
@@ -68,7 +68,7 @@ MakeFileResident(
 		return E_POINTER;
 	}
 
-	const String fileSpec = StringInfo::Format(L"%s#%u", populateInfo->depotPath.c_str(), uint32_t(populateInfo->fileRevision));
+	const String fileSpec = StringInfo::Format(L"%s#=%u", populateInfo->depotPath.c_str(), uint32_t(populateInfo->fileRevision));
 	const FilePopulateMethod::Enum populateMethod = FilePopulateMethod::FromString(StringInfo::ToAnsi(SettingManager::StaticInstance().PopulateMethod.GetValue()));
 	
 	switch (populateMethod)
@@ -88,7 +88,7 @@ MakeFileResident(
 				return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
 			}
 
-			P4::DepotResult print = depotClient.Run("print", P4::DepotStringArray{"-o", StringInfo::ToAnsi(tempPrintFile.GetFilePath()), StringInfo::ToAnsi(fileSpec)});
+			P4::DepotResult print = depotClient.Run("print", P4::DepotStringArray{"-a","-o", StringInfo::ToAnsi(tempPrintFile.GetFilePath()), StringInfo::ToAnsi(fileSpec)});
 			if (print.get() == nullptr || print->HasError())
 			{
 				depotClient.Log(LogChannel::Error, StringInfo::Format("MakeFileResident '%s' failed print tempfile '%s' for PopulateFile by %s", CSTR_WTOA(fileSpec), CSTR_WTOA(tempPrintFile.GetFilePath()), populateMethodName));

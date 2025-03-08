@@ -7,6 +7,13 @@ Version [1.29.1.0]
   from file hydration were suppressed. This could even prevent windows explorer from
   showing offline attribute (icon) change without having to refresh. This fix now 
   allows one attribute change notification when hydration is complete.
+* Addition of common Windows Defender process names to default ExcludedProcessNames, 
+  instead of having to rely on a custom local configuration to exclude these. Recent
+  WD signatures have been aggressively ignoring Offline attribute and sniffing "larger"
+  file-types (FBX,MA,SPP) making this almost essential.
+* Addition of `-a` to `print` command used for file hydration. This can be a significant 
+  perforce server side optimization allowing lockless reads when db.peeking=2 or 3.
+  https://portal.perforce.com/s/article/3839
 
 Version [1.29.0.0]
 * Fixing virtual file hydration to be excluded from system directory notifications.

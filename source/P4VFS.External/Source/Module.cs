@@ -129,7 +129,7 @@ namespace Microsoft.P4VFS.External
 			Dictionary<string, string> checksums = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
 			foreach (string line in File.ReadAllLines(checksumFilePath))
 			{
-				Match m = Regex.Match(line, @"^\s*(?<sum>[0-9a-f]+)\s+\*(?<name>\S+)\s*$", RegexOptions.IgnoreCase);
+				Match m = Regex.Match(line, @"^\s*(?<sum>[0-9a-f]+)\s+\*?(?<name>\S+)\s*$", RegexOptions.IgnoreCase);
 				if (m.Success)
 				{
 					checksums[m.Groups["name"].Value] = m.Groups["sum"].Value;

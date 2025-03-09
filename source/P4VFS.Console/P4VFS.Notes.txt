@@ -14,6 +14,8 @@ Version [1.29.1.0]
 * Addition of `-a` to `print` command used for file hydration. This can be a significant 
   perforce server side optimization allowing lockless reads when db.peeking=2 or 3.
   https://portal.perforce.com/s/article/3839
+* Updating to OpenSSL from 3.3.1 to 3.3.3. Now building with `no-apps` to which very 
+  slightly reduces build time
 
 Version [1.29.0.0]
 * Fixing virtual file hydration to be excluded from system directory notifications.

@@ -73,7 +73,7 @@
     <PerforceApiLibFiles>libclient.lib;libp4api.lib;libp4script.lib;libp4script_c.lib;libp4script_curl.lib;libp4script_sqlite.lib;librpc.lib;libsupp.lib</PerforceApiLibFiles>
 
     <!-- OpenSSL -->
-    <OpenSSLApiVersion>3.3.1</OpenSSLApiVersion>
+    <OpenSSLApiVersion>3.3.3</OpenSSLApiVersion>
     <OpenSSLApiConfiguration>$(P4VFSConfiguration)</OpenSSLApiConfiguration>
     <OpenSSLApiDir>$(P4VFSExternalDir)/OpenSSL/$(OpenSSLApiVersion)</OpenSSLApiDir>
     <OpenSSLApiIncludeDir>$(OpenSSLApiDir)/include</OpenSSLApiIncludeDir>

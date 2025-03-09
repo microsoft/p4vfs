@@ -55,6 +55,7 @@ namespace Microsoft.P4VFS.UnitTest
 
 			string[] serverConfigVariables = new[] {
 				"auth.sso.allow.passwd=1",
+				"db.peeking=3",
 				"dm.user.noautocreate=2", 
 				"dm.user.resetpassword=0",
 				"lbr.autocompress=1",

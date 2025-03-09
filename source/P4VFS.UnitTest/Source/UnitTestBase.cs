@@ -239,11 +239,11 @@ namespace Microsoft.P4VFS.UnitTest
 			{ 
 				return String.Join(";", new[]
 				{
-					"SearchProtocolHost.exe",
 					"MsSense.exe",
 					"MsMpEng.exe",
 					"SenseCE.exe",
 					"SenseIR.exe",
+					"SearchProtocolHost.exe",
 				});
 			}
 		}
@@ -340,7 +340,7 @@ namespace Microsoft.P4VFS.UnitTest
 
 			Extensions.SocketModel.SocketModelClient service = new Extensions.SocketModel.SocketModelClient(); 
 			Assert(service.GarbageCollect());
-			Assert(service.SetServiceSetting(nameof(SettingManager.ExcludedProcessNames), SettingNode.FromString(ExcludedProcessNames)));
+			Assert(service.GetServiceSetting(nameof(SettingManager.ExcludedProcessNames)).ToString() == ExcludedProcessNames);
 		}
 
 		public void ServiceRestart()

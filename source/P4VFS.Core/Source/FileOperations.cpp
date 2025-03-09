@@ -1184,13 +1184,14 @@ PopulateFileByStream(
 		return hr;
 	}
 
-	hr = SetFileAttributesOnHandle(dstFile.Handle(), dstFileAttributes & ~(FILE_ATTRIBUTE_OFFLINE));
-	if (FAILED(hr))
+	dstFile.Close();
+
+	if (!SetFileAttributes(fileToPopulate.c_str(), dstFileAttributes & ~(FILE_ATTRIBUTE_OFFLINE)))
 	{
+		hr = HRESULT_FROM_WIN32(GetLastError());
 		return hr;
 	}
 
-	dstFile.Close();
 	return S_OK;
 }
 

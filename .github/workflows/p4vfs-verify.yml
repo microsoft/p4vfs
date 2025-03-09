@@ -1,5 +1,5 @@
 
-name: p4vfs-verify
+name: GitHub Verify
 
 on:
   workflow_dispatch:

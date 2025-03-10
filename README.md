@@ -8,7 +8,7 @@ For example, you can use the P4VFS to perform a "virtual sync" to a Perforce fil
 
 # Installation
 You can install the latest signed release of P4VFS from here:
-> [P4VFS.Setup](https://github.com/microsoft/p4vfs/releases/download/v1.28.3.0/P4VFS.Setup-1.28.3.0.exe)
+> [P4VFS.Setup](https://github.com/microsoft/p4vfs/releases/download/v1.29.1.0/P4VFS.Setup-1.29.1.0.exe)
 
 The entire history of release notes is included with the installer.
 > [Release Notes](https://github.com/microsoft/p4vfs/blob/main/source/P4VFS.Console/P4VFS.Notes.txt)

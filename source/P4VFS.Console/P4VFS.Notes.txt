@@ -2,7 +2,7 @@ Microsoft P4VFS Release Notes
 
 Version [1.29.2.0]
 * Replacing authentication for public driver codesign from Hardware Development 
-  Center from deprecated client secret to x509 certifcate. This is similar to 
+  Center from deprecated client secret to x509 certificate. This is similar to 
   the PRSS codesign authentication and is generally more secure.
 
 Version [1.29.1.0]

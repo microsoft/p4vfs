@@ -608,19 +608,10 @@ P4vfsServicePortDisconnect(
 		goto CLEANUP; 
 	}
 
+	P4vfsTraceInfo(Filter, L"P4vfsServicePortDisconnect: Closed active connection [%p]", g_FltContext.pServiceClientPort);
+	FltCloseClientPort(g_FltContext.pFilter, &g_FltContext.pServiceClientPort);
+
 	pConnectionHandle = (P4VFS_SERVICE_PORT_CONNECTION_HANDLE*)pConnectionCookie;
-	if (pConnectionHandle->pClientPort != NULL)
-	{
-		// If this connection handle is our exclusive active pServiceClientPort, clear this value as we close the handle
-		if (pConnectionHandle->pClientPort == g_FltContext.pServiceClientPort)
-		{
-			P4vfsTraceInfo(Filter, L"P4vfsServicePortDisconnect: Closed active connection [%p]", g_FltContext.pServiceClientPort);
-			g_FltContext.pServiceClientPort = NULL;
-		}
-
-		FltCloseClientPort(g_FltContext.pFilter, &pConnectionHandle->pClientPort);
-	}
-
 	if (pConnectionHandle->hUserProcess != NULL)
 	{
 		ZwClose(pConnectionHandle->hUserProcess);

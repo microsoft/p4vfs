@@ -9,15 +9,17 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Security.Cryptography.X509Certificates;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Blobs;
 using Microsoft.P4VFS.Extensions;
 using Microsoft.P4VFS.Extensions.Utilities;
 using Microsoft.P4VFS.Extensions.Linq;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
 
 namespace Microsoft.P4VFS.CodeSign
 {
@@ -164,8 +166,7 @@ namespace Microsoft.P4VFS.CodeSign
 					using (DevCenterClient client = new DevCenterClient())
 					{
 						client.InitializeJob(job, tokenManifest);
-						client.m_Job.SecretName = hlkJob.AgentSecretName;
-						hlkJob.AgentPassword = client.GetClientSecretFromKeyVaultAsync().Result;
+						hlkJob.AgentPassword = client.GetClientSecretFromKeyVaultAsync(hlkJob.AgentSecretName, hlkJob.AgentKeyVaultUri).Result;
 					}
 
 					using (HardwareLabKitPackage hlk = new HardwareLabKitPackage())
@@ -395,30 +396,40 @@ namespace Microsoft.P4VFS.CodeSign
 			return activeSubmission;
 		}
 
-		private async Task<string> GetClientSecretFromKeyVaultAsync()
+		private IEnumerable<X509Certificate2> FindAvailableClientCertificates()
 		{
-			VirtualFileSystemLog.Info("Requesting secret '{0}' from KeyVault '{1}'", m_Job.SecretName, m_Job.KeyVaultUri);
-
 			X509Store certificateStore = new X509Store(
 				Converters.ToEnum<StoreName>(m_Job.AuthCert.StoreName).Value,
 				Converters.ToEnum<StoreLocation>(m_Job.AuthCert.StoreLocation).Value);
 
 			certificateStore.Open(OpenFlags.ReadOnly);
 
-			X509Certificate2Collection certificates = certificateStore.Certificates.Find(
+			X509Certificate2Collection certificateCollection = certificateStore.Certificates.Find(
 				X509FindType.FindBySubjectName,
 				m_Job.AuthCert.SubjectName,
 				true);
 
-			foreach (X509Certificate2 certificate in certificates.OfType<X509Certificate2>())
+			IEnumerable<X509Certificate2> certificates = certificateCollection.OfType<X509Certificate2>();
+			if (certificates.Any() == false)
+			{
+				throw new Exception(String.Format("Failed to find any valid certificates with SubjectName '{0}' in Store '{1}' Location '{2}'", m_Job.AuthCert.SubjectName, m_Job.AuthCert.StoreName, m_Job.AuthCert.StoreLocation));
+			}
+			return certificates;
+		}
+
+		private async Task<string> GetClientSecretFromKeyVaultAsync(string secretName, string keyVaultUri)
+		{
+			VirtualFileSystemLog.Info("Requesting secret '{0}' from KeyVault '{1}'", secretName, keyVaultUri);
+
+			foreach (X509Certificate2 certificate in FindAvailableClientCertificates())
 			{
 				try
 				{
 					SecretClient keyVault = new SecretClient(
-						new Uri(m_Job.KeyVaultUri),
+						new Uri(keyVaultUri),
 						new Azure.Identity.ClientCertificateCredential(m_Job.TenantId, m_Job.ClientId, certificate));
 
-					Azure.Response<KeyVaultSecret> appRegSecret = await keyVault.GetSecretAsync(m_Job.SecretName);
+					Azure.Response<KeyVaultSecret> appRegSecret = await keyVault.GetSecretAsync(secretName);
 					string appRegSecretString = appRegSecret?.Value?.Value;
 					if (String.IsNullOrEmpty(appRegSecretString) == false)
 					{
@@ -427,10 +438,10 @@ namespace Microsoft.P4VFS.CodeSign
 				}
 				catch (Exception e)
 				{
-					VirtualFileSystemLog.Error("Exception using certificate '{0}' to request secret from KeyVault '{1}': {2}", certificate.ToString(), m_Job.KeyVaultUri, e.Message);
+					VirtualFileSystemLog.Error("Exception using certificate '{0}' to request secret from KeyVault '{1}': {2}", certificate.ToString(), keyVaultUri, e.Message);
 				}
 			}
-			throw new Exception(String.Format("Failed get valid secret '{0}' from KeyVault '{1}'", m_Job.SecretName, m_Job.KeyVaultUri));
+			throw new Exception(String.Format("Failed get valid secret '{0}' from KeyVault '{1}'", secretName, keyVaultUri));
 		}
 
 		private async Task<string> GetCachedAccessTokenAsync()
@@ -454,36 +465,65 @@ namespace Microsoft.P4VFS.CodeSign
 			return m_AccessToken.Text;
 		}
 
+
 		private async Task<JObject> GetClientCredentialAccessTokenAsync()
 		{
-			if (String.IsNullOrEmpty(m_Job.ClientSecret))
-			{
-				VirtualFileSystemLog.Info("Requesting client secret from KeyVault");
-				m_Job.ClientSecret = await GetClientSecretFromKeyVaultAsync();
-				if (String.IsNullOrEmpty(m_Job.ClientSecret))
-				{
-					throw new Exception(String.Format("Failed to get secret \"{0}\" from KeyVault \"{1}\"", m_Job.SecretName, m_Job.KeyVaultUri));
-				}
-			}
+			VirtualFileSystemLog.Info("Requesting access token for client '{0}' from audience '{1}'", m_Job.ClientId, m_Job.TokenEndpoint);
 
-			using (HttpClient client = new HttpClient())
+			foreach (X509Certificate2 certificate in FindAvailableClientCertificates())
 			{
-				using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, m_Job.TokenEndpoint))
+				try
 				{
-					string content = String.Format(
-						"grant_type=client_credentials&client_id={0}&client_secret={1}&resource={2}",
-						m_Job.ClientId,
-						m_Job.ClientSecret,
-						m_Job.Scope);
-
-					request.Content = new StringContent(content, Encoding.UTF8, "application/x-www-form-urlencoded");
-					using (HttpResponseMessage response = await client.SendAsync(request))
+					DateTime tokenTime = DateTime.UtcNow;
+					SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
 					{
-						string responseContent = await response.Content.ReadAsStringAsync();
-						return JObject.Parse(responseContent);
+						Issuer = m_Job.ClientId,
+						Audience = m_Job.TokenEndpoint,
+						Subject = new ClaimsIdentity(new[]{ new Claim("sub", m_Job.ClientId) }),
+						IssuedAt = tokenTime,
+						NotBefore = tokenTime,
+						Expires = tokenTime.AddHours(6),
+						SigningCredentials = new X509SigningCredentials(certificate)
+					};
+
+					JsonWebTokenHandler tokenHandler = new JsonWebTokenHandler();
+					string clientAssertion = tokenHandler.CreateToken(tokenDescriptor);
+
+					using (HttpClient client = new HttpClient())
+					{
+						using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, m_Job.TokenEndpoint))
+						{
+							request.Content = new FormUrlEncodedContent(new Dictionary<string, string>()
+							{
+								{ "resource", m_Job.Scope },
+								{ "client_id", m_Job.ClientId },
+								{ "client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer" },
+								{ "client_assertion", clientAssertion },
+								{ "grant_type", "client_credentials" },
+							});
+
+							using (HttpResponseMessage response = await client.SendAsync(request))
+							{
+								string responseContent = await response.Content.ReadAsStringAsync();
+								JObject responseObject = JObject.Parse(responseContent);
+								if (String.IsNullOrEmpty(responseObject?.Value<string>("access_token")))
+								{
+									throw new Exception(String.Format("Missing access_token: {0}", responseContent));
+								}
+
+								return responseObject;
+							}
+						}
 					}
 				}
+				catch (Exception e)
+				{
+					VirtualFileSystemLog.Error("Exception using certificate '{0}' to request access token for client '{1}': {2}", certificate.ToString(), m_Job.ClientId, e.Message);
+				}
 			}
+
+			VirtualFileSystemLog.Info("Failed to get access token for client '{0}' from audience '{1}'", m_Job.ClientId, m_Job.TokenEndpoint);
+			return null;
 		}
 
 		private async Task<JObject> RequestAsync(HttpMethod httpMethod, string relativeUrl, JObject requestContent = null)
@@ -552,10 +592,7 @@ namespace Microsoft.P4VFS.CodeSign
 			public DevCenterAuthCert AuthCert { get; set; }
 			public JObject Product { get; set; }
 			public string ClientId { get; set; }
-			public string ClientSecret { get; set; }
 			public string TenantId { get; set; }
-			public string KeyVaultUri { get; set; }
-			public string SecretName { get; set; }
 			public string ServiceUri { get; set; }
 			public string TokenEndpoint { get; set; }
 			public string Scope { get; set; }

@@ -39,8 +39,6 @@
             ],
             "DevCenterSign": {
               "TenantId": "72f988bf-86f1-41af-91ab-2d7cd011db47",
-              "KeyVaultUri": "https://gfwlcss-kv.vault.azure.net",
-              "SecretName": "gfwlcss-app-reg-secret",
               "ServiceUri": "https://manage.devcenter.microsoft.com",
               "TokenEndpoint": "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47/oauth2/token",
               "Scope": "https://manage.devcenter.microsoft.com",
@@ -69,6 +67,7 @@
               "HLK": {
                 "AgentUsername": "HLKAdminUser",
                 "AgentSecretName": "gfwlcss-hlkadminuser-password",
+                "AgentKeyVaultUri": "https://gfwlcss-kv.vault.azure.net",
                 "ProjectName": "P4VFS",
                 "PoolName": "P4VFS Test",
                 "Controllers": [

@@ -156,6 +156,7 @@ namespace Microsoft.P4VFS.CodeSign
 		public string AgentUsername { get; set; }
 		public string AgentPassword { get; set; }
 		public string AgentSecretName { get; set; }
+		public string AgentKeyVaultUri { get; set; }
 		public string ProjectName { get; set; }
 		public string PoolName { get; set; }
 	}

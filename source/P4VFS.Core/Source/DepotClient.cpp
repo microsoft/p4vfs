@@ -291,8 +291,8 @@ public:
 		if (url != nullptr && FileCore::StringInfo::IsNullOrEmpty(url->Text()) == false)
 		{
 			UserContext* context = m_Client->GetUserContext();
-			DepotString cmd = StringInfo::Format("cmd.exe /c start %s", url->Text());
-			FileOperations::CreateProcessImpersonated(CSTR_ATOW(cmd), nullptr, FALSE, nullptr, context);
+			WString cmd = StringInfo::Format(L"\"%s\\p4vfs.exe\" %s login -t 60 -u \"%s\"", FileInfo::FolderPath(FileInfo::ApplicationFilePath().c_str()).c_str(), CSTR_ATOW(m_Client->Config().ToCommandString()), CSTR_ATOW(url->Text()));
+			FileOperations::CreateProcessImpersonated(cmd.c_str(), nullptr, FALSE, nullptr, context);
 		}
 	}
 

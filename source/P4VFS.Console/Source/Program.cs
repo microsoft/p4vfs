@@ -57,6 +57,8 @@ Available commands:
   info        Print out client/server information
   set         Modify current service settings temporarily for this login session. 
   resident    Modify current resident status of local files.
+  hydrate     Change file status to resident state (full downloaded size).
+  dehydrate   Change file status to virtual state (zero downloaded size).
   populate    Perform sync as fast as possible using quiet, single flush
   reconfig    Modify the perforce configuration of local placeholder files.
   monitor     Launch and control the P4VFS monitor application.
@@ -207,10 +209,12 @@ Available commands:
 {"login", @"
   login       Login to the perforce server and update the current ticket.
 
-              p4vfs login [-i -w] [password]
+              p4vfs login [-i -w] [-u <url>] [-t <seconds>] [password]
 
    -i         Display a modal dialog for password entry
    -w         Write the password to stdout after entering
+   -u         Open a browser window with login challenge URL
+   -t         Timeout waiting for login to complete
 "},
 
 {"test", @"

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Microsoft.P4VFS.Extensions;
 using Microsoft.P4VFS.Extensions.Linq;
 using Microsoft.P4VFS.Extensions.Utilities;
@@ -997,6 +998,9 @@ Available commands:
 		{
 			bool interactive = false;
 			bool writePasswd = false;
+			int timeoutSeconds = 0;
+			string shellUrl = null;
+
 			int argIndex = 0;
 			for (; argIndex < args.Length; ++argIndex)
 			{
@@ -1008,10 +1012,42 @@ Available commands:
 				{
 					writePasswd = true;
 				}
+				else if (String.Compare(args[argIndex], "-t") == 0 && argIndex+1 < args.Length)
+				{
+					if (Int32.TryParse(args[++argIndex], out timeoutSeconds) == false)
+					{
+						VirtualFileSystemLog.Error("Invalid login timeout specified: {0}", args[argIndex]);	
+						return false;
+					}
+				}
+				else if (String.Compare(args[argIndex], "-u") == 0 && argIndex+1 < args.Length)
+				{
+					shellUrl = args[++argIndex];
+					if (Uri.IsWellFormedUriString(shellUrl, UriKind.Absolute) == false)
+					{
+						VirtualFileSystemLog.Error("Invalid shell URL specified: {0}", shellUrl);
+						return false;
+					}
+				}
 				else
 				{
 					break;
 				}
+			}
+
+			CancellationToken cancellationToken = CancellationToken.None;
+			if (timeoutSeconds > 0)
+			{
+				cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds)).Token;
+			}
+
+			if (String.IsNullOrEmpty(shellUrl) == false)
+			{
+				VirtualFileSystemLog.Info("Login from URL: {0}", shellUrl);
+				ProcessInfo.ExecuteWait(new ProcessInfo.ExecuteParams {
+					
+				});
+				return false;
 			}
 
 			DepotConfig p4Config = DepotInfo.DepotConfigFromPath(_P4Directory);

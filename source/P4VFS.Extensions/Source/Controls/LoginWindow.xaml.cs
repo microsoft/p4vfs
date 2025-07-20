@@ -3,28 +3,28 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Xml;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace Microsoft.P4VFS.Extensions.Controls
 {
 	public partial class LoginWindow : Window
 	{
+		private CancellationToken? m_CancellationToken;
+		private DispatcherTimer m_UpdateTimer; 
+
 		public LoginWindow()
 		{
 			InitializeComponent();
+
+			m_UpdateTimer = new DispatcherTimer();
+			m_UpdateTimer.Interval = TimeSpan.FromSeconds(1.0/30.0);
+			m_UpdateTimer.Tick += OnTickUpdateTimer;
+			m_UpdateTimer.Start();
 		}
 
-        public string Port
+		public string Port
 		{
 			get { return m_Port.Text; }
 			set { m_Port.Text = value; }
@@ -47,6 +47,20 @@ namespace Microsoft.P4VFS.Extensions.Controls
 			get { return m_Passwd.Password; }
 			set { m_Passwd.Password = value; }
 		}
+
+		public CancellationToken? CancellationToken
+		{
+			get { return m_CancellationToken; }
+			set { m_CancellationToken = value; }
+		}
+
+		private void OnTickUpdateTimer(object sender, EventArgs e)
+		{
+			if (m_CancellationToken?.IsCancellationRequested == true)
+			{
+				this.DialogResult = false;
+			}
+		}		
 
 		private void OnClickButtonCancel(object sender, RoutedEventArgs e)
 		{

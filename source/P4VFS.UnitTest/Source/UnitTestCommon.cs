@@ -441,19 +441,19 @@ namespace Microsoft.P4VFS.UnitTest
 			{
 				System.Text.StringBuilder output = new System.Text.StringBuilder();
 				string cmd = String.Format("\"{0}\\p4vfs.exe\" {1} login -w _incorrect_password_", System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), ClientConfig);
-				Assert(NativeMethods.CreateProcessImpersonated(cmd, null, true, output, null));
+				Assert(NativeMethods.CreateProcessImpersonated(cmd, null, ProcessExecuteFlags.WaitForExit, output, null));
 				Assert(output.ToString().Split(new char[]{'\n','\r'}, StringSplitOptions.RemoveEmptyEntries).Contains("Login failed."));
 			}
 			{
 				System.Text.StringBuilder output = new System.Text.StringBuilder();
 				string cmd = String.Format("cmd.exe /s /c echo foobar");
-				Assert(NativeMethods.CreateProcessImpersonated(cmd, null, true, output, null));
+				Assert(NativeMethods.CreateProcessImpersonated(cmd, null, ProcessExecuteFlags.WaitForExit, output, null));
 				Assert(output.ToString().Split(new char[]{'\n','\r'}, StringSplitOptions.RemoveEmptyEntries).Contains("foobar"));
 			}
 			{
 				System.Text.StringBuilder output = new System.Text.StringBuilder();
 				string cmd = String.Format("cmd.exe /s /c");
-				Assert(NativeMethods.CreateProcessImpersonated(cmd, null, true, output, null));
+				Assert(NativeMethods.CreateProcessImpersonated(cmd, null, ProcessExecuteFlags.WaitForExit, output, null));
 				Assert(output.ToString().Length == 0);
 			}
 		}

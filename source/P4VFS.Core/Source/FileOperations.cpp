@@ -1687,7 +1687,7 @@ HRESULT
 CreateProcessImpersonated(
 	const WCHAR* commandLine,
 	const WCHAR* currentDirectory,
-	BOOL waitForExit,
+	FileCore::Process::ExecuteFlags::Enum flags,
 	FileCore::String* stdOutput,
 	const FileCore::UserContext* context
 	)
@@ -1703,11 +1703,6 @@ CreateProcessImpersonated(
 		return HRESULT_FROM_WIN32(ERROR_INVALID_TOKEN);
 	}
 
-	FileCore::Process::ExecuteFlags::Enum flags = FileCore::Process::ExecuteFlags::HideWindow;
-	if (waitForExit)
-	{
-		flags |= FileCore::Process::ExecuteFlags::WaitForExit;
-	}
 	if (stdOutput != nullptr)
 	{
 		flags |= FileCore::Process::ExecuteFlags::StdOut;

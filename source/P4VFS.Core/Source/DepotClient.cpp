@@ -292,7 +292,8 @@ public:
 		{
 			UserContext* context = m_Client->GetUserContext();
 			WString cmd = StringInfo::Format(L"\"%s\\p4vfs.exe\" %s login -t 60 -u \"%s\"", FileInfo::FolderPath(FileInfo::ApplicationFilePath().c_str()).c_str(), CSTR_ATOW(m_Client->Config().ToCommandString()), CSTR_ATOW(url->Text()));
-			FileOperations::CreateProcessImpersonated(cmd.c_str(), nullptr, FALSE, nullptr, context);
+			Process::ExecuteFlags::Enum flags = Process::ExecuteFlags::HideWindow | Process::ExecuteFlags::Unelevated;
+			FileOperations::CreateProcessImpersonated(cmd.c_str(), nullptr, flags, nullptr, context);
 		}
 	}
 
@@ -975,7 +976,8 @@ bool FDepotClient::RequestInteractivePassword(DepotString& passwd)
 	WString output;
 	UserContext* context = m_P4->m_FileContext ? m_P4->m_FileContext->m_UserContext : nullptr;
 	WString cmd = StringInfo::Format(L"\"%s\\p4vfs.exe\" %s login -i -w", FileInfo::FolderPath(FileInfo::ApplicationFilePath().c_str()).c_str(), CSTR_ATOW(m_P4->m_Config.ToCommandString()));
-	if (SUCCEEDED(FileOperations::CreateProcessImpersonated(cmd.c_str(), nullptr, TRUE, &output, context)))
+	Process::ExecuteFlags::Enum flags = Process::ExecuteFlags::WaitForExit | Process::ExecuteFlags::HideWindow | Process::ExecuteFlags::Unelevated;
+	if (SUCCEEDED(FileOperations::CreateProcessImpersonated(cmd.c_str(), nullptr, flags, &output, context)))
 	{
 		WStringArray lines = StringInfo::Split(output.c_str(), L"\n\r", StringInfo::SplitFlags::RemoveEmptyEntries);
 		for (const WString& line : lines)

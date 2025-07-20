@@ -1044,10 +1044,16 @@ Available commands:
 			if (String.IsNullOrEmpty(shellUrl) == false)
 			{
 				VirtualFileSystemLog.Info("Login from URL: {0}", shellUrl);
-				ProcessInfo.ExecuteWait(new ProcessInfo.ExecuteParams {
-					
+				ProcessInfo.ExecuteResult executeResult = ProcessInfo.ExecuteWait(new ProcessInfo.ExecuteParams {
+					FileName = shellUrl,
+					UseShell = true,
+					CancellationToken = cancellationToken
 				});
-				return false;
+				if (executeResult.WasCanceled)
+				{
+					VirtualFileSystemLog.Info("Timeout waiting for shell login from URL");
+				}
+				return true;
 			}
 
 			DepotConfig p4Config = DepotInfo.DepotConfigFromPath(_P4Directory);
@@ -1104,13 +1110,15 @@ Available commands:
 			{
 				if (interactive)
 				{
-					var thread = new System.Threading.Thread(new System.Threading.ThreadStart(() => 
+					Thread thread = new Thread(new ThreadStart(() => 
 					{
-						var dlg = new Microsoft.P4VFS.Extensions.Controls.LoginWindow();
+						Extensions.Controls.LoginWindow dlg = new Extensions.Controls.LoginWindow();
 						dlg.Port = _P4Port;
 						dlg.Client = _P4Client;
 						dlg.User = _P4User;
 						dlg.Passwd = _P4Passwd;
+						dlg.CancellationToken = cancellationToken;
+
 						if (dlg.ShowDialog() == true)
 						{
 							_P4Passwd = dlg.Passwd;
@@ -1121,14 +1129,25 @@ Available commands:
 						}
 					}));
 
-					thread.SetApartmentState(System.Threading.ApartmentState.STA);
+					thread.SetApartmentState(ApartmentState.STA);
 					thread.Start();
 					thread.Join();
 				}
 				else if (String.IsNullOrEmpty(_P4Passwd))
 				{
-					System.Console.Write("Enter Password: ");
-					_P4Passwd = ConsoleReader.ReadLine();
+					try
+					{
+						System.Console.Write("Enter Password: ");
+						_P4Passwd = ConsoleReader.ReadLine(cancellationToken);
+					}
+					catch (OperationCanceledException)
+					{}
+				}
+
+				if (cancellationToken.IsCancellationRequested)
+				{
+					VirtualFileSystemLog.Info("Timeout waiting for password to login");
+					return false;
 				}
 			}
 		
@@ -1283,7 +1302,7 @@ Available commands:
 					return true;
 				}
 
-				System.Threading.Thread.Sleep(retryWait);
+				Thread.Sleep(retryWait);
 			}
 			while (DateTime.Now < endTime);
 

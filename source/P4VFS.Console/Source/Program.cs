@@ -1044,9 +1044,11 @@ Available commands:
 			if (String.IsNullOrEmpty(shellUrl) == false)
 			{
 				VirtualFileSystemLog.Info("Login from URL: {0}", shellUrl);
-				ProcessInfo.ExecuteResult executeResult = ProcessInfo.ExecuteWait(new ProcessInfo.ExecuteParams {
+				ProcessInfo.ExecuteResult executeResult = ProcessInfo.ExecuteWait(new ProcessInfo.ExecuteParams{
 					FileName = shellUrl,
 					UseShell = true,
+					LogOutput = false,
+					LogCommand = false,
 					CancellationToken = cancellationToken
 				});
 				if (executeResult.WasCanceled)

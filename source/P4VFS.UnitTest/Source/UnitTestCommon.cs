@@ -2068,5 +2068,62 @@ namespace Microsoft.P4VFS.UnitTest
 				}
 			}}}
 		}
+
+		[TestMethod, Priority(36)]
+		public void ShellLoginTimeoutTest()
+		{
+			WorkspaceReset();
+			Assert(ShellUtilities.IsProcessElevated());
+
+			string workingFolder = String.Format("{0}\\{1}", UnitTestServer.GetServerRootFolder(), nameof(ShellLoginTimeoutTest));
+			AssertLambda(() => FileUtilities.DeleteDirectoryAndFiles(workingFolder));
+			AssertLambda(() => Directory.CreateDirectory(workingFolder));
+
+			string shellCommandFile = String.Format("{0}\\ShellCommand.bat", workingFolder);
+			string shellCommandUri = String.Format("file:///{0}", shellCommandFile.Replace('\\','/'));
+			Assert(Uri.IsWellFormedUriString(shellCommandUri, UriKind.Absolute));
+
+			var assertShellLogin = new Action<int,int,bool>((int cmdTimeout, int shellTimeout, bool elevated) =>
+			{
+				VirtualFileSystemLog.Info($"assertShellLogin cmdTimeout={cmdTimeout} shellTimeout={shellTimeout} elevated={elevated}");
+				FileUtilities.DeleteFile(shellCommandFile);
+				
+				string shellOutputFile = String.Format("{0}\\{1}-{2}.txt", workingFolder, Path.GetFileNameWithoutExtension(shellCommandFile), DateTime.Now.Ticks);
+				FileUtilities.DeleteFile(shellOutputFile);
+
+				File.WriteAllLines(shellCommandFile, new string[]{
+					$"fltmc.exe > {shellOutputFile}",
+					$"timeout.exe /nobreak {cmdTimeout} > nul 2>&1",
+					$"echo done >> {shellOutputFile}",
+				});
+
+				bool expectTimeout = cmdTimeout > shellTimeout;
+				System.Text.StringBuilder loginOutput = new System.Text.StringBuilder();
+				string loginExe = P4vfsExe;
+				string loginArgs = String.Format("{0} login -t {1} -u {2}", ClientConfig, shellTimeout, shellCommandUri);
+
+				if (elevated)
+				{
+					int loginExitCode = ProcessInfo.ExecuteWait(loginExe, loginArgs, echo:true, stdout:loginOutput);
+					Assert(loginExitCode == 0);
+				}
+				else
+				{
+					ProcessExecuteFlags flags = ProcessExecuteFlags.HideWindow | ProcessExecuteFlags.Unelevated | ProcessExecuteFlags.WaitForExit;
+					bool loginSuccess = NativeMethods.CreateProcessImpersonated($"{loginExe} {loginArgs}", "", flags, loginOutput, null);
+					Assert(loginSuccess);
+				}
+
+				Assert(Regex.IsMatch(loginOutput.ToString(), "timeout waiting", RegexOptions.IgnoreCase) == expectTimeout);
+				Assert(File.Exists(shellOutputFile));
+				Assert(Regex.IsMatch(File.ReadAllText(shellOutputFile), @"p4vfsflt\s+\d+\s+\d+") == elevated);
+			});
+
+			foreach (bool elevated in new[]{ false })
+			{
+				assertShellLogin(10, 30, elevated);
+				assertShellLogin(30, 10, elevated);
+			}
+		}
 	}
 }

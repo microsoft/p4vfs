@@ -2083,7 +2083,7 @@ namespace Microsoft.P4VFS.UnitTest
 			string shellCommandUri = String.Format("file:///{0}", shellCommandFile.Replace('\\','/'));
 			Assert(Uri.IsWellFormedUriString(shellCommandUri, UriKind.Absolute));
 
-			var assertShellLogin = new Action<int,int,bool>((int cmdTimeout, int shellTimeout, bool elevated) =>
+			var assertShellLogin = new Action<int,int,bool,bool>((int cmdTimeout, int shellTimeout, bool native, bool elevated) =>
 			{
 				VirtualFileSystemLog.Info($"assertShellLogin cmdTimeout={cmdTimeout} shellTimeout={shellTimeout} elevated={elevated}");
 				FileUtilities.DeleteFile(shellCommandFile);
@@ -2102,16 +2102,16 @@ namespace Microsoft.P4VFS.UnitTest
 				string loginExe = P4vfsExe;
 				string loginArgs = String.Format("{0} login -t {1} -u {2}", ClientConfig, shellTimeout, shellCommandUri);
 
-				if (elevated)
+				if (native)
 				{
-					int loginExitCode = ProcessInfo.ExecuteWait(loginExe, loginArgs, echo:true, stdout:loginOutput);
-					Assert(loginExitCode == 0);
+					ProcessExecuteFlags flags = ProcessExecuteFlags.HideWindow | ProcessExecuteFlags.WaitForExit | (elevated ? ProcessExecuteFlags.Unelevated : ProcessExecuteFlags.None);
+					bool loginSuccess = NativeMethods.CreateProcessImpersonated($"{loginExe} {loginArgs}", null, flags, loginOutput, null);
+					Assert(loginSuccess);
 				}
 				else
 				{
-					ProcessExecuteFlags flags = ProcessExecuteFlags.HideWindow | ProcessExecuteFlags.Unelevated | ProcessExecuteFlags.WaitForExit;
-					bool loginSuccess = NativeMethods.CreateProcessImpersonated($"{loginExe} {loginArgs}", "", flags, loginOutput, null);
-					Assert(loginSuccess);
+					int loginExitCode = ProcessInfo.ExecuteWait(loginExe, loginArgs, echo:true, stdout:loginOutput);
+					Assert(loginExitCode == 0);
 				}
 
 				Assert(Regex.IsMatch(loginOutput.ToString(), "timeout waiting", RegexOptions.IgnoreCase) == expectTimeout);
@@ -2119,10 +2119,13 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(Regex.IsMatch(File.ReadAllText(shellOutputFile), @"p4vfsflt\s+\d+\s+\d+") == elevated);
 			});
 
-			foreach (bool elevated in new[]{ false })
+			foreach (bool native in new[]{ true, false })
 			{
-				assertShellLogin(10, 30, elevated);
-				assertShellLogin(30, 10, elevated);
+				foreach (bool elevated in (native ? new[]{ true, false } : new[]{ true }))
+				{
+					assertShellLogin(10, 30, native, elevated);
+					assertShellLogin(30, 10, native, elevated);
+				}
 			}
 		}
 	}

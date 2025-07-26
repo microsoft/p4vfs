@@ -5,7 +5,6 @@
 #include "FileCore.h"
 #include "FileAssert.h"
 #include "SettingManager.h"
-#include <shellapi.h>
 
 namespace Microsoft {
 namespace P4VFS {
@@ -1714,37 +1713,6 @@ CreateProcessImpersonated(
 		stdOutput->assign(FileCore::StringInfo::ToWide(result.m_StdOut));
 	}
 	return result.m_HR;
-}
-
-HRESULT 
-ShellExecuteImpersonated(
-	HWND hWnd,
-	const wchar_t* lpOperation,
-	const wchar_t* lpFile,
-	const wchar_t* lpParameters,
-	const wchar_t* lpDirectory,
-	INT nShowCmd,
-	const FileCore::UserContext* context
-	)
-{
-	auto shellexec = [&]() -> HRESULT
-	{
-		HINSTANCE result = ShellExecuteW(hWnd, lpOperation, lpFile, lpParameters, lpDirectory, nShowCmd);
-		return reinterpret_cast<INT_PTR>(result) > 32 ? S_OK : HRESULT_FROM_WIN32(GetLastError());
-	};
-
-	HRESULT hr = E_FAIL;
-	if (context == nullptr || IsSystemUserContext(context))
-	{
-		hr = shellexec();
-	}
-	else if (SUCCEEDED(ImpersonateLoggedOnUser(context)))
-	{
-		hr = shellexec();
-		::RevertToSelf();
-	}
-	
-	return hr;
 }
 
 HRESULT

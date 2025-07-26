@@ -2083,9 +2083,9 @@ namespace Microsoft.P4VFS.UnitTest
 			string shellCommandUri = String.Format("file:///{0}", shellCommandFile.Replace('\\','/'));
 			Assert(Uri.IsWellFormedUriString(shellCommandUri, UriKind.Absolute));
 
-			var assertShellLogin = new Action<int,int,bool,bool>((int cmdTimeout, int shellTimeout, bool native, bool elevated) =>
+			var assertShellLogin = new Action<int,int,bool>((int cmdTimeout, int shellTimeout, bool native) =>
 			{
-				VirtualFileSystemLog.Info($"assertShellLogin cmdTimeout={cmdTimeout} shellTimeout={shellTimeout} elevated={elevated}");
+				VirtualFileSystemLog.Info($"assertShellLogin cmdTimeout={cmdTimeout} shellTimeout={shellTimeout} native={native}");
 				FileUtilities.DeleteFile(shellCommandFile);
 				
 				string shellOutputFile = String.Format("{0}\\{1}-{2}.txt", workingFolder, Path.GetFileNameWithoutExtension(shellCommandFile), DateTime.Now.Ticks);
@@ -2104,7 +2104,7 @@ namespace Microsoft.P4VFS.UnitTest
 
 				if (native)
 				{
-					ProcessExecuteFlags flags = ProcessExecuteFlags.HideWindow | ProcessExecuteFlags.WaitForExit | (elevated ? ProcessExecuteFlags.Unelevated : ProcessExecuteFlags.None);
+					ProcessExecuteFlags flags = ProcessExecuteFlags.HideWindow | ProcessExecuteFlags.WaitForExit;
 					bool loginSuccess = NativeMethods.CreateProcessImpersonated($"{loginExe} {loginArgs}", null, flags, loginOutput, null);
 					Assert(loginSuccess);
 				}
@@ -2116,16 +2116,13 @@ namespace Microsoft.P4VFS.UnitTest
 
 				Assert(Regex.IsMatch(loginOutput.ToString(), "timeout waiting", RegexOptions.IgnoreCase) == expectTimeout);
 				Assert(File.Exists(shellOutputFile));
-				Assert(Regex.IsMatch(File.ReadAllText(shellOutputFile), @"p4vfsflt\s+\d+\s+\d+") == elevated);
+				Assert(Regex.IsMatch(File.ReadAllText(shellOutputFile), @"p4vfsflt\s+\d+\s+\d+"));
 			});
 
 			foreach (bool native in new[]{ true, false })
 			{
-				foreach (bool elevated in (native ? new[]{ true, false } : new[]{ true }))
-				{
-					assertShellLogin(10, 30, native, elevated);
-					assertShellLogin(30, 10, native, elevated);
-				}
+				assertShellLogin(10, 30, native);
+				assertShellLogin(30, 10, native);
 			}
 		}
 	}

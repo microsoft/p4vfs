@@ -336,6 +336,8 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(workspace.LineEnd == DepotResultClient.LineEnd.Local);
 				Assert(workspace.Client != _P4Client || workspace.View.Count() == 1);
 				Assert(workspace.Client != _P4Client || workspace.View.ElementAt(0) == String.Format("//depot/... //{0}/depot/...", workspace.Client));
+				
+				UnitTestServer.ServerUninstallExtentions(config.Port);
 			}
 
 			Extensions.SocketModel.SocketModelClient service = new Extensions.SocketModel.SocketModelClient(); 
@@ -459,7 +461,7 @@ namespace Microsoft.P4VFS.UnitTest
 			return folderPath;
 		}
 
-		public DepotConfig ClientConfig
+		public static DepotConfig ClientConfig
 		{
 			get { return new DepotConfig(){ Port = _P4Port, Client = _P4Client, User = _P4User }; }
 		}

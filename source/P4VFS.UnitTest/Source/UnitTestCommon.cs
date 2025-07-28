@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.IO;
+using System.Net;
 using System.Xml;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -2119,11 +2120,52 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(Regex.IsMatch(File.ReadAllText(shellOutputFile), @"p4vfsflt\s+\d+\s+\d+"));
 			});
 
-			foreach (bool native in new[]{ true, false })
+			foreach (bool native in new[] { true, false })
 			{
-				assertShellLogin(10, 30, native);
-				assertShellLogin(30, 10, native);
+				assertShellLogin(10, 20, native);
+				assertShellLogin(20, 10, native);
 			}
+
+			string loginEndpoint = $"http://localhost:8099/";
+			HttpListener loginListener = new HttpListener();
+			loginListener.Prefixes.Add(loginEndpoint);
+			loginListener.Start();
+			int loginRequestCount = 0;
+
+			System.Threading.Thread loginListenerThread = new System.Threading.Thread(new System.Threading.ThreadStart(() =>
+			{
+				try
+				{
+					while (loginListener.IsListening)
+					{
+						HttpListenerContext context = loginListener.GetContext();
+						VirtualFileSystemLog.Info($"ShellLoginTimeoutTest accepted HTTP request");
+						loginRequestCount++;
+						context.Response.StatusCode = 200;
+						using (var writer = new StreamWriter(context.Response.OutputStream))
+						{
+							writer.Write("Hello");
+						}
+						context.Response.Close();
+					}
+				}
+				catch {}
+			}));
+			
+			UnitTestServer.ServerInstallLoginHookExtension(loginEndpoint);
+			loginListenerThread.Start();
+
+			using (DepotClient depotClient = new DepotClient()) 
+			{
+				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
+				depotClient.Login();
+			}
+
+			Assert(loginRequestCount > 0, "Missing Http SSO login");
+			UnitTestServer.ServerUninstallExtentions();
+
+			loginListener.Stop();
+			loginListenerThread.Join();
 		}
 	}
 }

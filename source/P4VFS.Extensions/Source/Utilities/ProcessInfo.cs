@@ -29,10 +29,11 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 			public bool UseShell = false;
 			public bool ShowWindow = false;
 			public bool AsAdmin = false;
+			public bool TerminateOnCancel = true;
 			public string Input;
 			public Action<OutputData> Output;
 			public ProcessPriorityClass? Priority;
-			public CancellationToken? Token;
+			public CancellationToken? CancellationToken;
 			public Dictionary<string, string> Environment;
 		}
 
@@ -182,17 +183,17 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 					
 					List<IntPtr> handleList = new List<IntPtr>();
 					handleList.Add(process.Handle);
-					if (ep.Token != null)
+					if (ep.CancellationToken != null)
 					{
-						handleList.Add(ep.Token.Value.WaitHandle.SafeWaitHandle.DangerousGetHandle());
+						handleList.Add(ep.CancellationToken.Value.WaitHandle.SafeWaitHandle.DangerousGetHandle());
 					}
 
 					IntPtr[] handles = handleList.ToArray();
 					WindowsInterop.WaitForMultipleObjects((uint)handles.Length, handles, false, WindowsInterop.INFINITE);
 
-					if (ep.Token != null)
+					if (ep.CancellationToken != null)
 					{
-						ep.Token.Value.ThrowIfCancellationRequested();
+						ep.CancellationToken.Value.ThrowIfCancellationRequested();
 					}
 
 					process.WaitForExit();
@@ -205,7 +206,7 @@ namespace Microsoft.P4VFS.Extensions.Utilities
 						result.Exception = e;
 						result.ExitCode = -1;
 						result.WasCanceled = e is OperationCanceledException;
-						if (process.HasExited == false)
+						if (process.HasExited == false && ep.TerminateOnCancel)
 						{
 							result.WasKilled = true;
 							process.Kill();

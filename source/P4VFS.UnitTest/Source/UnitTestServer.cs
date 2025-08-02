@@ -734,6 +734,89 @@ namespace Microsoft.P4VFS.UnitTest
 			}
 		}
 
+		public static void ServerInstallLoginHookExtension(string loginUrl)
+		{
+			string serverFolder = GetServerRootFolder();	
+			string loginHookName = "loginhook";
+			string loginHookPackageFolder = Path.Combine(serverFolder, loginHookName);
+			AssertLambda(() => FileUtilities.DeleteDirectoryAndFiles(loginHookPackageFolder));
+			AssertLambda(() => Directory.CreateDirectory(loginHookPackageFolder));
+
+			ProcessInfo.ExecuteWait(P4Exe, $"{ClientConfig} extension --delete Auth::{loginHookName} --yes", echo:true, log:true, directory:serverFolder);
+			FileUtilities.DeleteFile($"{serverFolder}\\{loginHookName}.p4-extension");
+			
+			File.WriteAllLines($"{loginHookPackageFolder}\\main.lua", new[]{
+				"function GlobalConfigFields()",
+				"  return {}",
+				"end",
+				"function InstanceConfigFields()",
+				"  return {}",
+				"end",
+				"function InstanceConfigEvents()",
+				"  return {",
+				"    [ \"auth-pre-sso\" ] = \"auth\",",
+				"    [ \"auth-check-sso\" ] = \"auth\"",
+				"  }",
+				"end",
+				"function AuthPreSSO()",
+				"  Helix.Core.Server.log( \"P4VFS AuthPreSSO\" )",
+			    "  return true, \"unused\", \""+loginUrl+"\", false",
+				"end",
+				"function AuthCheckSSO()",
+				"  Helix.Core.Server.log( \"P4VFS AuthCheckSSO\" )",
+				"  return true",
+				"end" 
+			});
+
+			File.WriteAllLines($"{loginHookPackageFolder}\\manifest.json", new[]{
+				"{",
+				"  \"manifest_version\": 1,",
+				"  \"api_version\": 20191,",
+				"  \"script_runtime\": { \"language\": \"Lua\", \"version\": \"5.3\" },",
+				"  \"key\": \"117E9283-732B-45A6-9993-AE64C354F1C6\",",
+				"  \"name\": \""+loginHookName+"\",",
+				"  \"namespace\": \"Auth\",",
+				"  \"version\": \"2019.1\",",
+				"  \"version_name\": \"2019.1\",",
+				"  \"description\": \"SSO auth integration\",",
+				"  \"compatible_products\": [\"p4d\"],",
+				"  \"default_locale\": \"en\",",
+				"  \"supported_locales\": [\"en\"],",
+				"  \"developer\": { \"name\": \"\", \"url\": \"\" },",
+				"  \"homepage_url\": \"\",",
+				"  \"license\": \"UNLICENSED\",",
+				"  \"license_body\": \"UNLICENSED\"", 
+				"}"
+			});
+
+			Assert(ProcessInfo.ExecuteWait(P4Exe, $"{ClientConfig} extension --package {loginHookName}", echo:true, log:true, directory:serverFolder) == 0);
+			Assert(ProcessInfo.ExecuteWait(P4Exe, $"{ClientConfig} extension --install {loginHookName}.p4-extension --yes --allow-unsigned", echo:true, log:true, directory:serverFolder) == 0);
+
+			ProcessInfo.ExecuteResultOutput loginHookConfig = ProcessInfo.ExecuteWaitOutput(P4Exe, $"{ClientConfig} extension --configure Auth::{loginHookName} -o", echo:true, log:true, directory:serverFolder);
+			Assert(loginHookConfig.ExitCode == 0);
+			string loginHookConfigSpec = Regex.Replace(loginHookConfig.Text, @"^(ExtP4USER:\s+)(.+)$", $"$1{_P4User}", RegexOptions.Multiline);
+			Assert(ProcessInfo.ExecuteWait(P4Exe, $"{ClientConfig} extension --configure Auth::{loginHookName} -i", stdin:loginHookConfigSpec, echo:true, log:true, directory:serverFolder) == 0);
+
+			ProcessInfo.ExecuteResultOutput loginHookInstConfig = ProcessInfo.ExecuteWaitOutput(P4Exe, $"{ClientConfig} extension --configure Auth::{loginHookName} --name Auth::{loginHookName}-instance -o", echo:true, log:true, directory:serverFolder);
+			Assert(loginHookInstConfig.ExitCode == 0);
+			Assert(ProcessInfo.ExecuteWait(P4Exe, $"{ClientConfig} extension --configure Auth::{loginHookName} --name Auth::{loginHookName}-instance -i", stdin:loginHookInstConfig.Text, echo:true, log:true, directory:serverFolder) == 0);
+		}
+
+		public static void ServerUninstallExtentions(string p4Port = null)
+		{
+			using (DepotClient depotClient = new DepotClient())
+			{
+				Assert(depotClient.Connect(p4Port ?? _P4Port, _P4Client, _P4User));
+				foreach (DepotResultNode node in depotClient.Run("extension", new[]{"--list","--type","extensions"}).Nodes)
+				{
+					if (node.ContainsKey("extension"))
+					{
+						Assert(depotClient.Run("extension", new[]{"--delete",node.GetValue("extension"),"--yes"}).HasError == false);
+					}
+				}
+			}
+		}
+
 		private static void ServerWorkspaceReset(string p4Port = null)
 		{
 			string serverRootFolder = GetServerRootFolder(p4Port);

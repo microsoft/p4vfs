@@ -325,7 +325,7 @@ System::Boolean
 NativeMethods::CreateProcessImpersonated(
 	System::String^ commandLine,
 	System::String^ currentDirectory,
-	System::Boolean waitForExit,
+	ProcessExecuteFlags flags,
 	System::Text::StringBuilder^ stdOutput,
 	UserContext^ context
 	)
@@ -334,7 +334,7 @@ NativeMethods::CreateProcessImpersonated(
 	HRESULT status = FileOperations::CreateProcessImpersonated(
 										marshal_as_wstring_c_str(commandLine), 
 										marshal_as_wstring_c_str(currentDirectory), 
-										waitForExit,
+										static_cast<FileCore::Process::ExecuteFlags::Enum>(flags),
 										stdOutput != nullptr ? &stdOutputResult : nullptr,
 										marshal_as_user_context(context)
 										);

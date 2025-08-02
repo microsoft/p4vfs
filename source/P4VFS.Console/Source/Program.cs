@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Microsoft.P4VFS.Extensions;
 using Microsoft.P4VFS.Extensions.Linq;
 using Microsoft.P4VFS.Extensions.Utilities;
@@ -57,6 +58,8 @@ Available commands:
   info        Print out client/server information
   set         Modify current service settings temporarily for this login session. 
   resident    Modify current resident status of local files.
+  hydrate     Change file status to resident state (full downloaded size).
+  dehydrate   Change file status to virtual state (zero downloaded size).
   populate    Perform sync as fast as possible using quiet, single flush
   reconfig    Modify the perforce configuration of local placeholder files.
   monitor     Launch and control the P4VFS monitor application.
@@ -207,10 +210,12 @@ Available commands:
 {"login", @"
   login       Login to the perforce server and update the current ticket.
 
-              p4vfs login [-i -w] [password]
+              p4vfs login [-i -w] [-u <url>] [-t <seconds>] [password]
 
    -i         Display a modal dialog for password entry
    -w         Write the password to stdout after entering
+   -u         Open a browser window with login challenge URL
+   -t         Timeout waiting for login to complete
 "},
 
 {"test", @"
@@ -993,6 +998,9 @@ Available commands:
 		{
 			bool interactive = false;
 			bool writePasswd = false;
+			int timeoutSeconds = 0;
+			string shellUrl = null;
+
 			int argIndex = 0;
 			for (; argIndex < args.Length; ++argIndex)
 			{
@@ -1004,10 +1012,50 @@ Available commands:
 				{
 					writePasswd = true;
 				}
+				else if (String.Compare(args[argIndex], "-t") == 0 && argIndex+1 < args.Length)
+				{
+					if (Int32.TryParse(args[++argIndex], out timeoutSeconds) == false)
+					{
+						VirtualFileSystemLog.Error("Invalid login timeout specified: {0}", args[argIndex]);	
+						return false;
+					}
+				}
+				else if (String.Compare(args[argIndex], "-u") == 0 && argIndex+1 < args.Length)
+				{
+					shellUrl = args[++argIndex];
+					if (Uri.IsWellFormedUriString(shellUrl, UriKind.Absolute) == false)
+					{
+						VirtualFileSystemLog.Error("Invalid shell URL specified: {0}", shellUrl);
+						return false;
+					}
+				}
 				else
 				{
 					break;
 				}
+			}
+
+			CancellationToken cancellationToken = CancellationToken.None;
+			if (timeoutSeconds > 0)
+			{
+				cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds)).Token;
+			}
+
+			if (String.IsNullOrEmpty(shellUrl) == false)
+			{
+				VirtualFileSystemLog.Info("Login from URL: {0}", shellUrl);
+				ProcessInfo.ExecuteResult executeResult = ProcessInfo.ExecuteWait(new ProcessInfo.ExecuteParams{
+					FileName = shellUrl,
+					UseShell = true,
+					LogOutput = false,
+					LogCommand = false,
+					CancellationToken = cancellationToken
+				});
+				if (executeResult.WasCanceled)
+				{
+					VirtualFileSystemLog.Info("Timeout waiting for shell login from URL");
+				}
+				return true;
 			}
 
 			DepotConfig p4Config = DepotInfo.DepotConfigFromPath(_P4Directory);
@@ -1064,13 +1112,15 @@ Available commands:
 			{
 				if (interactive)
 				{
-					var thread = new System.Threading.Thread(new System.Threading.ThreadStart(() => 
+					Thread thread = new Thread(new ThreadStart(() => 
 					{
-						var dlg = new Microsoft.P4VFS.Extensions.Controls.LoginWindow();
+						Extensions.Controls.LoginWindow dlg = new Extensions.Controls.LoginWindow();
 						dlg.Port = _P4Port;
 						dlg.Client = _P4Client;
 						dlg.User = _P4User;
 						dlg.Passwd = _P4Passwd;
+						dlg.CancellationToken = cancellationToken;
+
 						if (dlg.ShowDialog() == true)
 						{
 							_P4Passwd = dlg.Passwd;
@@ -1081,14 +1131,25 @@ Available commands:
 						}
 					}));
 
-					thread.SetApartmentState(System.Threading.ApartmentState.STA);
+					thread.SetApartmentState(ApartmentState.STA);
 					thread.Start();
 					thread.Join();
 				}
 				else if (String.IsNullOrEmpty(_P4Passwd))
 				{
-					System.Console.Write("Enter Password: ");
-					_P4Passwd = ConsoleReader.ReadLine();
+					try
+					{
+						System.Console.Write("Enter Password: ");
+						_P4Passwd = ConsoleReader.ReadLine(cancellationToken);
+					}
+					catch (OperationCanceledException)
+					{}
+				}
+
+				if (cancellationToken.IsCancellationRequested)
+				{
+					VirtualFileSystemLog.Info("Timeout waiting for password to login");
+					return false;
 				}
 			}
 		
@@ -1243,7 +1304,7 @@ Available commands:
 					return true;
 				}
 
-				System.Threading.Thread.Sleep(retryWait);
+				Thread.Sleep(retryWait);
 			}
 			while (DateTime.Now < endTime);
 

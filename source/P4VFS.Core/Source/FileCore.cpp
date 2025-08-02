@@ -1443,14 +1443,34 @@ int64_t FileInfo::FileDiskSize(const wchar_t* filePath)
 				const STREAM_LAYOUT_ENTRY* streamEntry = reinterpret_cast<const STREAM_LAYOUT_ENTRY*>(streamEntryOrigin);
 				streamEntryOffset = streamEntry->NextStreamOffset; 
 				if (streamEntry->AttributeFlags & FILE_ATTRIBUTE_SPARSE_FILE)
+				{
 					continue;
+				}
 
-				const WCHAR dataStreamName[] = L":$DATA";
-				const size_t dataStreamNameSize = (_countof(dataStreamName)-1)*sizeof(WCHAR);
 				if (streamEntry->StreamIdentifierLength == 0)
+				{
 					fileSize.QuadPart += streamEntry->AllocationSize.QuadPart;
-				else if (streamEntry->StreamIdentifierLength >= dataStreamNameSize && memcmp(dataStreamName, reinterpret_cast<const uint8_t*>(streamEntry->StreamIdentifier)+streamEntry->StreamIdentifierLength-dataStreamNameSize, dataStreamNameSize) == 0)
+					continue;
+				}
+
+				auto isMatchingStreamEntryName = [streamEntry](const WCHAR* dataName) -> bool
+				{
+					const size_t dataNameLength = wcslen(dataName);
+					const size_t streamNameLength = streamEntry->StreamIdentifierLength / sizeof(WCHAR);
+					return (streamNameLength >= dataNameLength && _wcsnicmp(dataName, reinterpret_cast<const WCHAR*>(streamEntry->StreamIdentifier) + streamNameLength - dataNameLength, dataNameLength) == 0);
+				};
+
+				if (isMatchingStreamEntryName(L":SEC.ENDPOINTDLP:$DATA") || 
+					isMatchingStreamEntryName(L":ZONE.IDENTIFIER:$DATA"))
+				{
+					continue;
+				}
+
+				if (isMatchingStreamEntryName(L":$DATA"))
+				{
 					fileSize.QuadPart += streamEntry->AllocationSize.QuadPart;
+					continue;
+				}
 			}
 			break;
 		}

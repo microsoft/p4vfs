@@ -4,8 +4,10 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.IO;
+using System.Net;
 using System.Xml;
 using System.Collections.Generic;
+using System.Threading;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.P4VFS.Extensions;
@@ -441,19 +443,19 @@ namespace Microsoft.P4VFS.UnitTest
 			{
 				System.Text.StringBuilder output = new System.Text.StringBuilder();
 				string cmd = String.Format("\"{0}\\p4vfs.exe\" {1} login -w _incorrect_password_", System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), ClientConfig);
-				Assert(NativeMethods.CreateProcessImpersonated(cmd, null, true, output, null));
+				Assert(NativeMethods.CreateProcessImpersonated(cmd, null, ProcessExecuteFlags.WaitForExit, output, null));
 				Assert(output.ToString().Split(new char[]{'\n','\r'}, StringSplitOptions.RemoveEmptyEntries).Contains("Login failed."));
 			}
 			{
 				System.Text.StringBuilder output = new System.Text.StringBuilder();
 				string cmd = String.Format("cmd.exe /s /c echo foobar");
-				Assert(NativeMethods.CreateProcessImpersonated(cmd, null, true, output, null));
+				Assert(NativeMethods.CreateProcessImpersonated(cmd, null, ProcessExecuteFlags.WaitForExit, output, null));
 				Assert(output.ToString().Split(new char[]{'\n','\r'}, StringSplitOptions.RemoveEmptyEntries).Contains("foobar"));
 			}
 			{
 				System.Text.StringBuilder output = new System.Text.StringBuilder();
 				string cmd = String.Format("cmd.exe /s /c");
-				Assert(NativeMethods.CreateProcessImpersonated(cmd, null, true, output, null));
+				Assert(NativeMethods.CreateProcessImpersonated(cmd, null, ProcessExecuteFlags.WaitForExit, output, null));
 				Assert(output.ToString().Length == 0);
 			}
 		}
@@ -551,20 +553,20 @@ namespace Microsoft.P4VFS.UnitTest
 					Assert(IsPlaceholderFile(raceFile) == true);
 
 					Random random = new Random();
-					List<System.Threading.Thread> workers = new List<System.Threading.Thread>();
+					List<Thread> workers = new List<Thread>();
 					List<Dictionary<string, object>> workerArgs = new List<Dictionary<string, object>>();
 					for (int workerIndex = 0; workerIndex < 20; ++workerIndex)
 					{
-						System.Threading.Thread worker = new System.Threading.Thread(new System.Threading.ParameterizedThreadStart(p => 
+						Thread worker = new Thread(new ParameterizedThreadStart(p => 
 						{
 							try
 							{
 								Dictionary<string, object> args = p as Dictionary<string, object>;
 								VirtualFileSystemLog.Verbose("MakeResidentRaceTest Process [{0}.{1}]", Process.GetCurrentProcess().Id, System.AppDomain.GetCurrentThreadId());
-								System.Threading.Thread.Sleep((int)args["SleepTime"]);
+								Thread.Sleep((int)args["SleepTime"]);
 								using (FileStream stream = File.Open(raceFile, FileMode.Open, FileAccess.Read, FileShare.Read))
 								{
-									System.Threading.Thread.Sleep(500);
+									Thread.Sleep(500);
 									MemoryStream memStream = new MemoryStream();
 									stream.CopyTo(memStream);
 									memStream.Seek(0, SeekOrigin.Begin);
@@ -963,17 +965,17 @@ namespace Microsoft.P4VFS.UnitTest
 						Assert(IsPlaceholderFile(clientFile) == true);
 					
 					Random random = new Random();
-					List<System.Threading.Thread> workers = new List<System.Threading.Thread>();
+					List<Thread> workers = new List<Thread>();
 					List<Dictionary<string, object>> workerArgs = new List<Dictionary<string, object>>();
 					for (int workerIndex = 0; workerIndex < 32; ++workerIndex)
 					{
-						System.Threading.Thread worker = new System.Threading.Thread(new System.Threading.ParameterizedThreadStart(p => 
+						Thread worker = new Thread(new ParameterizedThreadStart(p => 
 						{
 							try
 							{
 								Dictionary<string, object> args = p as Dictionary<string, object>;
 								VirtualFileSystemLog.Verbose("ParallelServiceTaskTest Begin Process [{0}.{1}] -> {2}", Process.GetCurrentProcess().Id, System.AppDomain.GetCurrentThreadId(), args["ClientFile"]);
-								System.Threading.Thread.Sleep((int)args["SleepTime"]);
+								Thread.Sleep((int)args["SleepTime"]);
 								using (FileStream stream = File.Open((string)args["ClientFile"], FileMode.Open, FileAccess.Read, FileShare.Read)) {}
 								VirtualFileSystemLog.Verbose("ParallelServiceTaskTest End Process [{0}.{1}] -> {2}", Process.GetCurrentProcess().Id, System.AppDomain.GetCurrentThreadId(), args["ClientFile"]);
 								Assert(IsPlaceholderFile((string)args["ClientFile"]) == false);
@@ -2067,6 +2069,106 @@ namespace Microsoft.P4VFS.UnitTest
 					Assert(placeholderSizeMap[filePath] == hydrateSize, $"ClientSize mismatch {filePath}");
 				}
 			}}}
+		}
+
+		[TestMethod, Priority(36)]
+		public void ShellLoginTimeoutTest()
+		{
+			WorkspaceReset();
+			Assert(ShellUtilities.IsProcessElevated());
+
+			string workingFolder = String.Format("{0}\\{1}", UnitTestServer.GetServerRootFolder(), nameof(ShellLoginTimeoutTest));
+			AssertLambda(() => FileUtilities.DeleteDirectoryAndFiles(workingFolder));
+			AssertLambda(() => Directory.CreateDirectory(workingFolder));
+
+			string shellCommandFile = String.Format("{0}\\ShellCommand.bat", workingFolder);
+			string shellCommandUri = String.Format("file:///{0}", shellCommandFile.Replace('\\','/'));
+			Assert(Uri.IsWellFormedUriString(shellCommandUri, UriKind.Absolute));
+
+			var assertShellLogin = new Action<int,int,bool>((int cmdTimeout, int shellTimeout, bool native) =>
+			{
+				VirtualFileSystemLog.Info($"assertShellLogin cmdTimeout={cmdTimeout} shellTimeout={shellTimeout} native={native}");
+				FileUtilities.DeleteFile(shellCommandFile);
+				
+				string shellOutputFile = String.Format("{0}\\{1}-{2}.txt", workingFolder, Path.GetFileNameWithoutExtension(shellCommandFile), DateTime.Now.Ticks);
+				FileUtilities.DeleteFile(shellOutputFile);
+
+				File.WriteAllLines(shellCommandFile, new string[]{
+					$"fltmc.exe > {shellOutputFile}",
+					$"timeout.exe /nobreak {cmdTimeout} > nul 2>&1",
+					$"echo done >> {shellOutputFile}",
+				});
+
+				bool expectTimeout = cmdTimeout > shellTimeout;
+				System.Text.StringBuilder loginOutput = new System.Text.StringBuilder();
+				string loginExe = P4vfsExe;
+				string loginArgs = String.Format("{0} login -t {1} -u {2}", ClientConfig, shellTimeout, shellCommandUri);
+
+				if (native)
+				{
+					ProcessExecuteFlags flags = ProcessExecuteFlags.HideWindow | ProcessExecuteFlags.WaitForExit;
+					bool loginSuccess = NativeMethods.CreateProcessImpersonated($"{loginExe} {loginArgs}", null, flags, loginOutput, null);
+					Assert(loginSuccess);
+				}
+				else
+				{
+					int loginExitCode = ProcessInfo.ExecuteWait(loginExe, loginArgs, echo:true, stdout:loginOutput);
+					Assert(loginExitCode == 0);
+				}
+
+				Assert(Regex.IsMatch(loginOutput.ToString(), "timeout waiting", RegexOptions.IgnoreCase) == expectTimeout);
+				Assert(File.Exists(shellOutputFile));
+				Assert(Regex.IsMatch(File.ReadAllText(shellOutputFile), @"p4vfsflt\s+\d+\s+\d+"));
+			});
+
+			foreach (bool native in new[] { true, false })
+			{
+				assertShellLogin(10, 20, native);
+				assertShellLogin(20, 10, native);
+			}
+
+			string loginEndpoint = $"http://localhost:8099/";
+			ManualResetEventSlim loginRequestEvent = new ManualResetEventSlim();
+			HttpListener loginListener = new HttpListener();
+			loginListener.Prefixes.Add(loginEndpoint);
+			loginListener.Start();
+			
+
+			Thread loginListenerThread = new Thread(new ThreadStart(() =>
+			{
+				try
+				{
+					while (loginListener.IsListening)
+					{
+						HttpListenerContext context = loginListener.GetContext();
+						VirtualFileSystemLog.Info($"ShellLoginTimeoutTest accepted HTTP request");
+						context.Response.StatusCode = 200;
+						using (var writer = new StreamWriter(context.Response.OutputStream))
+						{
+							writer.Write("Hello");
+						}
+						context.Response.Close();
+						loginRequestEvent.Set();
+					}
+				}
+				catch {}
+			}));
+			
+			UnitTestServer.ServerInstallLoginHookExtension(loginEndpoint);
+			loginListenerThread.Start();
+
+			using (DepotClient depotClient = new DepotClient()) 
+			{
+				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
+				depotClient.Login();
+			}
+
+			Assert(loginRequestEvent.Wait(TimeSpan.FromSeconds(10)), "Missing Http SSO login");
+
+			loginListener.Stop();
+			loginListenerThread.Join();
+
+			UnitTestServer.ServerUninstallExtentions();
 		}
 	}
 }

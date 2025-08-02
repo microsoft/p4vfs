@@ -1,5 +1,20 @@
 Microsoft P4VFS Release Notes
 
+Version [1.29.3.0]
+* Perforce SSO login from URL now uses impersonated p4vfs login command and ShellExecute 
+  instead of using cmd.exe. This fixes rare case lingering cmd.exe processes from failed 
+  launch of the browser when there's no desktop session. This also prevents cmd.exe 
+  with inherited handles, including TCP ports, from remaining open after service
+  is stopped and possibly causing failed port reopening after reinstall.
+* Added option 'login -u <url>' for handling login challenge in web browser
+* Added option 'login -t <seconds>' for timeout of login command before self
+  termination. This offers safety from possible lingering interactive prompts.
+* Fixing placeholder file detection to ignore NTFS Zone and DLP streams for
+  file disk size calculation. This is primarily used in verification tests.
+* Addition of ShellLoginTimeoutTest with simulation of Perforce server extension
+  similar to Helix Authentication Service for testing response to sso-auth-check
+  challenge from URL
+
 Version [1.29.2.0]
 * Replacing authentication for public driver codesign from Hardware Development 
   Center from deprecated client secret to x509 certificate. This is similar to 

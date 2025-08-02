@@ -239,7 +239,7 @@ namespace FileOperations {
 	CreateProcessImpersonated(
 		const WCHAR* commandLine,
 		const WCHAR* currentDirectory,
-		BOOL waitForExit,
+		FileCore::Process::ExecuteFlags::Enum flags,
 		FileCore::String* stdOutput = nullptr,
 		const FileCore::UserContext* context = nullptr
 		);

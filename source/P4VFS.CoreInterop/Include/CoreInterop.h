@@ -131,6 +131,18 @@ public:
 		);
 };
 
+[System::FlagsAttribute]
+public enum class ProcessExecuteFlags : System::Int32
+{
+	None		= FileCore::Process::ExecuteFlags::None,
+	WaitForExit	= FileCore::Process::ExecuteFlags::WaitForExit,
+	HideWindow	= FileCore::Process::ExecuteFlags::HideWindow,
+	StdOut		= FileCore::Process::ExecuteFlags::StdOut,
+	KeepOpen	= FileCore::Process::ExecuteFlags::KeepOpen,
+	Unelevated	= FileCore::Process::ExecuteFlags::Unelevated,
+	Default		= FileCore::Process::ExecuteFlags::Default,
+};
+
 public ref class NativeMethods abstract sealed
 {
 public:
@@ -219,7 +231,7 @@ public:
 	CreateProcessImpersonated(
 		System::String^ commandLine,
 		System::String^ currentDirectory,
-		System::Boolean waitForExit,
+		ProcessExecuteFlags flags,
 		System::Text::StringBuilder^ stdOutput,
 		UserContext^ context
 		);

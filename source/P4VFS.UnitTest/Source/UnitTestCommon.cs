@@ -7,6 +7,7 @@ using System.IO;
 using System.Net;
 using System.Xml;
 using System.Collections.Generic;
+using System.Threading;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.P4VFS.Extensions;
@@ -552,20 +553,20 @@ namespace Microsoft.P4VFS.UnitTest
 					Assert(IsPlaceholderFile(raceFile) == true);
 
 					Random random = new Random();
-					List<System.Threading.Thread> workers = new List<System.Threading.Thread>();
+					List<Thread> workers = new List<Thread>();
 					List<Dictionary<string, object>> workerArgs = new List<Dictionary<string, object>>();
 					for (int workerIndex = 0; workerIndex < 20; ++workerIndex)
 					{
-						System.Threading.Thread worker = new System.Threading.Thread(new System.Threading.ParameterizedThreadStart(p => 
+						Thread worker = new Thread(new ParameterizedThreadStart(p => 
 						{
 							try
 							{
 								Dictionary<string, object> args = p as Dictionary<string, object>;
 								VirtualFileSystemLog.Verbose("MakeResidentRaceTest Process [{0}.{1}]", Process.GetCurrentProcess().Id, System.AppDomain.GetCurrentThreadId());
-								System.Threading.Thread.Sleep((int)args["SleepTime"]);
+								Thread.Sleep((int)args["SleepTime"]);
 								using (FileStream stream = File.Open(raceFile, FileMode.Open, FileAccess.Read, FileShare.Read))
 								{
-									System.Threading.Thread.Sleep(500);
+									Thread.Sleep(500);
 									MemoryStream memStream = new MemoryStream();
 									stream.CopyTo(memStream);
 									memStream.Seek(0, SeekOrigin.Begin);
@@ -964,17 +965,17 @@ namespace Microsoft.P4VFS.UnitTest
 						Assert(IsPlaceholderFile(clientFile) == true);
 					
 					Random random = new Random();
-					List<System.Threading.Thread> workers = new List<System.Threading.Thread>();
+					List<Thread> workers = new List<Thread>();
 					List<Dictionary<string, object>> workerArgs = new List<Dictionary<string, object>>();
 					for (int workerIndex = 0; workerIndex < 32; ++workerIndex)
 					{
-						System.Threading.Thread worker = new System.Threading.Thread(new System.Threading.ParameterizedThreadStart(p => 
+						Thread worker = new Thread(new ParameterizedThreadStart(p => 
 						{
 							try
 							{
 								Dictionary<string, object> args = p as Dictionary<string, object>;
 								VirtualFileSystemLog.Verbose("ParallelServiceTaskTest Begin Process [{0}.{1}] -> {2}", Process.GetCurrentProcess().Id, System.AppDomain.GetCurrentThreadId(), args["ClientFile"]);
-								System.Threading.Thread.Sleep((int)args["SleepTime"]);
+								Thread.Sleep((int)args["SleepTime"]);
 								using (FileStream stream = File.Open((string)args["ClientFile"], FileMode.Open, FileAccess.Read, FileShare.Read)) {}
 								VirtualFileSystemLog.Verbose("ParallelServiceTaskTest End Process [{0}.{1}] -> {2}", Process.GetCurrentProcess().Id, System.AppDomain.GetCurrentThreadId(), args["ClientFile"]);
 								Assert(IsPlaceholderFile((string)args["ClientFile"]) == false);
@@ -2127,12 +2128,13 @@ namespace Microsoft.P4VFS.UnitTest
 			}
 
 			string loginEndpoint = $"http://localhost:8099/";
+			ManualResetEventSlim loginRequestEvent = new ManualResetEventSlim();
 			HttpListener loginListener = new HttpListener();
 			loginListener.Prefixes.Add(loginEndpoint);
 			loginListener.Start();
-			int loginRequestCount = 0;
+			
 
-			System.Threading.Thread loginListenerThread = new System.Threading.Thread(new System.Threading.ThreadStart(() =>
+			Thread loginListenerThread = new Thread(new ThreadStart(() =>
 			{
 				try
 				{
@@ -2140,13 +2142,13 @@ namespace Microsoft.P4VFS.UnitTest
 					{
 						HttpListenerContext context = loginListener.GetContext();
 						VirtualFileSystemLog.Info($"ShellLoginTimeoutTest accepted HTTP request");
-						loginRequestCount++;
 						context.Response.StatusCode = 200;
 						using (var writer = new StreamWriter(context.Response.OutputStream))
 						{
 							writer.Write("Hello");
 						}
 						context.Response.Close();
+						loginRequestEvent.Set();
 					}
 				}
 				catch {}
@@ -2161,11 +2163,12 @@ namespace Microsoft.P4VFS.UnitTest
 				depotClient.Login();
 			}
 
-			Assert(loginRequestCount > 0, "Missing Http SSO login");
-			UnitTestServer.ServerUninstallExtentions();
+			Assert(loginRequestEvent.Wait(TimeSpan.FromSeconds(10)), "Missing Http SSO login");
 
 			loginListener.Stop();
 			loginListenerThread.Join();
+
+			UnitTestServer.ServerUninstallExtentions();
 		}
 	}
 }

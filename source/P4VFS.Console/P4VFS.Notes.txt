@@ -1,5 +1,17 @@
 Microsoft P4VFS Release Notes
 
+Version [1.29.4.0]
+* Updating to latest P4API 25.2
+* Migrating to OpenSSL 3.0 LTS as recommended by P4API 25.2 with latest 3.0.18
+* Addition of configuration setting MaxDiff2StatFileCount setting for specifying
+  the maximum number of files for when fstat commands should be used instead of diff2
+  for determining the have & head filetype of files to sync. Using fstat can be 
+  significantly faster than diff2 when only a few files are updated under a large 
+  file spec. A MaxDiff2StatFileCount of zero (default) will use legacy behavior to only use 
+  diff2. A MaxDiff2StatFileCount of less than zero will always use fstat. A 
+  MaxDiff2StatFileCount of greater than zero will use fstat if the number of modifications
+  are less than the value.
+
 Version [1.29.3.0]
 * Perforce SSO login from URL now uses impersonated p4vfs login command and ShellExecute 
   instead of using cmd.exe. This fixes rare case lingering cmd.exe processes from failed 

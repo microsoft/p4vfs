@@ -185,4 +185,20 @@ const DepotString& FDepotResult::GetTagValue(const DepotString& tagKey) const
 	return StringInfo::EmptyA();
 }
 
+void FDepotResult::Append(const FDepotResult& src)
+{
+	Append(src.m_TagList);
+	Append(src.m_TextList);
+}
+
+void FDepotResult::Append(const Array<DepotResultTag>& srcTagList)
+{
+	Algo::Append(m_TagList, srcTagList);
+}
+
+void FDepotResult::Append(const Array<DepotResultText>& srcTextList)
+{
+	Algo::Append(m_TextList, srcTextList);
+}
+
 }}}

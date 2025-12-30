@@ -148,6 +148,14 @@ namespace P4 {
 			);
 
 		static DepotResultDiff2
+		DepotOperations::Diff2Stat(
+			DepotClient& depotClient,
+			DepotSyncFlags::Enum syncFlags,
+			const DepotStringArray& fileSpecs,
+			const DepotSyncActionInfoArray& fileModifications
+			);
+
+		static DepotResultDiff2
 		Diff2(
 			DepotClient& depotClient,
 			const DepotString& fileSpec1, 

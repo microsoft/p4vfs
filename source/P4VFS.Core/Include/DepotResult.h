@@ -80,6 +80,10 @@ namespace P4 {
 		P4VFS_CORE_API const Array<DepotResultTag>& TagList() const;
 		P4VFS_CORE_API const Array<DepotResultText>& TextList() const;
 		const DepotString& GetTagValue(const DepotString& tagKey) const;
+
+		void Append(const FDepotResult& src);
+		void Append(const Array<DepotResultTag>& srcTagList);
+		void Append(const Array<DepotResultText>& srcTextList);
 	
 	protected:
 		friend class DepotClientCommand;	
@@ -162,6 +166,20 @@ namespace P4 {
 			return FDepotResultNode::Create<NodeType>(index < m_TagList.size() ? m_TagList[index] : nullptr);
 		}
 	};
+
+	template <typename Result>
+	Result MakeResult()
+	{
+		return std::make_shared<Result::element_type>();
+	}
+
+	template <typename Result>
+	Result MakeErrorResult(const DepotString& errorText)
+	{
+		Result result = MakeResult<Result>();
+		result->SetError(errorText.c_str());
+		return result;
+	}
 }}}
 
 #pragma managed(pop)

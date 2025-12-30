@@ -114,7 +114,7 @@ namespace P4 {
 	template <typename Result>
 	Result FDepotClient::Run(const DepotCommand& cmd)
 	{
-		Result result = std::make_shared<Result::element_type>();
+		Result result = MakeResult<Result>();
 		Run(cmd, *result.get());
 		return result;
 	}

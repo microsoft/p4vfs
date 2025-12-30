@@ -833,64 +833,6 @@ DepotOperations::SyncCommand(
 		return nullptr;
 	}
 
-	typedef HashSet<DepotString, StringInfo::EqualInsensitive> DepotFileHashSet; 
-	typedef Map<DepotString, FDepotResultSizesNode, StringInfo::LessInsensitive> DepotFileClientSizeMapType;
-
-	DepotFileHashSet writeableHeadDepotFiles;
-	DepotFileHashSet writeableHaveDepotFiles;
-	DepotFileHashSet symlinkDepotFiles;
-	DepotFileHashSet diffDepotFiles;
-	DepotFileClientSizeMapType depotFileClientSizeMap;
-
-	if ((syncFlags & (DepotSyncFlags::Preview | DepotSyncFlags::Flush)) != 0 && (syncFlags & DepotSyncFlags::IgnoreOutput) == 0)
-	{
-		DepotRevision haveRevision = (syncFlags & DepotSyncFlags::Force) ? FDepotRevision::New<FDepotRevisionNone>() : FDepotRevision::New<FDepotRevisionHave>();
-		for (const DepotString& fileSpec : fileSpecs)
-		{
-			const DepotString haveFileSpec = CreateFileSpec(fileSpec, haveRevision, CreateFileSpecFlags::OverrideRevison);
-			if (haveFileSpec.empty())
-			{
-				reportError(StringInfo::Format("Invalid haveFileSpec for fileSpec='%s' rev='%s'", fileSpec.c_str(), FDepotRevision::ToString(haveRevision).c_str()));
-				return nullptr;
-			}
-
-			const DepotString& headFileSpec = fileSpec;
-			if (headFileSpec.empty())
-			{
-				reportError(StringInfo::Format("Invalid headFileSpec for fileSpec='%s' rev='%s'", fileSpec.c_str(), FDepotRevision::ToString(revision).c_str()));
-				return nullptr;
-			}
-
-			DepotResultDiff2 diff2 = Diff2(depotClient, haveFileSpec, headFileSpec);
-			for (size_t diff2NodeIndex = 0; diff2NodeIndex < diff2->NodeCount(); ++diff2NodeIndex)
-			{
-				FDepotResultDiff2Node node = diff2->Node(diff2NodeIndex);
-				diffDepotFiles.insert(node.DepotFile());
-				diffDepotFiles.insert(node.DepotFile2());
-				
-				if (DepotInfo::IsWritableFileType(node.Type()))
-					writeableHaveDepotFiles.insert(node.DepotFile());
-				if (DepotInfo::IsWritableFileType(node.Type2()))
-					writeableHeadDepotFiles.insert(node.DepotFile2());
-
-				if (DepotInfo::IsSymlinkFileType(node.Type()))
-					symlinkDepotFiles.insert(node.DepotFile());
-				if (DepotInfo::IsSymlinkFileType(node.Type2()))
-					symlinkDepotFiles.insert(node.DepotFile2());
-			}
-
-			if ((syncFlags & DepotSyncFlags::ClientSize) != 0 && depotClient->GetServerApiLevel() >= DepotProtocol::SERVER_SIZES_C)
-			{
-				DepotResultSizes sizes = Sizes(depotClient, headFileSpec, SizesFlags::ClientSize);
-				for (size_t sizesNodeIndex = 0; sizesNodeIndex < sizes->NodeCount(); ++sizesNodeIndex)
-				{
-					FDepotResultSizesNode node = sizes->Node(sizesNodeIndex);
-					depotFileClientSizeMap[node.DepotFile()] = node;
-				}
-			}
-		}
-	}
-
 	DepotClientLogCallback onClientLogCallback = std::make_shared<FDepotClientLogCallback>([log](LogChannel::Enum channel, const char* severity, const char* text) -> void
 	{
 		if (log != nullptr)
@@ -968,6 +910,55 @@ DepotOperations::SyncCommand(
 			else if (parentActionInfo.get() != nullptr)
 			{
 				parentActionInfo->m_SubActions.push_back(actionInfo);
+			}
+		}
+	}
+
+	typedef HashSet<DepotString, StringInfo::EqualInsensitive> DepotFileHashSet; 
+	typedef Map<DepotString, FDepotResultSizesNode, StringInfo::LessInsensitive> DepotFileClientSizeMapType;
+
+	DepotFileHashSet writeableHeadDepotFiles;
+	DepotFileHashSet writeableHaveDepotFiles;
+	DepotFileHashSet symlinkDepotFiles;
+	DepotFileHashSet diffDepotFiles;
+	DepotFileClientSizeMapType depotFileClientSizeMap;
+
+	if (syncFlags & (DepotSyncFlags::Preview | DepotSyncFlags::Flush))
+	{
+		DepotResultDiff2 diff2 = Diff2Stat(depotClient, syncFlags, fileSpecs, modifications);
+		if (diff2.get() == nullptr || diff2->HasError())
+		{
+			reportError(StringInfo::Format("Failed get filetype differences. %s", diff2.get() ? diff2->GetError().c_str() : "Invalid result"));
+			return nullptr;
+		}
+
+		for (size_t diff2NodeIndex = 0; diff2NodeIndex < diff2->NodeCount(); ++diff2NodeIndex)
+		{
+			FDepotResultDiff2Node node = diff2->Node(diff2NodeIndex);
+			diffDepotFiles.insert(node.DepotFile());
+			diffDepotFiles.insert(node.DepotFile2());
+				
+			if (DepotInfo::IsWritableFileType(node.Type()))
+				writeableHaveDepotFiles.insert(node.DepotFile());
+			if (DepotInfo::IsWritableFileType(node.Type2()))
+				writeableHeadDepotFiles.insert(node.DepotFile2());
+
+			if (DepotInfo::IsSymlinkFileType(node.Type()))
+				symlinkDepotFiles.insert(node.DepotFile());
+			if (DepotInfo::IsSymlinkFileType(node.Type2()))
+				symlinkDepotFiles.insert(node.DepotFile2());
+		}
+
+		for (const DepotString& fileSpec : fileSpecs)
+		{
+			if ((syncFlags & DepotSyncFlags::ClientSize) != 0 && depotClient->GetServerApiLevel() >= DepotProtocol::SERVER_SIZES_C)
+			{
+				DepotResultSizes sizes = Sizes(depotClient, fileSpec, SizesFlags::ClientSize);
+				for (size_t sizesNodeIndex = 0; sizesNodeIndex < sizes->NodeCount(); ++sizesNodeIndex)
+				{
+					FDepotResultSizesNode node = sizes->Node(sizesNodeIndex);
+					depotFileClientSizeMap[node.DepotFile()] = node;
+				}
 			}
 		}
 	}
@@ -1157,6 +1148,41 @@ DepotOperations::CreateFileSpecs(
 		}
 	}
 	return fileSpecs;
+}
+
+DepotResultDiff2
+DepotOperations::Diff2Stat(
+	DepotClient& depotClient,
+	DepotSyncFlags::Enum syncFlags,
+	const DepotStringArray& fileSpecs,
+	const DepotSyncActionInfoArray& fileModifications
+	)
+{
+	DepotResultDiff2 diff2stat = MakeResult<DepotResultDiff2>();
+
+	DepotRevision haveRevision = (syncFlags & DepotSyncFlags::Force) ? FDepotRevision::New<FDepotRevisionNone>() : FDepotRevision::New<FDepotRevisionHave>();
+	for (const DepotString& fileSpec : fileSpecs)
+	{
+		const DepotString haveFileSpec = CreateFileSpec(fileSpec, haveRevision, CreateFileSpecFlags::OverrideRevison);
+		if (haveFileSpec.empty())
+		{
+			return MakeErrorResult<DepotResultDiff2>(StringInfo::Format("Invalid haveFileSpec for fileSpec='%s' rev='%s'", fileSpec.c_str(), FDepotRevision::ToString(haveRevision).c_str()));
+		}
+
+		const DepotString& headFileSpec = fileSpec;
+		if (headFileSpec.empty())
+		{
+			return MakeErrorResult<DepotResultDiff2>(StringInfo::Format("Invalid headFileSpec for fileSpec='%s'", fileSpec.c_str()));
+		}
+
+		DepotResultDiff2 diff2 = Diff2(depotClient, haveFileSpec, headFileSpec);
+		if (diff2.get())
+		{
+			diff2stat->Append(diff2->TagList());
+		}
+	}
+
+	return diff2stat;
 }
 
 DepotResultDiff2

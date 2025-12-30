@@ -31,6 +31,7 @@ namespace FileCore {
 		_N( int32_t,  PoolDefaultNumberOfThreads,      8 ) \
 		_N( int32_t,  GarbageCollectPeriodMs,          5*60*1000 ) \
 		_N( int32_t,  DepotClientCacheIdleTimeoutMs,   5*60*1000 ) \
+		_N( int32_t,  MaxDiff2StatFileCount,           0 ) \
 
 
 	class SettingManager;
@@ -82,7 +83,7 @@ namespace FileCore {
 		P4VFS_CORE_API void SetInt32(int32_t value);
 		P4VFS_CORE_API void SetString(const String& value);
 
-		template <typename T> T Get(const T& defaultValue) const = 0;
+		template <typename T> T Get(const T& defaultValue) const;
 		template <> bool Get<bool>(const bool& defaultValue) const { return GetBool(defaultValue); }
 		template <> int32_t Get<int32_t>(const int32_t& defaultValue) const { return GetInt32(defaultValue); }
 		template <> String Get<String>(const String& defaultValue) const { return GetString(defaultValue); }

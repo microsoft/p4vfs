@@ -1150,6 +1150,34 @@ DepotOperations::CreateFileSpecs(
 	return fileSpecs;
 }
 
+DepotStringArray
+DepotOperations::CreateFileSpecs(
+	DepotClient& depotClient,
+	const DepotSyncActionInfoArray& fileModifications,
+	const DepotRevision& revision, 
+	CreateFileSpecFlags::Enum flags
+	)
+{
+	DepotStringArray fileSpecs;
+	if (fileModifications.get())
+	{
+		fileSpecs.reserve(fileModifications->size());
+		for (const DepotSyncActionInfo& modification : *fileModifications)
+		{
+			if (modification.get())
+			{
+				const DepotRevision& modificationRevision = flags & CreateFileSpecFlags::OverrideRevison ? revision : modification->m_Revision;
+				DepotString fileSpec = CreateFileSpec(modification->m_DepotFile, modificationRevision, CreateFileSpecFlags::None);
+				if (fileSpec.empty() == false)
+				{
+					fileSpecs.push_back(fileSpec);
+				}
+			}
+		}
+	}
+	return fileSpecs;
+}
+
 DepotResultDiff2
 DepotOperations::Diff2Stat(
 	DepotClient& depotClient,
@@ -1159,29 +1187,85 @@ DepotOperations::Diff2Stat(
 	)
 {
 	DepotResultDiff2 diff2stat = MakeResult<DepotResultDiff2>();
+	const DepotRevision haveRevision = (syncFlags & DepotSyncFlags::Force) ? FDepotRevision::New<FDepotRevisionNone>() : FDepotRevision::New<FDepotRevisionHave>();
+	bool useFStat = false;
 
-	DepotRevision haveRevision = (syncFlags & DepotSyncFlags::Force) ? FDepotRevision::New<FDepotRevisionNone>() : FDepotRevision::New<FDepotRevisionHave>();
-	for (const DepotString& fileSpec : fileSpecs)
+	if (fileModifications.get() && fileModifications->size() > 0)
 	{
-		const DepotString haveFileSpec = CreateFileSpec(fileSpec, haveRevision, CreateFileSpecFlags::OverrideRevison);
-		if (haveFileSpec.empty())
+		const int32_t maxDiff2FileCount = SettingManager::StaticInstance().MaxDiff2StatFileCount.GetValue();
+		if (maxDiff2FileCount < 0 || (maxDiff2FileCount > 0 && int32_t(fileModifications->size()) >= maxDiff2FileCount))
 		{
-			return MakeErrorResult<DepotResultDiff2>(StringInfo::Format("Invalid haveFileSpec for fileSpec='%s' rev='%s'", fileSpec.c_str(), FDepotRevision::ToString(haveRevision).c_str()));
-		}
-
-		const DepotString& headFileSpec = fileSpec;
-		if (headFileSpec.empty())
-		{
-			return MakeErrorResult<DepotResultDiff2>(StringInfo::Format("Invalid headFileSpec for fileSpec='%s'", fileSpec.c_str()));
-		}
-
-		DepotResultDiff2 diff2 = Diff2(depotClient, haveFileSpec, headFileSpec);
-		if (diff2.get())
-		{
-			diff2stat->Append(diff2->TagList());
+			useFStat = Algo::All(*fileModifications, [](const DepotSyncActionInfo& modification) -> bool { return IsFullDepotFileSpec(modification->m_DepotFile); });
 		}
 	}
 
+	if (useFStat)
+	{
+		DepotStringArray haveFileSpecs = CreateFileSpecs(depotClient, fileModifications, haveRevision, CreateFileSpecFlags::OverrideRevison);
+		DepotResultFStat haveFStat = FStat(depotClient, haveFileSpecs, "", FDepotResultFStatField::DepotFile | FDepotResultFStatField::HeadType);
+
+		DepotStringArray headFileSpecs = CreateFileSpecs(depotClient, fileModifications, nullptr, CreateFileSpecFlags::None);
+		DepotResultFStat headFStat = FStat(depotClient, headFileSpecs, "", FDepotResultFStatField::DepotFile | FDepotResultFStatField::HeadType);
+
+		typedef Map<DepotString, DepotResultTag> Diff2NodeMap;
+		Diff2NodeMap nodeMap;
+
+		auto addNodes = [&nodeMap](const DepotResultFStat& fstat, const DepotString& depotFileName, const DepotString& revName, const DepotString& typeName) -> void
+		{
+			for (size_t fstatNodeIndex = 0; fstatNodeIndex < fstat->NodeCount(); ++fstatNodeIndex)
+			{
+				const FDepotResultFStatNode& node = fstat->Node(fstatNodeIndex);
+				const DepotString& depotFile = node.DepotFile();
+				DepotResultTag tag = nullptr;
+
+				Diff2NodeMap::iterator tagIt = nodeMap.find(depotFile);
+				if (tagIt == nodeMap.end())
+				{
+					tag = std::make_shared<FDepotResultTag>();
+					nodeMap.insert(Diff2NodeMap::value_type(depotFile, tag));
+				}
+				else
+				{
+					tag = tagIt->second;
+				}
+
+				tag->SetValue(depotFileName, depotFile);
+				tag->SetValue(revName, node.GetTagValue(FDepotResultFStatField::Name::HeadRev));
+				tag->SetValue(typeName, node.GetTagValue(FDepotResultFStatField::Name::HeadType));
+			}
+		};
+
+		addNodes(haveFStat, FDepotResultDiff2Field::Name::DepotFile, FDepotResultDiff2Field::Name::Rev, FDepotResultDiff2Field::Name::Type);
+		addNodes(headFStat, FDepotResultDiff2Field::Name::DepotFile2, FDepotResultDiff2Field::Name::Rev2, FDepotResultDiff2Field::Name::Type2);
+
+		for (Diff2NodeMap::value_type& node : nodeMap)
+		{
+			diff2stat->Append(node.second);
+		}
+	}
+	else
+	{
+		for (const DepotString& fileSpec : fileSpecs)
+		{
+			const DepotString haveFileSpec = CreateFileSpec(fileSpec, haveRevision, CreateFileSpecFlags::OverrideRevison);
+			if (haveFileSpec.empty())
+			{
+				return MakeErrorResult<DepotResultDiff2>(StringInfo::Format("Invalid haveFileSpec for fileSpec='%s' rev='%s'", fileSpec.c_str(), FDepotRevision::ToString(haveRevision).c_str()));
+			}
+
+			const DepotString& headFileSpec = fileSpec;
+			if (headFileSpec.empty())
+			{
+				return MakeErrorResult<DepotResultDiff2>(StringInfo::Format("Invalid headFileSpec for fileSpec='%s'", fileSpec.c_str()));
+			}
+
+			DepotResultDiff2 diff2 = Diff2(depotClient, haveFileSpec, headFileSpec);
+			if (diff2.get())
+			{
+				diff2stat->Append(diff2->TagList());
+			}
+		}
+	}
 	return diff2stat;
 }
 
@@ -1244,6 +1328,21 @@ DepotOperations::FStat(
 
 	Algo::Append(fstatArgs, files);
 	return depotClient->Run<DepotResultFStat>("fstat", fstatArgs);
+}
+
+bool
+DepotOperations::IsFullDepotFileSpec(
+	const DepotString& fileSpec
+	)
+{
+	if (StringInfo::StartsWith(fileSpec.c_str(), "//"))
+	{
+		const char* path = fileSpec.c_str() + 2;
+		return StringInfo::IsNullOrWhiteSpace(path) == false &&
+			   StringInfo::Contains(path, '*') == false && 
+			   StringInfo::Contains(path, "...") == false;
+	}
+	return false;
 }
 
 bool

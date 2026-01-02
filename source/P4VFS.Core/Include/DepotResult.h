@@ -84,6 +84,7 @@ namespace P4 {
 		void Append(const FDepotResult& src);
 		void Append(const Array<DepotResultTag>& srcTagList);
 		void Append(const Array<DepotResultText>& srcTextList);
+		void Append(const DepotResultTag& srcTag);
 	
 	protected:
 		friend class DepotClientCommand;	

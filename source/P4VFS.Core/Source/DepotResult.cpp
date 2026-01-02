@@ -201,4 +201,9 @@ void FDepotResult::Append(const Array<DepotResultText>& srcTextList)
 	Algo::Append(m_TextList, srcTextList);
 }
 
+void FDepotResult::Append(const DepotResultTag& srcTag)
+{
+	m_TagList.push_back(srcTag);
+}
+
 }}}

@@ -25,13 +25,13 @@ namespace FileCore {
 		_N( String,   SyncResidentPattern,             L"" ) \
 		_N( bool,     Unattended,                      false ) \
 		_N( String,   Verbosity,                       CSTR_ATOW(FileCore::LogChannel::ToString(FileCore::LogChannel::Info)) ) \
-		_N( String,   ExcludedProcessNames,            L"MsSense.exe;MsMpEng.exe;SenseCE.exe;SenseIR.exe;SearchProtocolHost.exe" ) \
+		_N( String,   ExcludedProcessNames,            L"MsSense.exe;MsMpEng.exe;SenseCE.exe;SenseIR.exe;SearchProtocolHost.exe;MpDlpService.exe" ) \
 		_N( int32_t,  CreateFileRetryCount,            8 ) \
 		_N( int32_t,  CreateFileRetryWaitMs,           250 ) \
 		_N( int32_t,  PoolDefaultNumberOfThreads,      8 ) \
 		_N( int32_t,  GarbageCollectPeriodMs,          5*60*1000 ) \
 		_N( int32_t,  DepotClientCacheIdleTimeoutMs,   5*60*1000 ) \
-		_N( int32_t,  MaxDiff2StatFileCount,           0 ) \
+		_N( int32_t,  MaxDiff2StatFileCount,           -1 ) \
 
 
 	class SettingManager;

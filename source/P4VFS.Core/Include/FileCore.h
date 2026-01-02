@@ -604,6 +604,12 @@ namespace FileCore {
 		}
 
 		template <typename ArrayType, typename Predicate>
+		static bool All(const ArrayType& elements, Predicate predicate)
+		{
+			return std::all_of(elements.begin(), elements.end(), predicate);
+		}
+
+		template <typename ArrayType, typename Predicate>
 		static void RemoveIf(ArrayType& elements, Predicate predicate)
 		{
 			for (ArrayType::iterator i = elements.begin(); i != elements.end();)

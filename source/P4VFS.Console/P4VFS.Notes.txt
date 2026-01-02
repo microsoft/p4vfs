@@ -11,6 +11,8 @@ Version [1.29.4.0]
   diff2. A MaxDiff2StatFileCount of less than zero will always use fstat. A 
   MaxDiff2StatFileCount of greater than zero will use fstat if the number of modifications
   are less than the value.
+* Addition to default ExcludedProcessNames of MpDlpService.exe which is common Windows
+  Defender application
 
 Version [1.29.3.0]
 * Perforce SSO login from URL now uses impersonated p4vfs login command and ShellExecute 

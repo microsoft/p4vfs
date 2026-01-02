@@ -1210,7 +1210,7 @@ DepotOperations::Diff2Stat(
 		typedef Map<DepotString, DepotResultTag, StringInfo::LessInsensitive> Diff2NodeMap;
 		Diff2NodeMap nodeMap;
 
-		auto addNodes = [&nodeMap](const DepotResultFStat& fstat, const DepotString& depotFileName, const DepotString& revName, const DepotString& typeName) -> void
+		auto addNodes = [&nodeMap](const DepotResultFStat& fstat, const char* depotFileName, const char* revName, const char* typeName) -> void
 		{
 			for (size_t fstatNodeIndex = 0; fstatNodeIndex < fstat->NodeCount(); ++fstatNodeIndex)
 			{

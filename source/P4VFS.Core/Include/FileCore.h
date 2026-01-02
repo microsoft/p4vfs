@@ -288,36 +288,42 @@ namespace FileCore {
 		{
 			template <typename TL, typename TR>
 			bool operator()(const TL& a, const TR& b) const { return StringInfo::Strcmp(StringInfo::CStr(a), StringInfo::CStr(b)) < 0; }
+			using is_transparent = int;
 		};
 		
 		struct LessInsensitive
 		{
 			template <typename TL, typename TR>
 			bool operator()(const TL& a, const TR& b) const { return StringInfo::Stricmp(StringInfo::CStr(a), StringInfo::CStr(b)) < 0; }
+			using is_transparent = int;
 		};
 
 		struct Greater 
 		{
 			template <typename TL, typename TR>
 			bool operator()(const TL& a, const TR& b) const { return StringInfo::Strcmp(StringInfo::CStr(a), StringInfo::CStr(b)) > 0; }
+			using is_transparent = int;
 		};
 		
 		struct GreaterInsensitive
 		{
 			template <typename TL, typename TR>
 			bool operator()(const TL& a, const TR& b) const { return StringInfo::Stricmp(StringInfo::CStr(a), StringInfo::CStr(b)) > 0; }
+			using is_transparent = int;
 		};
 
 		struct Equal
 		{
 			template <typename TL, typename TR>
 			bool operator()(const TL& a, const TR& b) const { return StringInfo::Strcmp(StringInfo::CStr(a), StringInfo::CStr(b)) == 0; }
+			using is_transparent = int;
 		};
 		
 		struct EqualInsensitive
 		{
 			template <typename TL, typename TR>
 			bool operator()(const TL& a, const TR& b) const { return StringInfo::Stricmp(StringInfo::CStr(a), StringInfo::CStr(b)) == 0; }
+			using is_transparent = int;
 		};
 
 		class WtoA

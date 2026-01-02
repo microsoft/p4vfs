@@ -14,25 +14,25 @@ FDepotResultText::FDepotResultText(DepotResultChannel channel, const DepotString
 {
 }
 
-bool FDepotResultTag::ContainsKey(const DepotString& tagKey) const
+bool FDepotResultTag::ContainsKey(const char* tagKey) const
 {
 	return GetValuePtr(tagKey) != nullptr;
 }
 
-void FDepotResultTag::RemoveKey(const DepotString& tagKey)
+void FDepotResultTag::RemoveKey(const char* tagKey)
 {
 	m_Fields.erase(tagKey);
 }
 
-void FDepotResultTag::SetValue(const DepotString& tagKey, const DepotString& tagValue)
+void FDepotResultTag::SetValue(const char* tagKey, const DepotString& tagValue)
 {
-	if (tagKey.empty() == false)
+	if (StringInfo::IsNullOrEmpty(tagKey) == false)
 	{
 		m_Fields[tagKey] = tagValue;
 	}
 }
 
-bool FDepotResultTag::TryGetValue(const DepotString& tagKey, DepotString& tagValue) const
+bool FDepotResultTag::TryGetValue(const char* tagKey, DepotString& tagValue) const
 {
 	if (const DepotString* valuePtr = GetValuePtr(tagKey))
 	{
@@ -42,15 +42,15 @@ bool FDepotResultTag::TryGetValue(const DepotString& tagKey, DepotString& tagVal
 	return false;
 }
 
-const DepotString& FDepotResultTag::GetValue(const DepotString& tagKey) const
+const DepotString& FDepotResultTag::GetValue(const char* tagKey) const
 {
 	const DepotString* valuePtr = GetValuePtr(tagKey);
 	return valuePtr ? *valuePtr : StringInfo::EmptyA();
 }
 
-const DepotString* FDepotResultTag::GetValuePtr(const DepotString& tagKey) const
+const DepotString* FDepotResultTag::GetValuePtr(const char* tagKey) const
 {
-	if (tagKey.empty() == false)
+	if (StringInfo::IsNullOrEmpty(tagKey) == false)
 	{
 		DepotResultFields::const_iterator v = m_Fields.find(tagKey);
 		if (v != m_Fields.end())
@@ -172,9 +172,9 @@ const Array<DepotResultText>& FDepotResult::TextList() const
 	return m_TextList;
 }
 
-const DepotString& FDepotResult::GetTagValue(const DepotString& tagKey) const
+const DepotString& FDepotResult::GetTagValue(const char* tagKey) const
 {
-	if (tagKey.empty() == false)
+	if (StringInfo::IsNullOrEmpty(tagKey) == false)
 	{
 		for (const DepotResultTag& tag : m_TagList)
 		{

@@ -31,7 +31,7 @@ namespace FileCore {
 		_N( int32_t,  PoolDefaultNumberOfThreads,      8 ) \
 		_N( int32_t,  GarbageCollectPeriodMs,          5*60*1000 ) \
 		_N( int32_t,  DepotClientCacheIdleTimeoutMs,   5*60*1000 ) \
-		_N( int32_t,  MaxDiff2StatFileCount,           -1 ) \
+		_N( int32_t,  MaxDiff2StatFileCount,           0 ) \
 
 
 	class SettingManager;

@@ -244,6 +244,7 @@ namespace Microsoft.P4VFS.UnitTest
 					"SenseCE.exe",
 					"SenseIR.exe",
 					"SearchProtocolHost.exe",
+					"MpDlpService.exe",
 				});
 			}
 		}

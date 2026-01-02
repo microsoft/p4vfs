@@ -1202,12 +1202,12 @@ DepotOperations::Diff2Stat(
 	if (useFStat)
 	{
 		DepotStringArray haveFileSpecs = CreateFileSpecs(depotClient, fileModifications, haveRevision, CreateFileSpecFlags::OverrideRevison);
-		DepotResultFStat haveFStat = FStat(depotClient, haveFileSpecs, "", FDepotResultFStatField::DepotFile | FDepotResultFStatField::HeadType);
+		DepotResultFStat haveFStat = FStat(depotClient, haveFileSpecs, "", FDepotResultFStatField::DepotFile | FDepotResultFStatField::HeadType | FDepotResultFStatField::HeadRev);
 
 		DepotStringArray headFileSpecs = CreateFileSpecs(depotClient, fileModifications, nullptr, CreateFileSpecFlags::None);
-		DepotResultFStat headFStat = FStat(depotClient, headFileSpecs, "", FDepotResultFStatField::DepotFile | FDepotResultFStatField::HeadType);
+		DepotResultFStat headFStat = FStat(depotClient, headFileSpecs, "", FDepotResultFStatField::DepotFile | FDepotResultFStatField::HeadType | FDepotResultFStatField::HeadRev);
 
-		typedef Map<DepotString, DepotResultTag> Diff2NodeMap;
+		typedef Map<DepotString, DepotResultTag, StringInfo::LessInsensitive> Diff2NodeMap;
 		Diff2NodeMap nodeMap;
 
 		auto addNodes = [&nodeMap](const DepotResultFStat& fstat, const DepotString& depotFileName, const DepotString& revName, const DepotString& typeName) -> void

@@ -13,8 +13,8 @@ Version [1.29.4.0]
   are less than the value.
 * Addition to default ExcludedProcessNames of MpDlpService.exe which is common Windows
   Defender application
-* Now using C++ transparent comparators on std::map<string,*,comp> to enable heterogeneous 
-  lookup from either c_str or string
+* Optimization to use C++ transparent comparators on std::map<string,*,comp> to enable 
+  heterogeneous lookup from either c_str or string
 
 Version [1.29.3.0]
 * Perforce SSO login from URL now uses impersonated p4vfs login command and ShellExecute 

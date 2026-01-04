@@ -383,6 +383,7 @@ namespace FileCore {
 		};
 
 		#define LITERAL(CharType, str) ::Microsoft::P4VFS::FileCore::StringInfo::Traits::Type<CharType>::Literal(str, L##str)
+		#define LITERAL_STRING(StringType, str) LITERAL(typename std::decay<decltype(StringType)>::type::value_type, str)
 	};
 
 	struct P4VFS_CORE_API FileInfo
@@ -751,18 +752,20 @@ namespace FileCore {
 		do { if (((v) == (ns::ev)) || ((ns::ev) != 0 && ((v) & (ns::ev)))) \
 		{ \
 			if (s.empty() == false) \
-				s += "|"; \
-			s += #ev; \
+			{ \
+				s += LITERAL_STRING(s, "|"); \
+			} \
+			s += LITERAL_STRING(s, #ev); \
 		} } while(0)
 
-	#define P4VFS_ENUM_TO_STRING_RETURN(v, ns, ev) \
+	#define P4VFS_ENUM_TO_STRING_RETURN(rt, v, ns, ev) \
 		do { if ((v) == (ns::ev)) \
 		{ \
-			return #ev; \
+			return LITERAL(rt::value_type, #ev); \
 		} } while (0)
 
 	#define P4VFS_STRING_TO_ENUM_RETURN(v, ns, ev) \
-		do { if (Microsoft::P4VFS::FileCore::StringInfo::Stricmp(#ev, Microsoft::P4VFS::FileCore::StringInfo::CStr(v)) == 0) \
+		do { if (Microsoft::P4VFS::FileCore::StringInfo::Stricmp(LITERAL_STRING(v, #ev), Microsoft::P4VFS::FileCore::StringInfo::CStr(v)) == 0) \
 		{ \
 			return ns::ev; \
 		} } while (0)

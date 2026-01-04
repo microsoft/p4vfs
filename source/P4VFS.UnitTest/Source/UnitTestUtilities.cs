@@ -20,9 +20,9 @@ namespace Microsoft.P4VFS.UnitTest
 		[TestMethod, Priority(0)]
 		public void FileAttributeTest()
 		{
-			foreach (ServiceSettingsScope settings in EnumerateCommonServicePopulateSettings())
+			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSettings())
 			{
-				using (settings) {
+				using (settings.CreateDisposable()) {
 				WorkspaceReset();
 
 				string clientRoot = GetClientRoot();

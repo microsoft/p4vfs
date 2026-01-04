@@ -90,13 +90,16 @@ DepotOperations::SyncVirtual(
 	}
 
 	// Retrieve a list of files to be added, deleted, and updated
+	DepotStopwatch previewTime(DepotStopwatch::Init::Start);
 	DepotSyncActionInfoArray modifications = SyncCommand(depotClient, syncOptions.m_Files, revision, primarySyncFlags | DepotSyncFlags::Quiet);
 	if (modifications.get() == nullptr)
 	{
 		return std::make_shared<FDepotSyncResult>(DepotSyncStatus::Error);
 	}
 
+	previewTime.Stop();
 	depotClient->Log(LogChannel::Info, StringInfo::Format("%I64u Modification message%s to act on.", uint64_t(modifications->size()), modifications->size() ? "s" : ""));
+
 	ThreadPool::ForEach::Execute(
 		modifications->data(), 
 		modifications->size(), 
@@ -260,6 +263,7 @@ DepotOperations::SyncVirtual(
 	depotClient->Log(LogChannel::Verbose, StringInfo::Format("Flush Time:          %s", ToDisplayStringMilliseconds(flushTime).c_str()));
 	depotClient->Log(LogChannel::Verbose, StringInfo::Format("Placeholder Time:    %s", ToDisplayStringMilliseconds(placeholderTime).c_str()));
 	depotClient->Log(LogChannel::Verbose, StringInfo::Format("Sync Time:           %s", ToDisplayStringMilliseconds(syncTime).c_str()));
+	depotClient->Log(LogChannel::Verbose, StringInfo::Format("Preview Time:        %s", ToDisplayStringMilliseconds(previewTime.TotalMilliseconds()).c_str()));
 
 	return std::make_shared<FDepotSyncResult>(status, resultModifications);
 }

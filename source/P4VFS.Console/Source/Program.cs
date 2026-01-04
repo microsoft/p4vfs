@@ -264,6 +264,8 @@ Available commands:
 			try
 			{
 				VirtualFileSystemLog.Intitialize();
+				VirtualFileSystemLog.Info("P4VFS version {0}", VirtualFileSystem.CurrentVersion);
+
 				SettingManager.RemoteLogging = SettingManager.ConsoleRemoteLogging;
 				SettingManager.ImmediateLogging = SettingManager.ConsoleImmediateLogging;
 				_P4Directory = Environment.CurrentDirectory;
@@ -317,7 +319,6 @@ Available commands:
 					}
 				}
 
-				VirtualFileSystemLog.Info("P4VFS version {0}", VirtualFileSystem.CurrentVersion);
 				if (argIndex >= args.Length)
 				{
 					argIndex = 0;

@@ -3,18 +3,25 @@ Microsoft P4VFS Release Notes
 Version [1.29.4.0]
 * Updating to latest P4API 25.2
 * Migrating to OpenSSL 3.0 LTS as recommended by P4API 25.2 with latest 3.0.18
-* Addition of configuration setting MaxDiff2StatFileCount setting for specifying
+* Addition to default ExcludedProcessNames of MpDlpService.exe which is common Windows
+  Defender application
+* Optimization to use C++ transparent comparators on std::map<string,*,compare> to enable 
+  heterogeneous lookup from either c_str or string
+* Addition of default property values to SettingManager. It is now used to test
+  against combinations of default and overridden settings values
+* Fixing bug where p4vfs.exe common option '-v' would not actually enable verbose logging 
+  for the command
+* Addition of experimental configuration setting MaxDiff2StatFileCount for specifying
   the maximum number of files for when fstat commands should be used instead of diff2
   for determining the have & head filetype of files to sync. Using fstat can be 
-  significantly faster than diff2 when only a few files are updated under a large 
-  file spec. A MaxDiff2StatFileCount of zero (default) will use legacy behavior to only use 
+  faster than diff2 in the rare case where a very few number files are updated under a 
+  very large file spec. For that reason, we'll keep this feature disabled by default indefinitly. 
+  A MaxDiff2StatFileCount of zero (default) will use legacy behavior to only use 
   diff2. A MaxDiff2StatFileCount of less than zero will always use fstat. A 
   MaxDiff2StatFileCount of greater than zero will use fstat if the number of modifications
   are less than the value.
-* Addition to default ExcludedProcessNames of MpDlpService.exe which is common Windows
-  Defender application
-* Optimization to use C++ transparent comparators on std::map<string,*,comp> to enable 
-  heterogeneous lookup from either c_str or string
+* Addition of a new verbose mode "Preview Time" profile time to the sync command which
+  indicates the time spend gathering virtual sync file modifications to be applied.
 
 Version [1.29.3.0]
 * Perforce SSO login from URL now uses impersonated p4vfs login command and ShellExecute 

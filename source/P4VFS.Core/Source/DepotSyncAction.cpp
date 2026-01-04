@@ -24,8 +24,8 @@ DepotString DepotSyncFlags::ToString(DepotSyncFlags::Enum value)
 
 DepotString DepotFlushType::ToString(DepotFlushType::Enum value)
 {
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotFlushType, Single);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotFlushType, Atomic);
+	P4VFS_ENUM_TO_STRING_RETURN(DepotString, value, DepotFlushType, Single);
+	P4VFS_ENUM_TO_STRING_RETURN(DepotString, value, DepotFlushType, Atomic);
 	return DepotString();
 }
 
@@ -74,21 +74,21 @@ bool DepotSyncActionType::IsLocalChanged(DepotSyncActionType::Enum value)
 
 DepotString DepotSyncActionType::ToString(DepotSyncActionType::Enum value)
 {
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, None);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, Added);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, Deleted);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, Updated);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, Refreshed);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, Replaced);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, UpToDate);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, NoFilesFound);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, NoFileAtRevision);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, InvalidPattern);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, NotInClientView);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, OpenedNotChanged);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, CantClobber);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, NeedsResolve);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncActionType, GenericError);
+	P4VFS_ENUM_TO_STRING_RETURN(DepotString, value, DepotSyncActionType, None);
+	P4VFS_ENUM_TO_STRING_RETURN(DepotString, value, DepotSyncActionType, Added);
+	P4VFS_ENUM_TO_STRING_RETURN(DepotString, value, DepotSyncActionType, Deleted);
+	P4VFS_ENUM_TO_STRING_RETURN(DepotString, value, DepotSyncActionType, Updated);
+	P4VFS_ENUM_TO_STRING_RETURN(DepotString, value, DepotSyncActionType, Refreshed);
+	P4VFS_ENUM_TO_STRING_RETURN(DepotString, value, DepotSyncActionType, Replaced);
+	P4VFS_ENUM_TO_STRING_RETURN(DepotString, value, DepotSyncActionType, UpToDate);
+	P4VFS_ENUM_TO_STRING_RETURN(DepotString, value, DepotSyncActionType, NoFilesFound);
+	P4VFS_ENUM_TO_STRING_RETURN(DepotString, value, DepotSyncActionType, NoFileAtRevision);
+	P4VFS_ENUM_TO_STRING_RETURN(DepotString, value, DepotSyncActionType, InvalidPattern);
+	P4VFS_ENUM_TO_STRING_RETURN(DepotString, value, DepotSyncActionType, NotInClientView);
+	P4VFS_ENUM_TO_STRING_RETURN(DepotString, value, DepotSyncActionType, OpenedNotChanged);
+	P4VFS_ENUM_TO_STRING_RETURN(DepotString, value, DepotSyncActionType, CantClobber);
+	P4VFS_ENUM_TO_STRING_RETURN(DepotString, value, DepotSyncActionType, NeedsResolve);
+	P4VFS_ENUM_TO_STRING_RETURN(DepotString, value, DepotSyncActionType, GenericError);
 	return DepotString();
 }
 

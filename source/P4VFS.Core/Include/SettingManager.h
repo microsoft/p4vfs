@@ -24,7 +24,7 @@ namespace FileCore {
 		_N( bool,     SyncDefaultQuiet,                false ) \
 		_N( String,   SyncResidentPattern,             L"" ) \
 		_N( bool,     Unattended,                      false ) \
-		_N( String,   Verbosity,                       CSTR_ATOW(FileCore::LogChannel::ToString(FileCore::LogChannel::Info)) ) \
+		_N( String,   Verbosity,                       FileCore::LogChannel::ToString(FileCore::LogChannel::Info).c_str() ) \
 		_N( String,   ExcludedProcessNames,            L"MsSense.exe;MsMpEng.exe;SenseCE.exe;SenseIR.exe;SearchProtocolHost.exe;MpDlpService.exe" ) \
 		_N( int32_t,  CreateFileRetryCount,            8 ) \
 		_N( int32_t,  CreateFileRetryWaitMs,           250 ) \
@@ -154,6 +154,13 @@ namespace FileCore {
 		#define SETTING_MANAGER_DECLARE_PROP(type, name, value)  SettingProperty<type> name;
 		SETTING_MANAGER_PROPERTIES(SETTING_MANAGER_DECLARE_PROP)
 		#undef SETTING_MANAGER_DECLARE_PROP
+
+		struct Default
+		{
+			#define SETTING_MANAGER_DECLARE_PROP(type, name, value)  static type name();
+			SETTING_MANAGER_PROPERTIES(SETTING_MANAGER_DECLARE_PROP)
+			#undef SETTING_MANAGER_DECLARE_PROP
+		};
 
 	private:
 		PropertyMap m_PropertMap;

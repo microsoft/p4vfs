@@ -233,22 +233,6 @@ namespace Microsoft.P4VFS.UnitTest
 				System.Threading.Thread.Sleep(100);
 		}
 
-		public string ExcludedProcessNames
-		{
-			get 
-			{ 
-				return String.Join(";", new[]
-				{
-					"MsSense.exe",
-					"MsMpEng.exe",
-					"SenseCE.exe",
-					"SenseIR.exe",
-					"SearchProtocolHost.exe",
-					"MpDlpService.exe",
-				});
-			}
-		}
-
 		public void WorkspaceReset(string port, string client, string user)
 		{
 			WorkspaceReset(new DepotConfig{ Port=port??_P4Port, Client=client??_P4Client, User=user??_P4User });

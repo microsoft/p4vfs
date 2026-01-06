@@ -28,7 +28,7 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        os: [windows-latest]
+        os: [windows-2022]
         configuration: [DebugDev, ReleaseDev]
 
     steps:

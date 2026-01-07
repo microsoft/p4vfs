@@ -24,13 +24,14 @@ namespace FileCore {
 		_N( bool,     SyncDefaultQuiet,                false ) \
 		_N( String,   SyncResidentPattern,             L"" ) \
 		_N( bool,     Unattended,                      false ) \
-		_N( String,   Verbosity,                       CSTR_ATOW(FileCore::LogChannel::ToString(FileCore::LogChannel::Info)) ) \
-		_N( String,   ExcludedProcessNames,            L"MsSense.exe;MsMpEng.exe;SenseCE.exe;SenseIR.exe;SearchProtocolHost.exe" ) \
+		_N( String,   Verbosity,                       FileCore::LogChannel::ToString(FileCore::LogChannel::Info).c_str() ) \
+		_N( String,   ExcludedProcessNames,            L"MsSense.exe;MsMpEng.exe;SenseCE.exe;SenseIR.exe;SearchProtocolHost.exe;MpDlpService.exe" ) \
 		_N( int32_t,  CreateFileRetryCount,            8 ) \
 		_N( int32_t,  CreateFileRetryWaitMs,           250 ) \
 		_N( int32_t,  PoolDefaultNumberOfThreads,      8 ) \
 		_N( int32_t,  GarbageCollectPeriodMs,          5*60*1000 ) \
 		_N( int32_t,  DepotClientCacheIdleTimeoutMs,   5*60*1000 ) \
+		_N( int32_t,  MaxDiff2StatFileCount,           0 ) \
 
 
 	class SettingManager;
@@ -82,7 +83,7 @@ namespace FileCore {
 		P4VFS_CORE_API void SetInt32(int32_t value);
 		P4VFS_CORE_API void SetString(const String& value);
 
-		template <typename T> T Get(const T& defaultValue) const = 0;
+		template <typename T> T Get(const T& defaultValue) const;
 		template <> bool Get<bool>(const bool& defaultValue) const { return GetBool(defaultValue); }
 		template <> int32_t Get<int32_t>(const int32_t& defaultValue) const { return GetInt32(defaultValue); }
 		template <> String Get<String>(const String& defaultValue) const { return GetString(defaultValue); }
@@ -153,6 +154,13 @@ namespace FileCore {
 		#define SETTING_MANAGER_DECLARE_PROP(type, name, value)  SettingProperty<type> name;
 		SETTING_MANAGER_PROPERTIES(SETTING_MANAGER_DECLARE_PROP)
 		#undef SETTING_MANAGER_DECLARE_PROP
+
+		struct Default
+		{
+			#define SETTING_MANAGER_DECLARE_PROP(type, name, value)  static type name();
+			SETTING_MANAGER_PROPERTIES(SETTING_MANAGER_DECLARE_PROP)
+			#undef SETTING_MANAGER_DECLARE_PROP
+		};
 
 	private:
 		PropertyMap m_PropertMap;

@@ -233,21 +233,6 @@ namespace Microsoft.P4VFS.UnitTest
 				System.Threading.Thread.Sleep(100);
 		}
 
-		public string ExcludedProcessNames
-		{
-			get 
-			{ 
-				return String.Join(";", new[]
-				{
-					"MsSense.exe",
-					"MsMpEng.exe",
-					"SenseCE.exe",
-					"SenseIR.exe",
-					"SearchProtocolHost.exe",
-				});
-			}
-		}
-
 		public void WorkspaceReset(string port, string client, string user)
 		{
 			WorkspaceReset(new DepotConfig{ Port=port??_P4Port, Client=client??_P4Client, User=user??_P4User });
@@ -278,9 +263,13 @@ namespace Microsoft.P4VFS.UnitTest
 			AssertRetry(() => VirtualFileSystem.IsDriverLoaded(), message:"IsDriverLoaded");
 			AssertRetry(() => VirtualFileSystem.IsDriverReady(), message:"IsDriverReady");
 			AssertRetry(() => VirtualFileSystem.IsVirtualFileSystemAvailable(), message:"IsVirtualFileSystemAvailable");
-			ServiceSettings.Reset();
-			InteractiveOverridePasswd = null;
+			
+			if (ServiceSettingScope.IsOverriding == false)
+			{
+				ServiceSettings.Reset();
+			}
 
+			InteractiveOverridePasswd = null;
 			if (String.IsNullOrEmpty(config.Passwd))
 			{
 				config.Passwd = UnitTestServer.GetUserP4Passwd(config.User);
@@ -342,7 +331,7 @@ namespace Microsoft.P4VFS.UnitTest
 
 			Extensions.SocketModel.SocketModelClient service = new Extensions.SocketModel.SocketModelClient(); 
 			Assert(service.GarbageCollect());
-			Assert(service.GetServiceSetting(nameof(SettingManager.ExcludedProcessNames)).ToString() == ExcludedProcessNames);
+			Assert(service.GetServiceSetting(nameof(SettingManager.ExcludedProcessNames)).ToString() == SettingManager.Default.ExcludedProcessNames);
 		}
 
 		public void ServiceRestart()
@@ -647,32 +636,44 @@ namespace Microsoft.P4VFS.UnitTest
 			foreach (DepotSyncFlags primarySyncFlags in new[]{ DepotSyncFlags.Normal, DepotSyncFlags.Quiet, DepotSyncFlags.IgnoreOutput })
 			{
 				if (verbose)
+				{
 					VirtualFileSystemLog.Info("EnumerateCommonPrimaryDepotSyncFlags: {0}", primarySyncFlags);
+				}
 				yield return primarySyncFlags;
 			}
 		}
 
-		public IEnumerable<ServiceSettingsScope> EnumerateCommonServicePopulateSettings(bool verbose = true)
+		public IEnumerable<ServiceSettingsScope> EnumerateCommonServiceSettings(bool verbose = true)
 		{
-			foreach (FilePopulateMethod populateMethod in new[]{ FilePopulateMethod.Copy, FilePopulateMethod.Stream })
+			ServiceSettingsScope[] items = ServiceSettingsScope.Combined(Enumerable.Empty<KeyValuePair<string,string>>()
+				.Concat(
+					new[]{ FilePopulateMethod.Copy, FilePopulateMethod.Stream }
+					.Select(v => new KeyValuePair<string, string>(nameof(SettingManager.PopulateMethod), v.ToString())))
+				.Concat(
+					new[]{ -1, 0, 10, SettingManager.Default.MaxDiff2StatFileCount }
+					.Select(v => new KeyValuePair<string, string>(nameof(SettingManager.MaxDiff2StatFileCount), v.ToString()))));
+
+			foreach (ServiceSettingsScope item in items)
 			{
-				ServiceSettingsScope item = new ServiceSettingsScope();
-				item.ServiceSettings.Add(new ServiceSettingScope("PopulateMethod", populateMethod.ToString()));
 				if (verbose)
+				{
 					VirtualFileSystemLog.Info("EnumerateCommonServicePopulateSettings: {0}", item);
+				}
 				yield return item;
 			}
 		}
 
 		public IEnumerable<ServiceSettingsScope> EnumerateCommonServiceSyncSettings(bool verbose = true)
 		{
-			foreach (ServiceSettingsScope item in EnumerateCommonServicePopulateSettings(false))
+			foreach (ServiceSettingsScope item in EnumerateCommonServiceSettings(false))
 			{
 				foreach (DepotSyncFlags primarySyncFlags in EnumerateCommonPrimaryDepotSyncFlags(false))
 				{
 					item.SyncFlags = primarySyncFlags;
 					if (verbose)
+					{
 						VirtualFileSystemLog.Info("EnumerateCommonServiceSyncSettings: {0}", item);
+					}
 					yield return item;
 				}
 			}
@@ -686,7 +687,9 @@ namespace Microsoft.P4VFS.UnitTest
 				{
 					item.LineEnd = lineEnd;
 					if (verbose)
+					{
 						VirtualFileSystemLog.Info("EnumerateCommonServiceSyncLineEndSettings: {0}", item);
+					}
 					yield return item;
 				}
 			}
@@ -812,41 +815,27 @@ namespace Microsoft.P4VFS.UnitTest
 		public uint LinesTotal { get { return LinesAdded + LinesDeleted + LinesChanged; } }
 	}
 
-	public class LocalSettingScope : IDisposable
+	public class DisposableAction : IDisposable
 	{
-		public string Name { get; private set; }
-		public string Value { get; private set; }
-		public SettingNode PreviousValue { get; private set; }
+		private Action m_Action;
 
-		public LocalSettingScope(string name, string value)
+		public DisposableAction(Action action)
 		{
-			Name = name;
-			UnitTestBase.Assert(String.IsNullOrEmpty(Name) == false);
-			Value = value;
-			UnitTestBase.Assert(Value != null);
-
-			PreviousValue = ServiceSettings.GetProperty(Name);
-			UnitTestBase.Assert(PreviousValue.ToString() != null);
-			UnitTestBase.Assert(ServiceSettings.SetProperty(SettingNode.FromString(Value), Name));
-			UnitTestBase.Assert(ServiceSettings.GetProperty(Name).ToString() == Value);
+			m_Action = action;
 		}
 
 		public void Dispose()
 		{
-			UnitTestBase.Assert(ServiceSettings.SetProperty(PreviousValue, Name));
-		}
-
-		public override string ToString()
-		{
-			return String.Format("{0}={1}", Name, Value);
+			UnitTestBase.Assert(m_Action != null);
+			m_Action.Invoke();
+			m_Action = null;
 		}
 	}
 
-	public class ServiceSettingScope : IDisposable
+	public class ServiceSettingScope
 	{
 		public string Name { get; private set; }
 		public string Value { get; private set; }
-		public SettingNode PreviousValue { get; private set; }
 
 		public ServiceSettingScope(string name, string value)
 		{
@@ -854,22 +843,39 @@ namespace Microsoft.P4VFS.UnitTest
 			UnitTestBase.Assert(String.IsNullOrEmpty(Name) == false);
 			Value = value;
 			UnitTestBase.Assert(Value != null);
-
-			Extensions.SocketModel.SocketModelClient serviceClient = new Extensions.SocketModel.SocketModelClient();
-			PreviousValue = serviceClient.GetServiceSetting(Name);
-			UnitTestBase.Assert(PreviousValue.ToString() != null);
-			UnitTestBase.Assert(serviceClient.SetServiceSetting(Name, SettingNode.FromString(Value)));
-			UnitTestBase.Assert(serviceClient.GetServiceSetting(Name).ToString() == Value);
 		}
 		
 		public ServiceSettingScope(string name) : this(name, ServiceSettings.GetProperty(name).ToString())
 		{
 		}
 
-		public void Dispose()
+		public DisposableAction CreateDisposable()
 		{
+			UnitTestBase.Assert(System.Threading.Interlocked.Increment(ref m_Depth) > 0);
+
 			Extensions.SocketModel.SocketModelClient serviceClient = new Extensions.SocketModel.SocketModelClient();
-			UnitTestBase.Assert(serviceClient.SetServiceSetting(Name, PreviousValue));
+			SettingNode PreviousServiceValue = serviceClient.GetServiceSetting(Name);
+			UnitTestBase.Assert(PreviousServiceValue.ToString() != null);
+			UnitTestBase.Assert(serviceClient.SetServiceSetting(Name, SettingNode.FromString(Value)));
+			UnitTestBase.Assert(serviceClient.GetServiceSetting(Name).ToString() == Value);
+
+			SettingNode PreviousClientValue = ServiceSettings.GetProperty(Name);
+			UnitTestBase.Assert(PreviousClientValue.ToString() != null);
+			UnitTestBase.Assert(ServiceSettings.SetProperty(SettingNode.FromString(Value), Name));
+			UnitTestBase.Assert(ServiceSettings.GetProperty(Name).ToString() == Value);
+			
+			return new DisposableAction(() => 
+			{
+				UnitTestBase.Assert(serviceClient.GetServiceSetting(Name).ToString() == Value, $"Service setting {Name} expected to be overriden to {Value}");
+				UnitTestBase.Assert(serviceClient.SetServiceSetting(Name, PreviousServiceValue));
+				UnitTestBase.Assert(serviceClient.GetServiceSetting(Name).ToString() == PreviousServiceValue.ToString());
+
+				UnitTestBase.Assert(ServiceSettings.GetProperty(Name).ToString() == Value, $"Client setting {Name} expected to be overriden to {Value}");
+				UnitTestBase.Assert(ServiceSettings.SetProperty(PreviousClientValue, Name));
+				UnitTestBase.Assert(ServiceSettings.GetProperty(Name).ToString() == PreviousClientValue.ToString());
+
+				UnitTestBase.Assert(System.Threading.Interlocked.Decrement(ref m_Depth) >= 0);
+			});
 		}
 
 		public override string ToString()
@@ -877,39 +883,67 @@ namespace Microsoft.P4VFS.UnitTest
 			return String.Format("{0}={1}", Name, Value);
 		}
 
-		public void ApplyGlobal()
+		private static volatile int m_Depth;
+		public static bool IsOverriding
 		{
-			UnitTestBase.Assert(ServiceSettings.SetProperty(new SettingNode(Value), Name));
-			UnitTestBase.Assert(ServiceSettings.GetPropertyJson(Name).ToString() == ServiceSettings.SettingNodeToJson(new SettingNode(Value)).ToString());
+			get { return m_Depth > 0; }
 		}
 	}
 
-	public class ServiceSettingsScope : IDisposable
+	public class ServiceSettingsScope
 	{
 		public List<ServiceSettingScope> ServiceSettings = new List<ServiceSettingScope>();
 		public DepotSyncFlags? SyncFlags;
 		public string LineEnd;
 
-		public void Dispose()
+		public static ServiceSettingsScope[] Combined(IEnumerable<KeyValuePair<string,string>> keyValues)
 		{
-			foreach (ServiceSettingScope setting in ServiceSettings)
-				setting.Dispose();
+			KeyValuePair<string,string[]>[] groups = keyValues
+				.GroupBy(selector => selector.Key)
+				.Select(grouping => new KeyValuePair<string, string[]>(grouping.Key, grouping.Select(kvp => kvp.Value).Distinct().ToArray()))
+				.ToArray();
+
+			return CreateCombinations(groups, 0).ToArray();
+		}
+
+		private static IEnumerable<ServiceSettingsScope> CreateCombinations(KeyValuePair<string, string[]>[] groups, int index)
+		{
+			if (index >= groups.Length)
+			{
+				yield return new ServiceSettingsScope();
+				yield break;
+			}
+
+			foreach (string value in groups[index].Value)
+			{
+				foreach (ServiceSettingsScope combined in CreateCombinations(groups, index + 1))
+				{
+					combined.ServiceSettings.Add(new ServiceSettingScope(groups[index].Key, value));
+					yield return combined;
+				}
+			}
+		}
+
+		public DisposableAction CreateDisposable()
+		{
+			List<DisposableAction> actions = ServiceSettings
+				.Select(scope => scope.CreateDisposable())
+				.ToList(); 
+			
+			return new DisposableAction(() => 
+			{
+				actions.ForEach(action => action.Dispose());
+			});
 		}
 
 		public override string ToString()
 		{
-			string result = String.Format("ServiceSettings=[{0}]", String.Join(",", ServiceSettings));
+			string result = String.Format("ServiceSettings={{{0}}}", String.Join(", ", ServiceSettings));
 			if (SyncFlags.HasValue)
-				result += String.Format(", SyncFlags=[{0}]", SyncFlags.Value);
+				result += String.Format(", SyncFlags={0}", SyncFlags.Value);
 			if (LineEnd != null)
 				result += String.Format(", LineEnd={0}", LineEnd);
 			return result;
-		}
-
-		public void ApplyGlobal()
-		{
-			foreach (ServiceSettingScope setting in ServiceSettings)
-				setting.ApplyGlobal();
 		}
 	}
 

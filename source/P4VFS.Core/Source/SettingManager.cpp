@@ -227,5 +227,9 @@ bool SettingManager::GetProperties(PropertyMap& propertyMap) const
 	return true;
 }
 
+#define SETTING_MANAGER_DECLARE_PROP(type, name, value)  type SettingManager::Default::name() { return value; }
+SETTING_MANAGER_PROPERTIES(SETTING_MANAGER_DECLARE_PROP)
+#undef SETTING_MANAGER_DECLARE_PROP
+
 }}}
 

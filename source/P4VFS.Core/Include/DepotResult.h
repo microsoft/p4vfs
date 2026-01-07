@@ -29,13 +29,13 @@ namespace P4 {
 
 	struct FDepotResultTag
 	{
-		bool ContainsKey(const DepotString& tagKey) const;
-		void RemoveKey(const DepotString& tagKey);
-		void SetValue(const DepotString& tagKey, const DepotString& tagValue);
+		bool ContainsKey(const char* tagKey) const;
+		void RemoveKey(const char* tagKey);
+		void SetValue(const char* tagKey, const DepotString& tagValue);
 
-		bool TryGetValue(const DepotString& tagKey, DepotString& value) const;
-		const DepotString& GetValue(const DepotString& tagKey) const;
-		const DepotString* GetValuePtr(const DepotString& tagKey) const;
+		bool TryGetValue(const char* tagKey, DepotString& value) const;
+		const DepotString& GetValue(const char* tagKey) const;
+		const DepotString* GetValuePtr(const char* tagKey) const;
 
 		int32_t GetValueInt32(const char* tagKey, int32_t defaultValue = 0) const;
 		int64_t GetValueInt64(const char* tagKey, int64_t defaultValue = 0) const;
@@ -79,7 +79,12 @@ namespace P4 {
 
 		P4VFS_CORE_API const Array<DepotResultTag>& TagList() const;
 		P4VFS_CORE_API const Array<DepotResultText>& TextList() const;
-		const DepotString& GetTagValue(const DepotString& tagKey) const;
+		const DepotString& GetTagValue(const char* tagKey) const;
+
+		void Append(const FDepotResult& src);
+		void Append(const Array<DepotResultTag>& srcTagList);
+		void Append(const Array<DepotResultText>& srcTextList);
+		void Append(const DepotResultTag& srcTag);
 	
 	protected:
 		friend class DepotClientCommand;	
@@ -95,12 +100,12 @@ namespace P4 {
 			return m_Tag.get() ? *m_Tag : Empty;
 		}
 
-		bool ContainsTagKey(const DepotString& tagKey) const
+		bool ContainsTagKey(const char* tagKey) const
 		{
 			return Tag().ContainsKey(tagKey);
 		}
 
-		void RemoveTagKey(const DepotString& tagKey)
+		void RemoveTagKey(const char* tagKey)
 		{
 			if (m_Tag.get())
 			{
@@ -108,7 +113,7 @@ namespace P4 {
 			}
 		}
 
-		void SetTagValue(const DepotString& tagKey, const DepotString& tagValue)
+		void SetTagValue(const char* tagKey, const DepotString& tagValue)
 		{
 			if (m_Tag.get() == nullptr)
 			{
@@ -117,7 +122,7 @@ namespace P4 {
 			m_Tag->SetValue(tagKey, tagValue);
 		}
 
-		const DepotString& GetTagValue(const DepotString& tagKey) const
+		const DepotString& GetTagValue(const char* tagKey) const
 		{
 			return Tag().GetValue(tagKey);
 		}
@@ -162,6 +167,20 @@ namespace P4 {
 			return FDepotResultNode::Create<NodeType>(index < m_TagList.size() ? m_TagList[index] : nullptr);
 		}
 	};
+
+	template <typename Result>
+	Result MakeResult()
+	{
+		return std::make_shared<Result::element_type>();
+	}
+
+	template <typename Result>
+	Result MakeErrorResult(const DepotString& errorText)
+	{
+		Result result = MakeResult<Result>();
+		result->SetError(errorText.c_str());
+		return result;
+	}
 }}}
 
 #pragma managed(pop)

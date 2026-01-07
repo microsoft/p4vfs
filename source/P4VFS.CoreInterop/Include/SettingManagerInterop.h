@@ -104,6 +104,14 @@ namespace SettingTraits
 		
 		static ManagedType 
 		ToManagedType(
+			bool value
+			) 
+		{ 
+			return value;
+		}
+
+		static ManagedType 
+		ToManagedType(
 			SettingNode^ n, 
 			bool defaultValue
 			) 
@@ -123,6 +131,14 @@ namespace SettingTraits
 	template <> struct Value<int32_t>
 	{ 
 		typedef System::Int32 ManagedType; 
+
+		static ManagedType 
+		ToManagedType(
+			int32_t value
+			) 
+		{ 
+			return value;
+		}
 
 		static ManagedType 
 		ToManagedType(
@@ -146,6 +162,14 @@ namespace SettingTraits
 	{ 
 		typedef System::String^ ManagedType; 
 		
+		static ManagedType 
+		ToManagedType(
+			const wchar_t* value
+			) 
+		{ 
+			return Marshal::FromNativeWide(value);
+		}
+
 		static ManagedType 
 		ToManagedType(
 			SettingNode^ n, 
@@ -209,6 +233,22 @@ public:
 	};
 	SETTING_MANAGER_PROPERTIES(SETTING_MANAGER_DECLARE_PROP)
 	#undef SETTING_MANAGER_DECLARE_PROP
+
+	ref class Default abstract sealed
+	{
+	public:
+
+		#define SETTING_MANAGER_DECLARE_PROP(type, name, value) \
+		static property SettingTraits::Value<type>::ManagedType name \
+		{ \
+			SettingTraits::Value<type>::ManagedType get() \
+			{ \
+				return SettingTraits::Value<type>::ToManagedType(value); \
+			} \
+		};
+		SETTING_MANAGER_PROPERTIES(SETTING_MANAGER_DECLARE_PROP)
+		#undef SETTING_MANAGER_DECLARE_PROP
+	};
 };
 
 }}}

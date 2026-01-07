@@ -25,7 +25,7 @@ namespace Microsoft.P4VFS.UnitTest
 		{
 			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSyncSettings())
 			{
-				using (settings) {
+				using (settings.CreateDisposable()) {
 				using (DepotClient depotClient = new DepotClient()) {
 				DepotSyncFlags syncFlags = settings.SyncFlags.Value;
 
@@ -92,7 +92,7 @@ namespace Microsoft.P4VFS.UnitTest
 		{
 			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSyncSettings())
 			{
-				using (settings) {
+				using (settings.CreateDisposable()) {
 				using (DepotClient depotClient = new DepotClient()) {
 				DepotSyncFlags syncFlags = settings.SyncFlags.Value;
 
@@ -148,7 +148,7 @@ namespace Microsoft.P4VFS.UnitTest
 		{
 			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSyncSettings())
 			{
-				using (settings) {
+				using (settings.CreateDisposable()) {
 				using (DepotClient depotClient = new DepotClient()) {
 				DepotSyncFlags syncFlags = settings.SyncFlags.Value;
 
@@ -191,7 +191,7 @@ namespace Microsoft.P4VFS.UnitTest
 		{
 			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSyncLineEndSettings())
 			{
-				using (settings) {
+				using (settings.CreateDisposable()) {
 				using (DepotClient depotClient = new DepotClient()) {
 				DepotSyncFlags syncFlags = settings.SyncFlags.Value;
 				
@@ -269,7 +269,7 @@ namespace Microsoft.P4VFS.UnitTest
 		{
 			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSyncSettings())
 			{
-				using (settings) {
+				using (settings.CreateDisposable()) {
 				using (DepotClient depotClient = new DepotClient()) {
 				DepotSyncFlags syncFlags = settings.SyncFlags.Value;
 				
@@ -539,7 +539,7 @@ namespace Microsoft.P4VFS.UnitTest
 		{
 			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSyncSettings())
 			{
-				using (settings) {
+				using (settings.CreateDisposable()) {
 				using (DepotClient depotClient = new DepotClient()) {
 				
 				WorkspaceReset();
@@ -872,7 +872,7 @@ namespace Microsoft.P4VFS.UnitTest
 		{
 			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSyncLineEndSettings().Where(s => s.SyncFlags == DepotSyncFlags.Normal))
 			{
-				using (settings) {
+				using (settings.CreateDisposable()) {
 				using (DepotClient depotClient = new DepotClient()) {
 				
 				WorkspaceReset();
@@ -1040,6 +1040,12 @@ namespace Microsoft.P4VFS.UnitTest
 			ServiceSettings.Reset();
 			AssertCurrentServiceSettings();
 
+			// Simple test of expected values of SettingManager.Default
+			Assert(SettingManager.ExcludedProcessNames == SettingManager.Default.ExcludedProcessNames);
+			Assert(SettingManager.ExcludedProcessNames == "MsSense.exe;MsMpEng.exe;SenseCE.exe;SenseIR.exe;SearchProtocolHost.exe;MpDlpService.exe");
+			Assert(SettingManager.PopulateMethod == SettingManager.Default.PopulateMethod);
+			Assert(SettingManager.PopulateMethod == "Stream");
+
 			// Test DepotServerConfig serialization
 			DepotServerConfig config0 = new DepotServerConfig{ Servers = new[]{ new DepotServerConfigEntry{ Pattern = "MyHost*", Address = "127.0.0.1:1666" }}};
 			SettingNode configNode = config0.ToNode();
@@ -1077,16 +1083,15 @@ namespace Microsoft.P4VFS.UnitTest
 			Assert(DepotOperations.ResolveDepotServerName("CTO-P4MAIN") == "CTO-P4MAIN");
 
 			// Test the service DepotServerConfig pattern matching of the host name resolving
-			foreach (ServiceSettingsScope settings in EnumerateCommonServicePopulateSettings())
+			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSettings())
 			{
-				using (settings) {
+				using (settings.CreateDisposable()) {
 				using (DepotClient depotClient = new DepotClient()) {
 
 				WorkspaceReset();
 				Assert(depotClient.Connect(_P4Port, _P4Client, _P4User));
 				string clientRoot = GetClientRoot(depotClient);
 				
-				settings.ApplyGlobal();
 				SettingManagerExtensions.DepotServerConfig = depotServerConfig;
 				Assert(JsonConvert.SerializeObject(SettingManagerExtensions.DepotServerConfig) == JsonConvert.SerializeObject(depotServerConfig));
 				AssertCurrentServiceSettings();
@@ -1206,9 +1211,9 @@ namespace Microsoft.P4VFS.UnitTest
 		[TestMethod, Priority(21), TestRemote]
 		public void FileCopyTest()
 		{
-			foreach (ServiceSettingsScope settings in EnumerateCommonServicePopulateSettings())
+			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSettings())
 			{
-				using (settings) {
+				using (settings.CreateDisposable()) {
 				using (DepotClient depotClient = new DepotClient()) {
 
 				WorkspaceReset();
@@ -1303,9 +1308,9 @@ namespace Microsoft.P4VFS.UnitTest
 		[TestMethod, Priority(23), TestRemote]
 		public void SparseUnderflowCopyTest()
 		{
-			foreach (ServiceSettingsScope settings in EnumerateCommonServicePopulateSettings())
+			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSettings())
 			{
-				using (settings) {
+				using (settings.CreateDisposable()) {
 				using (DepotClient depotClient = new DepotClient()) {
 				
 				WorkspaceReset();
@@ -1676,7 +1681,7 @@ namespace Microsoft.P4VFS.UnitTest
 		{
 			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSyncSettings())
 			{
-				using (settings) {
+				using (settings.CreateDisposable()) {
 				using (DepotClient depotClient = new DepotClient()) {
 				DepotSyncFlags syncFlags = settings.SyncFlags.Value;
 
@@ -1876,8 +1881,8 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(GetServiceIdleConnectionCount() == 1);
 
 				// Write a temporary PublicSettingsFilePath settings file with very short GC timeout
-				using (new LocalSettingScope(nameof(SettingManager.GarbageCollectPeriodMs), "100")) {
-				using (new LocalSettingScope(nameof(SettingManager.DepotClientCacheIdleTimeoutMs), "5000")) {
+				using (new ServiceSettingScope(nameof(SettingManager.GarbageCollectPeriodMs), "100").CreateDisposable()) {
+				using (new ServiceSettingScope(nameof(SettingManager.DepotClientCacheIdleTimeoutMs), "5000").CreateDisposable()) {
 				using (new DepotTempFile(VirtualFileSystem.PublicSettingsFilePath))
 				{
 					Assert(ServiceSettings.SaveToFile(VirtualFileSystem.PublicSettingsFilePath));
@@ -2006,7 +2011,7 @@ namespace Microsoft.P4VFS.UnitTest
 
 			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSyncSettings())
 			{
-				using (settings) {
+				using (settings.CreateDisposable()) {
 				using (DepotClient depotClient = new DepotClient()) {
 				DepotSyncFlags syncFlags = settings.SyncFlags.Value;
 
@@ -2035,7 +2040,7 @@ namespace Microsoft.P4VFS.UnitTest
 				settings.SyncFlags = settings.SyncFlags.Value | DepotSyncFlags.ClientSize;
 				VirtualFileSystemLog.Info("EnumerateCommonServiceSyncLineEndSettings: {0}", settings);
 
-				using (settings) {
+				using (settings.CreateDisposable()) {
 				using (DepotClient depotClient = new DepotClient()) {
 				
 				WorkspaceReset();

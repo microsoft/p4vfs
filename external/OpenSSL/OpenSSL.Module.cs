@@ -12,7 +12,7 @@ namespace Microsoft.P4VFS.External
 {
 	public class OpensslModule : Module
 	{
-		private const string OPENSSL_VERSION = "3.3.3";
+		private const string OPENSSL_VERSION = "3.0.18";
 		private const string PERL_PACKAGE_NAME = "StrawberryPerl";
 		private const string PERL_VERSION = "5.28.0.1";
 
@@ -75,7 +75,7 @@ namespace Microsoft.P4VFS.External
 				$"@ECHO ON",
 				$"CALL \"{vcvarsScriptPath}\"",
 				$"CD /D \"{opensslArchiveFolder}\"",
-				$"\"{perlExe}\" Configure VC-WIN64A no-asm no-apps no-tests \"--prefix={opensslConfigurationFolder}\" \"--openssldir={opensslConfigurationFolder}-ssl\" --{configuration}",
+				$"\"{perlExe}\" Configure VC-WIN64A no-asm no-tests \"--prefix={opensslConfigurationFolder}\" \"--openssldir={opensslConfigurationFolder}-ssl\" --{configuration}",
 				$"IF %ERRORLEVEL% NEQ 0 EXIT /B 1",
 				$"nmake clean",
 				$"IF %ERRORLEVEL% NEQ 0 EXIT /B 1",

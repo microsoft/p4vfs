@@ -336,9 +336,9 @@ FilePopulateMethod::ToString(
 	FilePopulateMethod::Enum value
 	)
 {
-	P4VFS_ENUM_TO_STRING_RETURN(value, FilePopulateMethod, Copy);
-	P4VFS_ENUM_TO_STRING_RETURN(value, FilePopulateMethod, Move);
-	P4VFS_ENUM_TO_STRING_RETURN(value, FilePopulateMethod, Stream);
+	P4VFS_ENUM_TO_STRING_RETURN(AString, value, FilePopulateMethod, Copy);
+	P4VFS_ENUM_TO_STRING_RETURN(AString, value, FilePopulateMethod, Move);
+	P4VFS_ENUM_TO_STRING_RETURN(AString, value, FilePopulateMethod, Stream);
 	return AString();
 }
 

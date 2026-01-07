@@ -147,6 +147,22 @@ namespace P4 {
 			CreateFileSpecFlags::Enum flags = CreateFileSpecFlags::None
 			);
 
+		static DepotStringArray
+		DepotOperations::CreateFileSpecs(
+			DepotClient& depotClient,
+			const DepotSyncActionInfoArray& fileModifications,
+			const DepotRevision& revision, 
+			CreateFileSpecFlags::Enum flags
+			);
+
+		static DepotResultDiff2
+		DepotOperations::Diff2Stat(
+			DepotClient& depotClient,
+			DepotSyncFlags::Enum syncFlags,
+			const DepotStringArray& fileSpecs,
+			const DepotSyncActionInfoArray& fileModifications
+			);
+
 		static DepotResultDiff2
 		Diff2(
 			DepotClient& depotClient,
@@ -173,6 +189,11 @@ namespace P4 {
 			DepotClient& depotClient,
 			const DepotString& fileSpec, 
 			SizesFlags::Enum flags = SizesFlags::None
+			);
+
+		static bool
+		IsFullDepotFileSpec(
+			const DepotString& fileSpec
 			);
 
 		static bool

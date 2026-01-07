@@ -11,17 +11,17 @@ namespace Microsoft {
 namespace P4VFS {
 namespace FileCore {
 
-AString LogChannel::ToString(Enum value)
+String LogChannel::ToString(Enum value)
 {
-	P4VFS_ENUM_TO_STRING_RETURN(value, LogChannel, Verbose);
-	P4VFS_ENUM_TO_STRING_RETURN(value, LogChannel, Debug);
-	P4VFS_ENUM_TO_STRING_RETURN(value, LogChannel, Info);
-	P4VFS_ENUM_TO_STRING_RETURN(value, LogChannel, Warning);
-	P4VFS_ENUM_TO_STRING_RETURN(value, LogChannel, Error);
-	return AString();
+	P4VFS_ENUM_TO_STRING_RETURN(String, value, LogChannel, Verbose);
+	P4VFS_ENUM_TO_STRING_RETURN(String, value, LogChannel, Debug);
+	P4VFS_ENUM_TO_STRING_RETURN(String, value, LogChannel, Info);
+	P4VFS_ENUM_TO_STRING_RETURN(String, value, LogChannel, Warning);
+	P4VFS_ENUM_TO_STRING_RETURN(String, value, LogChannel, Error);
+	return String();
 }
 
-LogChannel::Enum LogChannel::FromString(const AString& value)
+LogChannel::Enum LogChannel::FromString(const String& value)
 {
 	P4VFS_STRING_TO_ENUM_RETURN(value, LogChannel, Verbose);
 	P4VFS_STRING_TO_ENUM_RETURN(value, LogChannel, Debug);
@@ -129,7 +129,7 @@ void LogDeviceFile::WriteInternal(time_t time, LogChannel::Enum channel, const S
 {
 	String line = StringInfo::Format(L"-%s::<%s> - %s\n", 
 		CSTR_ATOW(P4::DepotDateTime(time).ToDisplayString()), 
-		CSTR_ATOW(LogChannel::ToString(channel)), 
+		LogChannel::ToString(channel).c_str(), 
 		StringInfo::TrimRight(text.c_str(), L"\n").c_str());
 
 	if (m_RemoteFilePath.empty() == false && SettingManager::StaticInstance().RemoteLogging.GetValue())
@@ -440,7 +440,7 @@ void LogSystem::WriteLogElement(const LogElement& element)
 
 bool LogSystem::IsChannelEnabled(LogChannel::Enum channel)
 {
-	return channel >= LogChannel::FromString(StringInfo::ToAnsi(SettingManager::StaticInstance().Verbosity.GetValue()));
+	return channel >= LogChannel::FromString(SettingManager::StaticInstance().Verbosity.GetValue());
 }
 
 DWORD LogSystem::WriteThreadEntry(void* data)

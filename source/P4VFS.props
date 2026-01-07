@@ -65,7 +65,7 @@
     <P4VFSUnitTestBuildDir>$(P4VFSBuildDir)/$(P4VFSUnitTestName)</P4VFSUnitTestBuildDir>
 
     <!-- Perforce API -->
-    <PerforceApiVersion>2024.1</PerforceApiVersion>
+    <PerforceApiVersion>2025.2</PerforceApiVersion>
     <PerforceApiConfiguration>$(P4VFSConfiguration)</PerforceApiConfiguration>
     <PerforceApiDir>$(P4VFSExternalDir)/P4API/$(PerforceApiVersion)</PerforceApiDir>
     <PerforceApiIncludeDir>$(PerforceApiDir)/include</PerforceApiIncludeDir>
@@ -73,7 +73,7 @@
     <PerforceApiLibFiles>libclient.lib;libp4api.lib;libp4script.lib;libp4script_c.lib;libp4script_curl.lib;libp4script_sqlite.lib;librpc.lib;libsupp.lib</PerforceApiLibFiles>
 
     <!-- OpenSSL -->
-    <OpenSSLApiVersion>3.3.3</OpenSSLApiVersion>
+    <OpenSSLApiVersion>3.0.18</OpenSSLApiVersion>
     <OpenSSLApiConfiguration>$(P4VFSConfiguration)</OpenSSLApiConfiguration>
     <OpenSSLApiDir>$(P4VFSExternalDir)/OpenSSL/$(OpenSSLApiVersion)</OpenSSLApiDir>
     <OpenSSLApiIncludeDir>$(OpenSSLApiDir)/include</OpenSSLApiIncludeDir>

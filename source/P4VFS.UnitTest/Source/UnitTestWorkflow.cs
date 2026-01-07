@@ -21,9 +21,9 @@ namespace Microsoft.P4VFS.UnitTest
 		[TestMethod, Priority(0)]
 		public void ReconciledTest()
 		{
-			foreach (ServiceSettingsScope settings in EnumerateCommonServicePopulateSettings())
+			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSettings())
 			{
-				using (settings) {
+				using (settings.CreateDisposable()) {
 				WorkspaceReset();
 
 				string[] fileSpecs = new string[]{ 
@@ -52,9 +52,9 @@ namespace Microsoft.P4VFS.UnitTest
 		[TestMethod, Priority(1)]
 		public void CurrentWorkingDirectoryTest()
 		{
-			foreach (ServiceSettingsScope settings in EnumerateCommonServicePopulateSettings())
+			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSettings())
 			{
-				using (settings) {
+				using (settings.CreateDisposable()) {
 				foreach (string syncOption in EnumerateCommonConsoleSyncOptions())
 				{
 					WorkspaceReset();
@@ -165,9 +165,9 @@ namespace Microsoft.P4VFS.UnitTest
 		[TestMethod, Priority(5), TestRemote]
 		public void ResidentCommandTest()
 		{
-			foreach (ServiceSettingsScope settings in EnumerateCommonServicePopulateSettings())
+			foreach (ServiceSettingsScope settings in EnumerateCommonServiceSettings())
 			{
-				using (settings) {
+				using (settings.CreateDisposable()) {
 				WorkspaceReset();
 
 				string clientRoot = GetClientRoot();

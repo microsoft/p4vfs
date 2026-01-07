@@ -9,8 +9,8 @@ namespace P4 {
 
 DepotString DepotSyncMethod::ToString(DepotSyncMethod::Enum value)
 {
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncMethod, Regular);
-	P4VFS_ENUM_TO_STRING_RETURN(value, DepotSyncMethod, Virtual);
+	P4VFS_ENUM_TO_STRING_RETURN(DepotString, value, DepotSyncMethod, Regular);
+	P4VFS_ENUM_TO_STRING_RETURN(DepotString, value, DepotSyncMethod, Virtual);
 	return DepotString();
 }
 

@@ -49,9 +49,9 @@ The tool respects P4CONFIG file usage, as well as supports typical configuration
 # Build and Test
 ### Build Requirments:
 
-1. Visual Studio 2022 version 17.5.0 or later
-1. Windows SDK version 10.0.26100.1742
-1. Windows WDK version 10.0.26100.2454
+1. Visual Studio 2022 version 17.14.0 or later
+1. Windows SDK version 10.0.26100.7175
+1. Windows WDK version 10.0.26100.6584
 
 Details for installing Visual Studio 2022, the Windows Software Development Kit (SDK), and the Windows Driver Kit (WDK) can be found here: 
 > [Download the Windows Driver Kit](https://learn.microsoft.com/en-us/windows-hardware/drivers/download-the-wdk)

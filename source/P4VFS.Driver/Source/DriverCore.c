@@ -1169,11 +1169,11 @@ P4vfsOpenReparsePoint(
 
 	if (!NT_SUCCESS(status))
 	{
-		P4vfsTraceError(Core, L"P4vfsReopenFile: FltCreateFileEx2 failed [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
+		P4vfsTraceError(Core, L"P4vfsOpenReparsePoint: FltCreateFileEx2 failed [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
 		goto CLEANUP;
 	}
 
-	P4vfsTraceInfo(Core, L"P4vfsReopenFile: FltCreateFileEx2 success [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
+	P4vfsTraceInfo(Core, L"P4vfsOpenReparsePoint: FltCreateFileEx2 success [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
 
 	*pTargetHandle = hLocalFile;
 	hLocalFile = NULL;
@@ -1233,7 +1233,7 @@ P4vfsIsCurrentProcessElevated(
 	NTSTATUS status = STATUS_SUCCESS;
 	PEPROCESS pProcessObject = NULL;
 	PACCESS_TOKEN pAccessToken = NULL;
-	PTOKEN_ELEVATION_TYPE pElevationType = NULL;
+	PTOKEN_ELEVATION pElevation = NULL;
 
 	PAGED_CODE();
 
@@ -1244,6 +1244,9 @@ P4vfsIsCurrentProcessElevated(
 		goto CLEANUP;
 	}
 
+	// Reference the process primary token explicitly. This is unaffected by any impersonation
+	// that may be active on the current thread.
+	
 	pAccessToken = PsReferencePrimaryToken(pProcessObject);
 	if (pAccessToken == NULL)
 	{
@@ -1251,27 +1254,31 @@ P4vfsIsCurrentProcessElevated(
 		goto CLEANUP;
 	}
 
+	// Use TokenElevation (TOKEN_ELEVATION::TokenIsElevated) rather than TokenElevationType.
+	// TokenElevationType may not report TokenElevationTypeFull type while impersonating, whereas 
+	// TokenIsElevated reflects the true elevation state of the primary token.
+	
 	status = SeQueryInformationToken(pAccessToken,
-									 TokenElevationType,
-									 &pElevationType);
+									 TokenElevation,
+									 &pElevation);
 
-	if (!NT_SUCCESS(status) || pElevationType == NULL) 
+	if (!NT_SUCCESS(status) || pElevation == NULL) 
 	{
-		P4vfsTraceError(Core, L"P4vfsIsCurrentProcessElevated: Failed to query TokenElevationType");
+		P4vfsTraceError(Core, L"P4vfsIsCurrentProcessElevated: Failed to query TokenElevation");
 		goto CLEANUP;
 	}
 
-	if (*pElevationType == TokenElevationTypeFull)
+	if (pElevation->TokenIsElevated != 0)
 	{
 		result = TRUE;
 	}
 
-	P4vfsTraceInfo(Core, L"P4vfsIsCurrentProcessElevated: Result [%d] pElevationType [%d]", (LONG)result, (LONG)(*pElevationType));
+	P4vfsTraceInfo(Core, L"P4vfsIsCurrentProcessElevated: Result [%d] TokenIsElevated [%d]", (LONG)result, (LONG)(pElevation->TokenIsElevated));
 
 CLEANUP:
-	if (pElevationType != NULL) 
+	if (pElevation != NULL) 
 	{
-		ExFreePool(pElevationType);
+		ExFreePool(pElevation);
 	}
 
 	if (pAccessToken != NULL)

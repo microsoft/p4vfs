@@ -1094,11 +1094,29 @@ CLEANUP:
 }
 
 NTSTATUS
+P4vfsPushOpenFileObject(
+	_In_ PFILE_OBJECT pFileObject,
+	_In_ HANDLE	fileHandle,
+	_Out_ P4VFS_OPEN_FILE_OBJECT* pOpenFileObject
+	)
+{
+	return STATUS_INVALID_PARAMETER;
+}
+
+NTSTATUS
+P4vfsPopOpenFileObject(
+	_In_ P4VFS_FLT_FILE_ID* pFileId,
+	_Out_ P4VFS_OPEN_FILE_OBJECT* pOpenFileObject
+	)
+{
+	return STATUS_INVALID_PARAMETER;
+}
+
+NTSTATUS
 P4vfsOpenReparsePoint(
 	_In_ PUNICODE_STRING pFileName,
 	_In_ ACCESS_MASK desiredAccess,
-	_Out_ PHANDLE pTargetHandle,
-	_Outptr_ PFILE_OBJECT* ppTargetFileObject
+	_Out_ P4VFS_FLT_FILE_HANDLE* pFileHandle
 	)
 {
 	NTSTATUS status = STATUS_SUCCESS;
@@ -1109,8 +1127,16 @@ P4vfsOpenReparsePoint(
 	PFILE_OBJECT pLocalFileObject = NULL;
 	UNICODE_STRING fileIdPath = {0};
 	PFLT_INSTANCE pFltInstance = NULL;
+	P4VFS_OPEN_FILE_OBJECT openFileObject = {0};
 
 	PAGED_CODE();
+
+	if (pFileHandle == NULL)
+	{
+		status = STATUS_INVALID_PARAMETER;
+		P4vfsTraceError(Core, L"P4vfsOpenReparsePoint: pFileHandle is NULL"); 
+		goto CLEANUP;
+	}
 
 	// We wish to open an existing reparse point file by using FILE_OPEN_BY_FILE_ID so as to avoid 
 	// directory notifications. We take this opportunity to query our PFLT_INSTANCE for the volume
@@ -1173,11 +1199,25 @@ P4vfsOpenReparsePoint(
 		goto CLEANUP;
 	}
 
-	P4vfsTraceInfo(Core, L"P4vfsOpenReparsePoint: FltCreateFileEx2 success [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
+	// The kernel PFILE_OBJECT will remain private. We will only expose the user mode HANDLE along with an opaque P4VFS_FLT_FILE_ID.
+	// Future operations on this PFILE_OBJECT will restricted behind the P4VFS_FLT_FILE_ID and our internal P4VFS_OPEN_FILE_OBJECT.
 
-	*pTargetHandle = hLocalFile;
+	status = P4vfsPushOpenFileObject(pLocalFileObject, 
+									 hLocalFile, 
+									 &openFileObject);
+									 
+	if (!NT_SUCCESS(status))
+	{
+		P4vfsTraceError(Core, L"P4vfsOpenReparsePoint: P4vfsPushOpenFileObject failed [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
+		goto CLEANUP;
+	}
+
+	pFileHandle->fileHandle = openFileObject.fileHandle;
+	pFileHandle->fileId = openFileObject.fileId;		
+
+	P4vfsTraceInfo(Core, L"P4vfsOpenReparsePoint: FltCreateFileEx2 success [%wZ] fileIdPath [%wZ] Id [0x%I64x] [%!STATUS!]", pFileName, &fileIdPath, openFileObject.fileId.Id, status); 
+
 	hLocalFile = NULL;
-	*ppTargetFileObject = pLocalFileObject;
 	pLocalFileObject = NULL;
 
 CLEANUP:
@@ -1206,23 +1246,45 @@ CLEANUP:
 
 NTSTATUS
 P4vfsCloseReparsePoint(
-	_In_ HANDLE hFile,
-	_In_ PFILE_OBJECT pFileObject
+	_In_ P4VFS_FLT_FILE_HANDLE* pFileHandle
 	)
 {
+	NTSTATUS status = STATUS_SUCCESS;
+	P4VFS_OPEN_FILE_OBJECT openFileObject = {0};
+
 	PAGED_CODE();
 
-	if (hFile != NULL)
+	if (pFileHandle == NULL)
 	{
-		FltClose(hFile);
+		status = STATUS_INVALID_PARAMETER;
+		P4vfsTraceError(Core, L"P4vfsCloseReparsePoint: pFileHandle is NULL"); 
+		goto CLEANUP;
 	}
 
-	if (pFileObject != NULL)
+	// We do not trust the HANDLE passed in from P4VFS_FLT_FILE_HANDLE. Instead we'll look for the P4VFS_OPEN_FILE_OBJECT by Id 
+	// and confirm the HANDLE and ownership is what we expect.
+
+	status = P4vfsPopOpenFileObject(&pFileHandle->fileId, 
+									&openFileObject);
+									
+	if (!NT_SUCCESS(status))
 	{
-		ObDereferenceObject(pFileObject);
+		P4vfsTraceError(Core, L"P4vfsCloseReparsePoint: P4vfsPopOpenFileObject failed with fileId [0x%I64x] [%!STATUS!]", pFileHandle->fileId.Id, status); 
+		goto CLEANUP;
 	}
 
-	return STATUS_SUCCESS;
+	if (openFileObject.fileHandle != NULL)
+	{
+		FltClose(openFileObject.fileHandle);
+	}
+
+	if (openFileObject.pFileObject != NULL)
+	{
+		ObDereferenceObject(openFileObject.pFileObject);
+	}
+
+CLEANUP:
+	return status;
 }
 
 BOOLEAN

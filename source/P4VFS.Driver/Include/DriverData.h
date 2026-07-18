@@ -135,10 +135,15 @@ typedef struct _P4VFS_SERVICE_REPLY
 typedef struct _FILE_OBJECT* PFILE_OBJECT;
 #endif
 
+typedef struct _P4VFS_FLT_FILE_ID
+{
+	ULONGLONG Id;
+} P4VFS_FLT_FILE_ID;
+
 typedef struct _P4VFS_FLT_FILE_HANDLE
 {
 	HANDLE fileHandle;
-	PFILE_OBJECT fileObject;
+	P4VFS_FLT_FILE_ID fileId;
 } P4VFS_FLT_FILE_HANDLE;
 
 typedef struct _P4VFS_CONTROL_MSG

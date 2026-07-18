@@ -825,8 +825,7 @@ P4vfsControlPortMessage(
 			
 			status = P4vfsOpenReparsePoint(&unicodeFilePath,
 										   desiredAccess,
-										   &output->data.OPEN_REPARSE_POINT.handle.fileHandle,
-										   &output->data.OPEN_REPARSE_POINT.handle.fileObject);
+										   &output->data.OPEN_REPARSE_POINT.handle);
 
 			output->data.OPEN_REPARSE_POINT.ntstatus = status;
 			break;
@@ -840,8 +839,7 @@ P4vfsControlPortMessage(
 				break;
 			}
 
-			status = P4vfsCloseReparsePoint(input->data.CLOSE_REPARSE_POINT.handle.fileHandle,
-											input->data.CLOSE_REPARSE_POINT.handle.fileObject);
+			status = P4vfsCloseReparsePoint(&input->data.CLOSE_REPARSE_POINT.handle);
 
 			output->data.CLOSE_REPARSE_POINT.ntstatus = status;
 			break;

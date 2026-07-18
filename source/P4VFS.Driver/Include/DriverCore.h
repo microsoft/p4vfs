@@ -130,14 +130,12 @@ NTSTATUS
 P4vfsOpenReparsePoint(
 	_In_ PUNICODE_STRING pFileName,
 	_In_ ACCESS_MASK desiredAccess,
-	_Out_ PHANDLE pTargetHandle,
-	_Outptr_ PFILE_OBJECT* ppTargetFileObject
+	_Out_ P4VFS_FLT_FILE_HANDLE* pFileHandle
 	);
 
 NTSTATUS
 P4vfsCloseReparsePoint(
-	_In_ HANDLE hHandle,
-	_In_ PFILE_OBJECT pFileObject
+	_In_ P4VFS_FLT_FILE_HANDLE* pFileHandle
 	);
 
 BOOLEAN

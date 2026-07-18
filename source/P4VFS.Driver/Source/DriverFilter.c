@@ -341,6 +341,7 @@ DriverEntry(
 		goto CLEANUP; 
 	}
 
+	// Grant all access to the control port as each command will enforce elevated permission as necessary
 	RtlSetDaclSecurityDescriptor(controlSecurityDescriptor, TRUE, NULL, FALSE);
 	if (!NT_SUCCESS(status)) 
 	{ 
@@ -802,6 +803,13 @@ P4vfsControlPortMessage(
 		}
 		case P4VFS_OPERATION_OPEN_REPARSE_POINT:
 		{
+			if (P4vfsIsCurrentProcessElevated() == FALSE)
+			{
+				P4vfsTraceError(Filter, L"P4vfsControlPortMessage: P4VFS_OPERATION_OPEN_REPARSE_POINT elevation required");
+				status = STATUS_ELEVATION_REQUIRED;
+				break;
+			}
+
 			UNICODE_STRING unicodeFilePath = {0};
 			status = P4vfsToUnicodeString(&input->data.OPEN_REPARSE_POINT.filePath, &unicodeFilePath);
 			if (!NT_SUCCESS(status))
@@ -825,6 +833,13 @@ P4vfsControlPortMessage(
 		}
 		case P4VFS_OPERATION_CLOSE_REPARSE_POINT:
 		{
+			if (P4vfsIsCurrentProcessElevated() == FALSE)
+			{
+				P4vfsTraceError(Filter, L"P4vfsControlPortMessage: P4VFS_OPERATION_CLOSE_REPARSE_POINT elevation required");
+				status = STATUS_ELEVATION_REQUIRED;
+				break;
+			}
+
 			status = P4vfsCloseReparsePoint(input->data.CLOSE_REPARSE_POINT.handle.fileHandle,
 											input->data.CLOSE_REPARSE_POINT.handle.fileObject);
 

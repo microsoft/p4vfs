@@ -263,6 +263,7 @@ typedef enum _POOL_TYPE {
 #define	FLT_FILE_NAME_ALLOW_QUERY_ON_REPARSE	0x04000000
 #define OBJ_CASE_INSENSITIVE					0x00000040L
 #define OBJ_KERNEL_HANDLE						0x00000200L
+#define OBJ_FORCE_ACCESS_CHECK					0x00000400L
 #define POOL_FLAG_NON_PAGED						0x0000000000000040UI64
 #define	FileBasicInformation					4
 #define FileStandardInformation					5

@@ -1,5 +1,8 @@
 Microsoft P4VFS Release Notes
 
+Version [1.30.0.0]
+* Security updates addressing MSRC-126533, MSRC-121148, MSRC-121146, MSRC-121144
+
 Version [1.29.4.0]
 * Updating to latest P4API 25.2
 * Migrating to OpenSSL 3.0 LTS as recommended by P4API 25.2 with latest 3.0.18

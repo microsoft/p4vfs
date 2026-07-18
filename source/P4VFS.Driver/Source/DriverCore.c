@@ -1141,11 +1141,12 @@ P4vfsOpenReparsePoint(
 	createContext.SiloContext =	PsGetHostSilo();
 
 	// We use the fileIdPath in place of the pFileName path for FILE_OPEN_BY_FILE_ID.
+	// Use OBJ_FORCE_ACCESS_CHECK to verify that the application has the necessary access.
 	// The IO_IGNORE_SHARE_ACCESS_CHECK is used to avoid existing share conflicts
 
 	InitializeObjectAttributes(&objectAttributes,
 							   &fileIdPath,
-							   OBJ_CASE_INSENSITIVE,
+							   OBJ_CASE_INSENSITIVE | OBJ_FORCE_ACCESS_CHECK,
 							   NULL,
 							   NULL);
 

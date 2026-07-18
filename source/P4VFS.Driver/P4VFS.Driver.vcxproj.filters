@@ -12,6 +12,9 @@
     <Filter Include="Resource">
       <UniqueIdentifier>{7d8d6eb4-5bd6-4f2d-aa81-fe952550cb96}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scripts">
+      <UniqueIdentifier>{f2284f34-e352-45ea-be40-841a882442ef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\DriverTrace.h">
@@ -45,5 +48,28 @@
   </ItemGroup>
   <ItemGroup>
     <Inf Include="p4vfsflt.inf" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Scripts\TestInstall.bat">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="Scripts\TestSetup.bat">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="Scripts\TestUninstall.bat">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="Scripts\TraceEnv.bat">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="Scripts\TraceStart.bat">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="Scripts\TraceStop.bat">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="Scripts\TestPush.bat">
+      <Filter>Scripts</Filter>
+    </None>
   </ItemGroup>
 </Project>

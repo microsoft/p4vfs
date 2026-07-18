@@ -25,7 +25,7 @@ namespace Microsoft.P4VFS.CodeSign
 {
 	public class DevCenterClient : ICodeSignClient
 	{
-		private static readonly string HdcVersion = "1.0";
+		private static readonly string HdcVersion = "2.0";
 		private static readonly string HdcTenant = "my";
 		private static readonly string HdcRootUri = $"/v{HdcVersion}/{HdcTenant}/hardware";
 

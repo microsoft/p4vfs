@@ -27,5 +27,12 @@ IF NOT "%ERRORLEVEL%"=="0" (
 	EXIT /B 1
 )
 
+:: Enable Windows Developer Mode (allows unprivileged symbolic link creation)
+reg.exe add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock /v AllowDevelopmentWithoutDevLicense /t REG_DWORD /d 1 /f
+IF NOT "%ERRORLEVEL%"=="0" (
+	ECHO Failed to enable Windows Developer Mode
+	EXIT /B 1
+)
+
 ECHO Successfully setup machine for test drivers. Reboot is probably required.
 EXIT /B 0

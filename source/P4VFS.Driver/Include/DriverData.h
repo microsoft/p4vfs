@@ -137,7 +137,7 @@ typedef struct _FILE_OBJECT* PFILE_OBJECT;
 
 typedef struct _P4VFS_FLT_FILE_ID
 {
-	ULONGLONG Id;
+	ULONGLONG data;
 } P4VFS_FLT_FILE_ID;
 
 typedef struct _P4VFS_FLT_FILE_HANDLE

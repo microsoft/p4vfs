@@ -13,6 +13,7 @@
 #define P4VFS_FILE_NAME_ALLOC_TAG				'NsvP'
 #define P4VFS_SERVICE_PORT_HANDLE_ALLOC_TAG		'SsvP'
 #define P4VFS_CONTROL_PORT_HANDLE_ALLOC_TAG		'CsvP'
+#define P4VFS_OPEN_FILE_OBJECT_ALLOC_TAG		'FsvP'
 
 NTSTATUS
 P4vfsUserModeExecuteDrvRequest(
@@ -124,6 +125,19 @@ P4vfsGetFileIdByFileName(
 	_In_ PUNICODE_STRING pFileName,
 	_Out_ PUNICODE_STRING pOutFileIdPath,
 	_Outptr_opt_ PFLT_INSTANCE* ppFltInstance
+	);
+
+NTSTATUS
+P4vfsPushOpenFileObject(
+	_In_ PFILE_OBJECT pFileObject,
+	_In_ HANDLE	fileHandle,
+	_Out_ P4VFS_OPEN_FILE_OBJECT* pOpenFileObject
+	);
+
+NTSTATUS
+P4vfsPopOpenFileObject(
+	_In_ P4VFS_FLT_FILE_ID* pFileId,
+	_Out_ P4VFS_OPEN_FILE_OBJECT* pOpenFileObject
 	);
 
 NTSTATUS

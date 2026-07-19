@@ -460,7 +460,9 @@ P4vfsIsEqualActionFileKey(
 	if (fileKey0->Length == fileKey1->Length && fileKey0->Buffer != NULL && fileKey1->Buffer != NULL)
 	{
 		if (RtlCompareMemory(fileKey0->Buffer, fileKey1->Buffer, fileKey0->Length) == fileKey0->Length)
+		{
 			return TRUE;
+		}
 	}
 
 	return FALSE;
@@ -476,7 +478,9 @@ P4vfsQueryAnyReparseActionInProgress(
 	ExAcquireFastMutex(&g_FltContext.hReparseActionLock);
 	{
 		if (g_FltContext.pReparseActionList != NULL)
+		{
 			result = TRUE;
+		}
 	}
 	ExReleaseFastMutex(&g_FltContext.hReparseActionLock);
 	return result;
@@ -1100,7 +1104,60 @@ P4vfsPushOpenFileObject(
 	_Out_ P4VFS_OPEN_FILE_OBJECT* pOpenFileObject
 	)
 {
-	return STATUS_INVALID_PARAMETER;
+	NTSTATUS status = STATUS_SUCCESS;
+	P4VFS_OPEN_FILE_OBJECT* pLinkedFileObject = NULL;
+
+	PAGED_CODE();
+
+	if (pOpenFileObject == NULL)
+	{
+		status = STATUS_INVALID_PARAMETER;
+		P4vfsTraceError(Core, L"P4vfsPushOpenFileObject: pOpenFileObject is NULL"); 
+		goto CLEANUP;
+	}
+
+	pLinkedFileObject = (P4VFS_OPEN_FILE_OBJECT*)ExAllocatePoolZero( 
+													NonPagedPoolNx,
+													sizeof(P4VFS_OPEN_FILE_OBJECT),
+													P4VFS_OPEN_FILE_OBJECT_ALLOC_TAG);
+
+	if (pLinkedFileObject == NULL) 
+	{
+		status = STATUS_INSUFFICIENT_RESOURCES;
+		P4vfsTraceError(Core, L"P4vfsPushOpenFileObject: Failed to Allocate P4VFS_OPEN_FILE_OBJECT size [%d]", sizeof(P4VFS_OPEN_FILE_OBJECT)); 
+		goto CLEANUP;
+	}
+
+	ULONGLONG nextUniqueId = (ULONGLONG)(ULONG)InterlockedIncrement(&g_FltContext.nFileIdCount);
+	ULONGLONG processId = (ULONGLONG)(ULONG_PTR)PsGetCurrentProcessId();
+	ULONGLONG threadId = (ULONGLONG)(ULONG_PTR)PsGetCurrentThreadId();
+	
+	#define MIX_U64_TO_U16(a) (((a)>>48)&0xFFFF) ^ (((a)>>32)&0xFFFF) ^ (((a)>>16)&0xFFFF) ^ ((a)&0xFFFF)
+	processId = MIX_U64_TO_U16(processId);
+	threadId = MIX_U64_TO_U16(threadId);
+	#undef MIX_U64_TO_U16
+	
+	// The interal pLinkedFileObject will reside in the linked list of P4VFS_OPEN_FILE_OBJECT
+	// The fileId is a unique and obfuscated 64bit value which will serve well to track this handle in user mode.
+	// We can also use the fileHandle to cross-reference with the fileId if needed for additional verification
+	pLinkedFileObject->fileId.data = (nextUniqueId<<32) | (processId<<16) | threadId;
+	pLinkedFileObject->pFileObject = pFileObject;
+	pLinkedFileObject->fileHandle = fileHandle;
+
+	// Insert the pLinkedFileObject into the linked list
+	// Assign a copy of the pLinkedFileObject which we are now tracking
+	ExAcquireFastMutex(&g_FltContext.hOpenFileObjectLock);
+	{
+		pLinkedFileObject->pNext = g_FltContext.pOpenFileObjectList;
+		g_FltContext.pOpenFileObjectList = pLinkedFileObject;
+
+		*pOpenFileObject = *pLinkedFileObject;
+		pOpenFileObject->pNext = NULL;
+	}
+	ExReleaseFastMutex(&g_FltContext.hOpenFileObjectLock);
+
+CLEANUP:
+	return status;
 }
 
 NTSTATUS
@@ -1109,7 +1166,71 @@ P4vfsPopOpenFileObject(
 	_Out_ P4VFS_OPEN_FILE_OBJECT* pOpenFileObject
 	)
 {
-	return STATUS_INVALID_PARAMETER;
+	NTSTATUS status = STATUS_SUCCESS;
+	P4VFS_OPEN_FILE_OBJECT* pObject = NULL;
+	P4VFS_OPEN_FILE_OBJECT* pPrevObject = NULL;
+	P4VFS_OPEN_FILE_OBJECT* pFreeObject = NULL;
+
+	PAGED_CODE();
+
+	if (pOpenFileObject == NULL)
+	{
+		status = STATUS_INVALID_PARAMETER;
+		P4vfsTraceError(Core, L"P4vfsPopOpenFileObject: pOpenFileObject is NULL"); 
+		goto CLEANUP;
+	}
+
+	if (pFileId == NULL)
+	{
+		status = STATUS_INVALID_PARAMETER;
+		P4vfsTraceError(Core, L"P4vfsPopOpenFileObject: pFileId is NULL"); 
+		goto CLEANUP;
+	}
+	
+	// Search our linked list of known file objects for one with this pFileId
+	ExAcquireFastMutex(&g_FltContext.hOpenFileObjectLock);
+	{
+		for (pObject = g_FltContext.pOpenFileObjectList; pObject != NULL; pObject = pObject->pNext)
+		{
+			if (pObject->fileId.data == pFileId->data)
+			{
+				break;
+			}
+
+			pPrevObject = pObject;
+		}
+
+		if (pObject != NULL)
+		{
+			// Remove the pObject that we found from the linked list
+			if (g_FltContext.pOpenFileObjectList == pObject)
+			{
+				g_FltContext.pOpenFileObjectList = pObject->pNext;
+			}
+			else if (pPrevObject != NULL)
+			{
+				pPrevObject->pNext = pObject->pNext;
+			}
+
+			// Return a copy of the object that we've removed and free it
+			*pOpenFileObject = *pObject;
+			pOpenFileObject->pNext = NULL;
+			pFreeObject = pObject;
+		}
+		else
+		{
+			status = STATUS_NOT_FOUND;
+		}
+	}
+	ExReleaseFastMutex(&g_FltContext.hOpenFileObjectLock);
+
+CLEANUP:
+	if (pFreeObject != NULL)
+	{
+		ExFreePoolWithTag(pFreeObject, P4VFS_OPEN_FILE_OBJECT_ALLOC_TAG);
+	}
+
+	return status;
 }
 
 NTSTATUS
@@ -1215,7 +1336,7 @@ P4vfsOpenReparsePoint(
 	pFileHandle->fileHandle = openFileObject.fileHandle;
 	pFileHandle->fileId = openFileObject.fileId;		
 
-	P4vfsTraceInfo(Core, L"P4vfsOpenReparsePoint: FltCreateFileEx2 success [%wZ] fileIdPath [%wZ] Id [0x%I64x] [%!STATUS!]", pFileName, &fileIdPath, openFileObject.fileId.Id, status); 
+	P4vfsTraceInfo(Core, L"P4vfsOpenReparsePoint: FltCreateFileEx2 success [%wZ] fileIdPath [%wZ] Id [0x%I64x] [%!STATUS!]", pFileName, &fileIdPath, openFileObject.fileId.data, status); 
 
 	hLocalFile = NULL;
 	pLocalFileObject = NULL;
@@ -1269,7 +1390,7 @@ P4vfsCloseReparsePoint(
 									
 	if (!NT_SUCCESS(status))
 	{
-		P4vfsTraceError(Core, L"P4vfsCloseReparsePoint: P4vfsPopOpenFileObject failed with fileId [0x%I64x] [%!STATUS!]", pFileHandle->fileId.Id, status); 
+		P4vfsTraceError(Core, L"P4vfsCloseReparsePoint: P4vfsPopOpenFileObject failed with fileId [0x%I64x] [%!STATUS!]", pFileHandle->fileId.data, status); 
 		goto CLEANUP;
 	}
 

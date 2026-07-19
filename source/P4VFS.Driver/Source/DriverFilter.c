@@ -375,8 +375,9 @@ DriverEntry(
 		goto CLEANUP; 
 	}
 
-	// Initialize the reparse action mutex
+	// Initialize required mutexes
 	ExInitializeFastMutex(&g_FltContext.hReparseActionLock);
+	ExInitializeFastMutex(&g_FltContext.hOpenFileObjectLock);
 
 	// After we have created everything we needed, actually start filtering 
 	status = FltStartFiltering(g_FltContext.pFilter);

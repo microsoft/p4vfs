@@ -65,7 +65,7 @@ void TestFileOperationsOpenReparsePointFile(const TestContext& context)
 
 	// Open the file for write as a reparse point excluding share access checks
 	P4VFS_FLT_FILE_HANDLE fltFile = FileOperations::OpenReparsePointFile(reparseFilePath.c_str(), GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE);
-	Assert(fltFile.fileHandle != NULL && fltFile.fileHandle != INVALID_HANDLE_VALUE && fltFile.fileObject != nullptr);
+	Assert(fltFile.fileHandle != NULL && fltFile.fileHandle != INVALID_HANDLE_VALUE && fltFile.fileId.data != 0);
 	
 	Array<uint8_t> localFileWriteBytes;
 	for (uint32_t i = 1; i <= 5693; ++i)
@@ -153,7 +153,7 @@ void AssertFileOperationsAccessInternal(const TestContext& context, bool isEleva
 	const String adminFilePath = FileOperations::GetExpandedEnvironmentStrings(TEXT("%ProgramFiles%\\P4VFS\\P4VFS.Notes.txt"));
 	Assert(FileInfo::IsRegular(adminFilePath.c_str()));
 	P4VFS_FLT_FILE_HANDLE adminFileHandle = FileOperations::OpenReparsePointFile(adminFilePath.c_str(), FILE_GENERIC_READ|FILE_GENERIC_WRITE, 0);
-	Assert(adminFileHandle.fileHandle != NULL && adminFileHandle.fileHandle != INVALID_HANDLE_VALUE && adminFileHandle.fileObject != nullptr);
+	Assert(adminFileHandle.fileHandle != NULL && adminFileHandle.fileHandle != INVALID_HANDLE_VALUE && adminFileHandle.fileId.data != 0);
 	Assert(SUCCEEDED(FileOperations::CloseReparsePointFile(adminFileHandle)));
 
 	// Attempt to set a driver control message which should be elevated only (this should be a proper set and restore)

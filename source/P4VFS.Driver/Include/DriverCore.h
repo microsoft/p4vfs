@@ -136,7 +136,7 @@ P4vfsPushOpenFileObject(
 
 NTSTATUS
 P4vfsPopOpenFileObject(
-	_In_ P4VFS_FLT_FILE_ID* pFileId,
+	_In_ const P4VFS_FLT_FILE_ID* pFileId,
 	_Out_ P4VFS_OPEN_FILE_OBJECT* pOpenFileObject
 	);
 

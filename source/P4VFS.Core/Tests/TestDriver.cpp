@@ -419,6 +419,13 @@ NTSTATUS SeQueryInformationToken(PACCESS_TOKEN token, TOKEN_INFORMATION_CLASS to
 	return STATUS_UNSUCCESSFUL;
 }
 
+LARGE_INTEGER KeQueryPerformanceCounter(PLARGE_INTEGER*)
+{
+    LARGE_INTEGER counter = {0};
+    QueryPerformanceCounter(&counter);
+    return counter;
+}
+
 #include "DriverCore.h"
 #include "DriverCore.c"
 
@@ -453,7 +460,7 @@ static void InternalTestDriverReset(const TestContext& context)
 	FltGetVolumeFromFileObject = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
 	FltGetVolumeInstanceFromName = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
 
-	ExAllocatePoolZero = [](POOL_TYPE, SIZE_T s, ULONG) -> PVOID { return GAlloc(s); };
+	ExAllocatePoolZero = [](POOL_TYPE, SIZE_T s, ULONG) -> PVOID { void* p = GAlloc(s); Assert(p); ZeroMemory(p, s); return p; };
 	ExFreePoolWithTag = [](PVOID p, ULONG) -> VOID { GFree(p); };
 	ExAcquireFastMutex = P4VFS_DEFAULT_ACTION();
 	ExReleaseFastMutex = P4VFS_DEFAULT_ACTION();
@@ -546,3 +553,50 @@ void TestDriverUnicodeString(const TestContext& context)
 	AssertUserModeResolveFile(veryLongFilePath, L"C:\\");
 }
 
+void TestDriverOpenFileObjectList(const TestContext& context)
+{
+	auto MakeFileObject = [](const PVOID fileObject, const PVOID fileHandle) -> P4VFS_OPEN_FILE_OBJECT
+	{
+		P4VFS_OPEN_FILE_OBJECT obj = {0};
+		obj.pFileObject = (PFILE_OBJECT)fileObject;
+		obj.fileHandle = fileHandle;
+		return obj;
+	};
+
+	InternalTestDriverReset(context);
+	Assert(g_FltContext.pOpenFileObjectList == NULL);
+
+	const P4VFS_OPEN_FILE_OBJECT src0 = MakeFileObject(L"fo0", L"fh0");
+	P4VFS_OPEN_FILE_OBJECT push0 = {0};
+	Assert(P4vfsPushOpenFileObject(src0.pFileObject, src0.fileHandle, &push0) == STATUS_SUCCESS);
+	Assert(src0.pFileObject == push0.pFileObject && src0.fileHandle == push0.fileHandle && push0.fileId.data != 0 && push0.pNext == NULL);
+
+	Assert(g_FltContext.pOpenFileObjectList != NULL);
+
+	const P4VFS_OPEN_FILE_OBJECT src1 = MakeFileObject(L"fo1", L"fh1");
+	P4VFS_OPEN_FILE_OBJECT push1 = {0};
+	Assert(P4vfsPushOpenFileObject(src1.pFileObject, src1.fileHandle, &push1) == STATUS_SUCCESS);
+	Assert(src1.pFileObject == push1.pFileObject && src1.fileHandle == push1.fileHandle && push1.fileId.data != 0 && push1.pNext == NULL);
+	Assert(push1.fileId.data != push0.fileId.data);
+
+	P4VFS_OPEN_FILE_OBJECT pop1 = {0};
+	Assert(P4vfsPopOpenFileObject(&push1.fileId, &pop1) == STATUS_SUCCESS);
+	Assert(src1.pFileObject == pop1.pFileObject && src1.fileHandle == pop1.fileHandle && push1.fileId.data == pop1.fileId.data && pop1.pNext == NULL);
+
+	P4VFS_OPEN_FILE_OBJECT push2 = {0};
+	Assert(P4vfsPushOpenFileObject(src0.pFileObject, src0.fileHandle, &push2) == STATUS_SUCCESS);
+	Assert(src0.pFileObject == push2.pFileObject && src0.fileHandle == push2.fileHandle && push2.fileId.data != 0 && push2.pNext == NULL);
+	
+	P4VFS_OPEN_FILE_OBJECT pop0 = {0};
+	Assert(P4vfsPopOpenFileObject(&push0.fileId, &pop0) == STATUS_SUCCESS);
+	Assert(pop0.pFileObject == push0.pFileObject && pop0.fileHandle == push0.fileHandle && pop0.fileId.data == push0.fileId.data && pop0.pNext == NULL);
+
+	P4VFS_OPEN_FILE_OBJECT pop3 = {0};
+	Assert(P4vfsPopOpenFileObject(&push0.fileId, &pop3) == STATUS_NOT_FOUND);
+
+	P4VFS_OPEN_FILE_OBJECT pop2 = {0};
+	Assert(P4vfsPopOpenFileObject(&push2.fileId, &pop2) == STATUS_SUCCESS);
+	Assert(pop2.pFileObject == push2.pFileObject && pop2.fileHandle == push2.fileHandle && pop2.fileId.data != 0 && pop2.pNext == NULL);
+
+	Assert(g_FltContext.pOpenFileObjectList == NULL);
+}

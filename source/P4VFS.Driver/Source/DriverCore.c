@@ -1128,9 +1128,10 @@ P4vfsPushOpenFileObject(
 		goto CLEANUP;
 	}
 
+	ULONGLONG seed = KeQueryPerformanceCounter(NULL).QuadPart;
 	ULONGLONG nextUniqueId = (ULONGLONG)(ULONG)InterlockedIncrement(&g_FltContext.nFileIdCount);
-	ULONGLONG processId = (ULONGLONG)(ULONG_PTR)PsGetCurrentProcessId();
-	ULONGLONG threadId = (ULONGLONG)(ULONG_PTR)PsGetCurrentThreadId();
+	ULONGLONG processId = seed * (ULONGLONG)(ULONG_PTR)PsGetCurrentProcessId();
+	ULONGLONG threadId = seed * (ULONGLONG)(ULONG_PTR)PsGetCurrentThreadId();
 	
 	#define MIX_U64_TO_U16(a) (((a)>>48)&0xFFFF) ^ (((a)>>32)&0xFFFF) ^ (((a)>>16)&0xFFFF) ^ ((a)&0xFFFF)
 	processId = MIX_U64_TO_U16(processId);
@@ -1162,7 +1163,7 @@ CLEANUP:
 
 NTSTATUS
 P4vfsPopOpenFileObject(
-	_In_ P4VFS_FLT_FILE_ID* pFileId,
+	_In_ const P4VFS_FLT_FILE_ID* pFileId,
 	_Out_ P4VFS_OPEN_FILE_OBJECT* pOpenFileObject
 	)
 {

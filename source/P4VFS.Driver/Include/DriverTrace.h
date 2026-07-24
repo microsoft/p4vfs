@@ -31,7 +31,7 @@
 typedef struct _WPP_HEXDUMP
 {
     USHORT Length;
-    __field_bcount(Length) CONST PVOID Buffer;
+    __field_bcount(Length) CONST VOID* Buffer;
 } WPP_HEXDUMP, *PWPP_HEXDUMP;
 
 __inline

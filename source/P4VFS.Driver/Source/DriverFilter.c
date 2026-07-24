@@ -13,6 +13,7 @@ Environment:
 
 --*/
 #include <fltKernel.h>
+#include <ntintsafe.h>
 #include "DriverCore.h"
 #include "DriverFilter.h"
 #include "DriverFilter.tmh"

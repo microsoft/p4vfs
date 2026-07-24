@@ -20,6 +20,41 @@
 #define WPP_LEVEL_FLAGS_ENABLED(lvl, flags) \
 			(WPP_LEVEL_ENABLED(flags) && WPP_CONTROL(WPP_BIT_ ## flags).Level >= lvl)
 
+#define WPP_LOGFILEIDPATH(x) \
+    WPP_LOGPAIR(sizeof(USHORT), &(x)->Length) \
+    WPP_LOGPAIR((x)->Length, (x)->Buffer)
+
+#define WPP_LOGHEXDUMP(x) \
+    WPP_LOGPAIR(sizeof(USHORT), &(x).Length) \
+    WPP_LOGPAIR((x).Length, (x).Buffer)
+
+typedef struct _WPP_HEXDUMP
+{
+    USHORT Length;
+    __field_bcount(Length) CONST PVOID Buffer;
+} WPP_HEXDUMP, *PWPP_HEXDUMP;
+
+__inline
+WPP_HEXDUMP
+P4vfsCreateWppHexDump(
+    __in ULONG length,
+    __in_bcount(length) CONST PVOID buffer
+    )
+{
+    WPP_HEXDUMP WppHexDump;
+    if (length > USHORT_MAX) 
+	{
+        length = USHORT_MAX;
+    }
+    WppHexDump.Length = (USHORT)length;
+    WppHexDump.Buffer = buffer;
+    return WppHexDump;
+}
+
+#define LOG_HEXDUMP(length, buffer) \
+	P4vfsCreateWppHexDump(length, buffer)
+
+
 // begin_wpp config
 
 // FUNC P4vfsTraceError{ LEVEL=TRACE_LEVEL_ERROR }(FLAGS, MSG, ...);
@@ -30,5 +65,8 @@
 
 // FUNC P4vfsTraceInfo{ LEVEL=TRACE_LEVEL_INFORMATION }(FLAGS, MSG, ...);
 // USEPREFIX(P4vfsTraceInfo, "%!STDPREFIX! [%!FILE! @ %!LINE!] INFO:%!SPACE!");
+
+// DEFINE_CPLX_TYPE(HEXDUMP, WPP_LOGHEXDUMP, WPP_HEXDUMP, ItemHEXDump, "s", _HEX_, 0, 2);
+// DEFINE_CPLX_TYPE(FILEIDPATH, WPP_LOGFILEIDPATH, PUNICODE_STRING, ItemHexBytes, "s", _HEX_, 0, 2);
 
 // end_wpp

@@ -26,6 +26,7 @@
 #include <shlobj.h>
 #include <fltuser.h>
 #include <userenv.h>
+#include <intsafe.h>
 
 #include <msclr/marshal.h>
 #include <msclr/marshal_windows.h>

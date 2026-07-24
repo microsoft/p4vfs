@@ -859,7 +859,7 @@ P4vfsSetFileWritable(
 
 	if (!NT_SUCCESS(status))
 	{
-		P4vfsTraceError(Core, L"P4vfsSetFileWritable: FltCreateFileEx2 failed fileIdPath [%wZ] [%!STATUS!]", pFileIdPath, status); 
+		P4vfsTraceError(Core, L"P4vfsSetFileWritable: FltCreateFileEx2 failed fileIdPath [%!FILEIDPATH!] [%!STATUS!]", pFileIdPath, status); 
 		goto CLEANUP;
 	}
 
@@ -872,7 +872,7 @@ P4vfsSetFileWritable(
 
 	if (!NT_SUCCESS(status))
 	{
-		P4vfsTraceError(Core, L"P4vfsSetFileWritable: FltQueryInformationFile FileBasicInformation fileIdPath [%wZ] [%!STATUS!]", pFileIdPath, status); 
+		P4vfsTraceError(Core, L"P4vfsSetFileWritable: FltQueryInformationFile FileBasicInformation fileIdPath [%!FILEIDPATH!] [%!STATUS!]", pFileIdPath, status); 
 		goto CLEANUP;
 	}
 
@@ -888,7 +888,7 @@ P4vfsSetFileWritable(
 
 		if (!NT_SUCCESS(status))
 		{
-			P4vfsTraceError(Core, L"P4vfsSetFileWritable: FltSetInformationFile FileBasicInformation fileIdPath [%wZ] [%!STATUS!]", pFileIdPath, status); 
+			P4vfsTraceError(Core, L"P4vfsSetFileWritable: FltSetInformationFile FileBasicInformation fileIdPath [%!FILEIDPATH!] [%!STATUS!]", pFileIdPath, status); 
 			goto CLEANUP;
 		}
 	}
@@ -1042,7 +1042,7 @@ P4vfsGetFileIdByFileName(
 
 	if (!NT_SUCCESS(status))
 	{
-		P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: RtlAppendUnicodeToString separator failed [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
+		P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: RtlAppendUnicodeToString separator failed [%wZ] fileIdPath [%!FILEIDPATH!] [%!STATUS!]", pFileName, &fileIdPath, status); 
 		goto CLEANUP;
 	}
 
@@ -1055,7 +1055,7 @@ P4vfsGetFileIdByFileName(
 
 	if (!NT_SUCCESS(status))
 	{
-		P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: RtlAppendUnicodeToString fileIdString failed [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
+		P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: RtlAppendUnicodeToString fileIdString failed [%wZ] fileIdPath [%!FILEIDPATH!] [%!STATUS!]", pFileName, &fileIdPath, status); 
 		goto CLEANUP;
 	}
 
@@ -1317,7 +1317,7 @@ P4vfsOpenReparsePoint(
 
 	if (!NT_SUCCESS(status))
 	{
-		P4vfsTraceError(Core, L"P4vfsOpenReparsePoint: FltCreateFileEx2 failed [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
+		P4vfsTraceError(Core, L"P4vfsOpenReparsePoint: FltCreateFileEx2 failed [%wZ] fileIdPath [%!FILEIDPATH!] [%!STATUS!]", pFileName, &fileIdPath, status); 
 		goto CLEANUP;
 	}
 
@@ -1330,14 +1330,14 @@ P4vfsOpenReparsePoint(
 									 
 	if (!NT_SUCCESS(status))
 	{
-		P4vfsTraceError(Core, L"P4vfsOpenReparsePoint: P4vfsPushOpenFileObject failed [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
+		P4vfsTraceError(Core, L"P4vfsOpenReparsePoint: P4vfsPushOpenFileObject failed [%wZ] fileIdPath [%!FILEIDPATH!] [%!STATUS!]", pFileName, &fileIdPath, status); 
 		goto CLEANUP;
 	}
 
 	pFileHandle->fileHandle = openFileObject.fileHandle;
 	pFileHandle->fileId = openFileObject.fileId;		
 
-	P4vfsTraceInfo(Core, L"P4vfsOpenReparsePoint: FltCreateFileEx2 success [%wZ] fileIdPath [%wZ] Id [0x%I64x] [%!STATUS!]", pFileName, &fileIdPath, openFileObject.fileId.data, status); 
+	P4vfsTraceInfo(Core, L"P4vfsOpenReparsePoint: FltCreateFileEx2 success [%wZ] fileIdPath [%!FILEIDPATH!] Id [0x%016I64X] [%!STATUS!]", pFileName, &fileIdPath, openFileObject.fileId.data, status); 
 
 	hLocalFile = NULL;
 	pLocalFileObject = NULL;
@@ -1391,7 +1391,7 @@ P4vfsCloseReparsePoint(
 									
 	if (!NT_SUCCESS(status))
 	{
-		P4vfsTraceError(Core, L"P4vfsCloseReparsePoint: P4vfsPopOpenFileObject failed with fileId [0x%I64x] [%!STATUS!]", pFileHandle->fileId.data, status); 
+		P4vfsTraceError(Core, L"P4vfsCloseReparsePoint: P4vfsPopOpenFileObject failed with fileId [0x%016I64X] [%!STATUS!]", pFileHandle->fileId.data, status); 
 		goto CLEANUP;
 	}
 

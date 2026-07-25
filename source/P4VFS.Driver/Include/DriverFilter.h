@@ -15,9 +15,8 @@ typedef struct _P4VFS_REPARSE_ACTION
 typedef struct _P4VFS_OPEN_FILE_OBJECT
 {
 	struct _P4VFS_OPEN_FILE_OBJECT*	pNext;
-	P4VFS_FLT_FILE_ID				fileId;
+	P4VFS_FLT_FILE_HANDLE			fltFileHandle;
 	PFILE_OBJECT					pFileObject;
-	HANDLE							fileHandle;
 } P4VFS_OPEN_FILE_OBJECT;
 
 typedef struct _P4VFS_FLT_CONTEXT

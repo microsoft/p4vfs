@@ -98,7 +98,7 @@ P4vfsCopyAssignUnicodeString(
 	_In_ P4VFS_UNICODE_STRING* pTargetString,
 	_In_ VOID* pTargetBuffer,
 	_In_ ULONG targetBufferSize,
-	_In_ const VOID* pSourceBuffer,
+	_In_ CONST VOID* pSourceBuffer,
 	_In_ ULONG sourceBufferSize
 	);
 
@@ -110,7 +110,7 @@ P4vfsAllocateUnicodeString(
 
 NTSTATUS
 P4vfsToUnicodeString(
-	_In_ const P4VFS_UNICODE_STRING* pSrcString,
+	_In_ CONST P4VFS_UNICODE_STRING* pSrcString,
 	_Out_ UNICODE_STRING* pDstString
 	);
 
@@ -136,7 +136,7 @@ P4vfsPushOpenFileObject(
 
 NTSTATUS
 P4vfsPopOpenFileObject(
-	_In_ const P4VFS_FLT_FILE_ID* pFileId,
+	_In_ P4VFS_FLT_FILE_HANDLE* pFileHandle,
 	_Out_ P4VFS_OPEN_FILE_OBJECT* pOpenFileObject
 	);
 
@@ -154,5 +154,19 @@ P4vfsCloseReparsePoint(
 
 BOOLEAN
 P4vfsIsCurrentProcessElevated(
+	);
+
+NTSTATUS
+P4vfsReadUserMemory(
+	_Out_ PVOID pTargetBuffer, 
+	_In_ CONST VOID* pUserSourceBuffer,
+	_In_ ULONG dwLength
+	);
+
+NTSTATUS
+P4vfsWriteUserMemory(
+	_Out_ PVOID pUserTargetBuffer, 
+	_In_ CONST VOID* pSourceBuffer,
+	_In_ ULONG dwLength
 	);
 

@@ -280,7 +280,8 @@ typedef enum _POOL_TYPE {
 
 #define P4VFS_DEFAULT_ACTION()							[](...) -> VOID { }
 #define P4VFS_DEFAULT_FUNCTION(retType, retValue)		[](...) -> retType { return retValue; }
-#define P4VFS_DEFAULT_FUNCTION_NTSTATUS()				P4VFS_DEFAULT_FUNCTION(NTSTATUS, STATUS_UNSUCCESSFUL)
+#define P4VFS_DEFAULT_FUNCTION_NTSTATUS()				[](...) -> NTSTATUS { return STATUS_UNSUCCESSFUL; }
+#define P4VFS_UNIMPLEMENTED_FUNCTION_NTSTATUS()			[](...) -> NTSTATUS { Assert(false); return STATUS_UNSUCCESSFUL; }
 
 std::function<NTSTATUS(PFLT_CALLBACK_DATA, FLT_FILE_NAME_OPTIONS, PFLT_FILE_NAME_INFORMATION*)> FltGetFileNameInformation;
 std::function<NTSTATUS(PFLT_FILE_NAME_INFORMATION)> FltParseFileNameInformation;
@@ -303,6 +304,8 @@ std::function<PVOID(POOL_TYPE, SIZE_T, ULONG)> ExAllocatePoolZero;
 std::function<VOID(PVOID, ULONG)> ExFreePoolWithTag;
 std::function<VOID(PFAST_MUTEX)> ExAcquireFastMutex;
 std::function<VOID(PFAST_MUTEX)> ExReleaseFastMutex;
+std::function<VOID(PVOID, SIZE_T, ULONG)> ProbeForRead;
+std::function<VOID(PVOID, SIZE_T, ULONG)> ProbeForWrite;
 
 NTSTATUS RtlAppendUnicodeToString(PUNICODE_STRING dst, PCWSTR src)
 {
@@ -464,6 +467,8 @@ static void InternalTestDriverReset(const TestContext& context)
 	ExFreePoolWithTag = [](PVOID p, ULONG) -> VOID { GFree(p); };
 	ExAcquireFastMutex = P4VFS_DEFAULT_ACTION();
 	ExReleaseFastMutex = P4VFS_DEFAULT_ACTION();
+	ProbeForRead = P4VFS_UNIMPLEMENTED_FUNCTION_NTSTATUS();
+	ProbeForWrite = P4VFS_UNIMPLEMENTED_FUNCTION_NTSTATUS();
 };
 
 static UNICODE_STRING CStrToUnicodeString(const WCHAR* text)
@@ -555,11 +560,11 @@ void TestDriverUnicodeString(const TestContext& context)
 
 void TestDriverOpenFileObjectList(const TestContext& context)
 {
-	auto MakeFileObject = [](const PVOID fileObject, const PVOID fileHandle) -> P4VFS_OPEN_FILE_OBJECT
+	auto MakeFileObject = [](const VOID* fileObject, const VOID* fileHandle) -> P4VFS_OPEN_FILE_OBJECT
 	{
 		P4VFS_OPEN_FILE_OBJECT obj = {0};
 		obj.pFileObject = (PFILE_OBJECT)fileObject;
-		obj.fileHandle = fileHandle;
+		obj.fltFileHandle.fileHandle = (PVOID)fileHandle;
 		return obj;
 	};
 
@@ -568,35 +573,35 @@ void TestDriverOpenFileObjectList(const TestContext& context)
 
 	const P4VFS_OPEN_FILE_OBJECT src0 = MakeFileObject(L"fo0", L"fh0");
 	P4VFS_OPEN_FILE_OBJECT push0 = {0};
-	Assert(P4vfsPushOpenFileObject(src0.pFileObject, src0.fileHandle, &push0) == STATUS_SUCCESS);
-	Assert(src0.pFileObject == push0.pFileObject && src0.fileHandle == push0.fileHandle && push0.fileId.data != 0 && push0.pNext == NULL);
+	Assert(P4vfsPushOpenFileObject(src0.pFileObject, src0.fltFileHandle.fileHandle, &push0) == STATUS_SUCCESS);
+	Assert(src0.pFileObject == push0.pFileObject && src0.fltFileHandle.fileHandle == push0.fltFileHandle.fileHandle && push0.fltFileHandle.fileId.data != 0 && push0.pNext == NULL);
 
 	Assert(g_FltContext.pOpenFileObjectList != NULL);
 
 	const P4VFS_OPEN_FILE_OBJECT src1 = MakeFileObject(L"fo1", L"fh1");
 	P4VFS_OPEN_FILE_OBJECT push1 = {0};
-	Assert(P4vfsPushOpenFileObject(src1.pFileObject, src1.fileHandle, &push1) == STATUS_SUCCESS);
-	Assert(src1.pFileObject == push1.pFileObject && src1.fileHandle == push1.fileHandle && push1.fileId.data != 0 && push1.pNext == NULL);
-	Assert(push1.fileId.data != push0.fileId.data);
+	Assert(P4vfsPushOpenFileObject(src1.pFileObject, src1.fltFileHandle.fileHandle, &push1) == STATUS_SUCCESS);
+	Assert(src1.pFileObject == push1.pFileObject && src1.fltFileHandle.fileHandle == push1.fltFileHandle.fileHandle && push1.fltFileHandle.fileId.data != 0 && push1.pNext == NULL);
+	Assert(push1.fltFileHandle.fileId.data != push0.fltFileHandle.fileId.data);
 
 	P4VFS_OPEN_FILE_OBJECT pop1 = {0};
-	Assert(P4vfsPopOpenFileObject(&push1.fileId, &pop1) == STATUS_SUCCESS);
-	Assert(src1.pFileObject == pop1.pFileObject && src1.fileHandle == pop1.fileHandle && push1.fileId.data == pop1.fileId.data && pop1.pNext == NULL);
+	Assert(P4vfsPopOpenFileObject(&push1.fltFileHandle, &pop1) == STATUS_SUCCESS);
+	Assert(src1.pFileObject == pop1.pFileObject && src1.fltFileHandle.fileHandle == pop1.fltFileHandle.fileHandle && push1.fltFileHandle.fileId.data == pop1.fltFileHandle.fileId.data && pop1.pNext == NULL);
 
 	P4VFS_OPEN_FILE_OBJECT push2 = {0};
-	Assert(P4vfsPushOpenFileObject(src0.pFileObject, src0.fileHandle, &push2) == STATUS_SUCCESS);
-	Assert(src0.pFileObject == push2.pFileObject && src0.fileHandle == push2.fileHandle && push2.fileId.data != 0 && push2.pNext == NULL);
+	Assert(P4vfsPushOpenFileObject(src0.pFileObject, src0.fltFileHandle.fileHandle, &push2) == STATUS_SUCCESS);
+	Assert(src0.pFileObject == push2.pFileObject && src0.fltFileHandle.fileHandle == push2.fltFileHandle.fileHandle && push2.fltFileHandle.fileId.data != 0 && push2.pNext == NULL);
 	
 	P4VFS_OPEN_FILE_OBJECT pop0 = {0};
-	Assert(P4vfsPopOpenFileObject(&push0.fileId, &pop0) == STATUS_SUCCESS);
-	Assert(pop0.pFileObject == push0.pFileObject && pop0.fileHandle == push0.fileHandle && pop0.fileId.data == push0.fileId.data && pop0.pNext == NULL);
+	Assert(P4vfsPopOpenFileObject(&push0.fltFileHandle, &pop0) == STATUS_SUCCESS);
+	Assert(pop0.pFileObject == push0.pFileObject && pop0.fltFileHandle.fileHandle == push0.fltFileHandle.fileHandle && pop0.fltFileHandle.fileId.data == push0.fltFileHandle.fileId.data && pop0.pNext == NULL);
 
 	P4VFS_OPEN_FILE_OBJECT pop3 = {0};
-	Assert(P4vfsPopOpenFileObject(&push0.fileId, &pop3) == STATUS_NOT_FOUND);
+	Assert(P4vfsPopOpenFileObject(&push0.fltFileHandle, &pop3) == STATUS_NOT_FOUND);
 
 	P4VFS_OPEN_FILE_OBJECT pop2 = {0};
-	Assert(P4vfsPopOpenFileObject(&push2.fileId, &pop2) == STATUS_SUCCESS);
-	Assert(pop2.pFileObject == push2.pFileObject && pop2.fileHandle == push2.fileHandle && pop2.fileId.data != 0 && pop2.pNext == NULL);
+	Assert(P4vfsPopOpenFileObject(&push2.fltFileHandle, &pop2) == STATUS_SUCCESS);
+	Assert(pop2.pFileObject == push2.pFileObject && pop2.fltFileHandle.fileHandle == push2.fltFileHandle.fileHandle && pop2.fltFileHandle.fileId.data != 0 && pop2.pNext == NULL);
 
 	Assert(g_FltContext.pOpenFileObjectList == NULL);
 }

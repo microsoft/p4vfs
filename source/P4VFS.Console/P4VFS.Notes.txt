@@ -1,7 +1,21 @@
 Microsoft P4VFS Release Notes
 
 Version [1.30.0.0]
-* Security updates addressing MSRC-126533, MSRC-121148, MSRC-121146, MSRC-121144
+* Updating to P4API 26.1
+* Updating to OpenSSL 3.0.21 as recommended by P4API 26.1
+* Driver security updates to address Microsoft Security Response Center recommendations 
+  MSRC-126533, MSRC-121148, MSRC-121146, MSRC-121144, MSRC-123527, MSRC-121150, MSRC-121128
+* Driver user mode control port messages now require process to have elevated access 
+  for any file operations
+* Driver P4VFS_FLT_FILE_HANDLE data shared now indirectly maps to kernel mode objects 
+  to prevent possible tampering in user mode
+* Driver user mode control port now uses structured exception handling prevent possible
+  access violation to user mode input and output buffer. This could be caused by a time-of-check 
+  time-of-use (TOCTOU) race condition. This also prevents possible alignment failures
+  casting and using misaligned user-mode P4VFS_CONTROL_MSG & P4VFS_CONTROL_REPLY buffers.
+* Driver now guarding against invalid offsets in P4VFS_UNICODE_STRING from user mode.
+* Driver WPP tracing fixes for unicode file paths with FILE_ID_128 suffix
+* Additional driver unit tests for internal P4VFS_FLT_FILE_HANDLE translation
 
 Version [1.29.4.0]
 * Updating to latest P4API 25.2

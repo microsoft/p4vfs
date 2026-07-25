@@ -38,7 +38,7 @@ __inline
 WPP_HEXDUMP
 P4vfsCreateWppHexDump(
     __in ULONG length,
-    __in_bcount(length) CONST PVOID buffer
+    __in_bcount(length) CONST VOID* buffer
     )
 {
     WPP_HEXDUMP WppHexDump;

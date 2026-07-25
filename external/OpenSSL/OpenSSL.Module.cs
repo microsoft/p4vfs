@@ -12,7 +12,7 @@ namespace Microsoft.P4VFS.External
 {
 	public class OpensslModule : Module
 	{
-		private const string OPENSSL_VERSION = "3.0.18";
+		private const string OPENSSL_VERSION = "3.0.21";
 		private const string PERL_PACKAGE_NAME = "StrawberryPerl";
 		private const string PERL_VERSION = "5.28.0.1";
 

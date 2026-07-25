@@ -34,5 +34,12 @@ IF NOT "%ERRORLEVEL%"=="0" (
 	EXIT /B 1
 )
 
+:: Ensure the VHD powershell module is installed
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$ProgressPreference='SilentlyContinue'; if (-not (Get-Command New-VHD -ErrorAction SilentlyContinue)) { Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-Management-PowerShell -All -NoRestart }"
+IF NOT "%ERRORLEVEL%"=="0" (
+	ECHO Failed to install New-VHD module
+	EXIT /B 1
+)
+
 ECHO Successfully setup machine for test drivers. Reboot is probably required.
 EXIT /B 0

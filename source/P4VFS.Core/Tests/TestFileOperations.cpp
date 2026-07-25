@@ -136,12 +136,12 @@ void TestFileOperationsAccess(const TestContext& context)
 	AssertTypeLogFile(testElevatedOutputFile, TEXT("[AccessElevated] "));
 	Assert(testElevatedResult == 0);
 
-	// Confirm successfull run of p4vfs test TestFileOperationsAccessUnelevated
+	// Confirm unsuccessfull run of p4vfs test TestFileOperationsAccessUnelevated
 	const String testUnelevatedOutputFile = FileInfo::FullPath(StringInfo::Format(TEXT("%s\\test-unelevated.txt"), localRootFolder.c_str()).c_str());
 	int32_t testUnelevatedPriority = P4VFS_FIND_TEST(TestFileOperationsAccessUnelevated).m_Priority;
 	int32_t testUnelevatedResult = TestUtilities::ExecuteWait(context, StringInfo::Format(TEXT("cmd.exe /s /c %s test -e %d > \"%s\" 2>&1"), p4vfsExe.c_str(), testUnelevatedPriority, testUnelevatedOutputFile.c_str()), nullptr, Process::ExecuteFlags::Unelevated);
 	AssertTypeLogFile(testUnelevatedOutputFile, TEXT("[AccessUnelevated] "));
-	Assert(testUnelevatedResult == 0);
+	Assert(testUnelevatedResult == 1);
 }
 
 void AssertFileOperationsAccessInternal(const TestContext& context, bool isElevated)
@@ -149,7 +149,7 @@ void AssertFileOperationsAccessInternal(const TestContext& context, bool isEleva
 	// Confirm successfull run of elevated process if expected
 	Assert((TestUtilities::ExecuteWait(context, TEXT("fltmc.exe")) == 0) == isElevated);
 
-	// Attempt to open read/write an an existing file under an elevation protected folder. In the future we may want to restrict this to isElevated only
+	// Attempt to open read/write an an existing file under an elevation protected folder. This is restricted to elevated only
 	const String adminFilePath = FileOperations::GetExpandedEnvironmentStrings(TEXT("%ProgramFiles%\\P4VFS\\P4VFS.Notes.txt"));
 	Assert(FileInfo::IsRegular(adminFilePath.c_str()));
 	P4VFS_FLT_FILE_HANDLE adminFileHandle = FileOperations::OpenReparsePointFile(adminFilePath.c_str(), FILE_GENERIC_READ|FILE_GENERIC_WRITE, 0);

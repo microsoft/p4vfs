@@ -16,6 +16,8 @@ Version [1.30.0.0]
 * Driver now guarding against invalid offsets in P4VFS_UNICODE_STRING from user mode.
 * Driver WPP tracing fixes for unicode file paths with FILE_ID_128 suffix
 * Additional driver unit tests for internal P4VFS_FLT_FILE_HANDLE translation
+* Addition of TestPush.bat script to optionally use in a post-build deployment to a 
+  virtual machine for full development driver and user-mode testing.
 
 Version [1.29.4.0]
 * Updating to latest P4API 25.2

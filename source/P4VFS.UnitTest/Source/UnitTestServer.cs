@@ -53,6 +53,10 @@ namespace Microsoft.P4VFS.UnitTest
 			Assert(!serverProcess.HasExited, "Server process quit prematuraly");
 			AssertRetry(() => ProcessInfo.ExecuteWait(P4Exe, String.Format("-p {0} info", _P4Port)) == 0);
 
+			// Set the password for the default generated admin for this new database. This user will be deleted afterwards
+			Assert(ProcessInfo.ExecuteWait(P4Exe, String.Format("-p {0} passwd", _P4Port), echo:true, stdin:String.Format("{0}\n{0}\n", DefaultP4Passwd)) == 0);
+			Assert(ProcessInfo.ExecuteWait(P4Exe, String.Format("-p {0} login", _P4Port), echo:true, stdin:String.Format("{0}\n", DefaultP4Passwd)) == 0);
+
 			string[] serverConfigVariables = new[] {
 				"auth.sso.allow.passwd=1",
 				"db.peeking=3",
@@ -90,10 +94,8 @@ namespace Microsoft.P4VFS.UnitTest
 			Assert(defaultUsers.Length == 1);
 			string defaultUser = defaultUsers[0];
 
-			// Set a password for the admin, then restart the server for the SSO login options to take effect, then change the admin password as required 
-			Assert(ProcessInfo.ExecuteWait(P4Exe, String.Format("-p {0} -u {1} passwd -P {2}{2}", _P4Port, defaultUser, DefaultP4Passwd), echo:true) == 0);
+			// Restart the server for the SSO login options to take effect, then change the admin password as required 
 			Assert(ProcessInfo.ExecuteWait(P4Exe, String.Format("-p {0} admin restart", _P4Port), echo:true) == 0);
-			Assert(ProcessInfo.ExecuteWait(P4Exe, String.Format("-p {0} -u {1} passwd", _P4Port, defaultUser), echo:true, stdin:String.Format("{0}{0}\n{0}\n{0}\n", DefaultP4Passwd)) == 0);
 			Assert(ProcessInfo.ExecuteWait(P4Exe, String.Format("-p {0} -u {1} set P4PASSWD=", _P4Port, defaultUser), echo:true) == 0);
 
 			// Perform initial administrator operations using the default generated admin user (typically current session user name).

@@ -781,9 +781,9 @@ P4vfsControlPortMessage(
 
 	dwOutputReplyLength = sizeof(P4VFS_CONTROL_REPLY);
 	pOutputReply = (P4VFS_CONTROL_REPLY*)ExAllocatePoolZero( 
-										NonPagedPoolNx,
-										dwOutputReplyLength,
-										P4VFS_CONTROL_REPLY_ALLOC_TAG);
+												NonPagedPoolNx,
+												dwOutputReplyLength,
+												P4VFS_CONTROL_REPLY_ALLOC_TAG);
 
 	if (pOutputReply == NULL) 
 	{
@@ -847,7 +847,11 @@ P4vfsControlPortMessage(
 			}
 
 			UNICODE_STRING unicodeFilePath = {0};
-			status = P4vfsToUnicodeString(&pInputMsg->data.OPEN_REPARSE_POINT.filePath, &unicodeFilePath);
+			status = P4vfsToUnicodeString(&pInputMsg->data.OPEN_REPARSE_POINT.filePath, 
+										  &unicodeFilePath, 
+										  pInputMsg, 
+										  dwInputMsgLength);
+			
 			if (!NT_SUCCESS(status))
 			{
 				P4vfsTraceInfo(Filter, L"P4vfsControlPortMessage: P4VFS_OPERATION_OPEN_REPARSE_POINT P4vfsToUnicodeString failed [%!STATUS!]", status);

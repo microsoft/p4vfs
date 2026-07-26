@@ -113,7 +113,9 @@ P4vfsAllocateUnicodeString(
 NTSTATUS
 P4vfsToUnicodeString(
 	_In_ CONST P4VFS_UNICODE_STRING* pSrcString,
-	_Out_ UNICODE_STRING* pDstString
+	_Out_ UNICODE_STRING* pDstString,
+	_In_ CONST VOID* pSrcBuffer, 
+	_In_ CONST ULONG dwSrcBufferLength
 	);
 
 NTSTATUS

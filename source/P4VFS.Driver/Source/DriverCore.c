@@ -775,7 +775,9 @@ P4vfsAllocateUnicodeString(
 NTSTATUS
 P4vfsToUnicodeString(
 	_In_ CONST P4VFS_UNICODE_STRING* pSrcString,
-	_Out_ UNICODE_STRING* pDstString
+	_Out_ UNICODE_STRING* pDstString,
+	_In_ CONST VOID* pSrcBuffer, 
+	_In_ CONST ULONG dwSrcBufferLength
 	)
 {
 	PAGED_CODE();
@@ -785,16 +787,37 @@ P4vfsToUnicodeString(
 		return STATUS_INVALID_PARAMETER;
 	}
 
+	// The P4VFS_UNICODE_STRING must have a valid string length
 	if (pSrcString->sizeBytes >= UNICODE_STRING_MAX_BYTES)
 	{
 		return STATUS_BUFFER_OVERFLOW;
 	}
 
-	if (pSrcString->sizeBytes % sizeof(WCHAR))
+	// The P4VFS_UNICODE_STRING must have a WCHAR string length
+	if (pSrcString->sizeBytes % sizeof(WCHAR) || pSrcString->offsetBytes % sizeof(WCHAR))
 	{
 		return STATUS_DATATYPE_MISALIGNMENT;
 	}
-	
+
+	// The P4VFS_UNICODE_STRING header must lie within the pSrcBuffer up to dwSrcBufferLength
+	CONST BYTE* pSrcBufferBegin = (CONST BYTE*)pSrcBuffer;
+	CONST BYTE* pSrcBufferEnd = pSrcBufferBegin + dwSrcBufferLength;
+	CONST BYTE* pSrcStr = (CONST BYTE*)pSrcString;
+	if (pSrcStr < pSrcBufferBegin || (pSrcStr + sizeof(P4VFS_UNICODE_STRING)) > pSrcBufferEnd)
+	{
+		return STATUS_INVALID_ADDRESS;
+	}
+
+	// The P4VFS_UNICODE_STRING payload must lie within the buffer. Compute as
+	// offsets relative to the buffer base so that it's overflow-safe LONGLONG arithmetic
+	CONST LONGLONG headerOffset = (LONGLONG)(pSrcStr - pSrcBufferBegin);
+	CONST LONGLONG dataBegin = headerOffset + (LONGLONG)pSrcString->offsetBytes;
+	CONST LONGLONG dataEnd = dataBegin + (LONGLONG)pSrcString->sizeBytes;
+	if (dataBegin < 0 || dataEnd < dataBegin || dataEnd > (LONGLONG)dwSrcBufferLength)
+	{
+		return STATUS_INVALID_OFFSET_ALIGNMENT;
+	}
+
 	pDstString->Length = (USHORT)(pSrcString->sizeBytes >= sizeof(WCHAR) ? pSrcString->sizeBytes-sizeof(WCHAR) : 0);
 	pDstString->MaximumLength = (USHORT)pSrcString->sizeBytes;
 	pDstString->Buffer = (WCHAR*)P4VFS_UNICODE_STRING_CSTR(*pSrcString);

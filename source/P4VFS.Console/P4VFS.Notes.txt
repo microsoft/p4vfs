@@ -18,7 +18,8 @@ Version [1.30.0.0]
 * Additional driver unit tests for internal P4VFS_FLT_FILE_HANDLE translation
 * Addition of TestPush.bat script to optionally use in a post-build deployment to a 
   virtual machine for full development driver and user-mode testing.
-* Updating unit test server support for p4d 2026.1 with default configurable security=4
+* Updating unit test server to support p4d 2026.1 with default configurable security=4 and
+  enable database journal to avoid bug with p4d crash when deleting auth extension
 
 Version [1.29.4.0]
 * Updating to latest P4API 25.2

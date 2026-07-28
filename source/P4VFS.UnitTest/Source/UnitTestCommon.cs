@@ -1611,6 +1611,7 @@ namespace Microsoft.P4VFS.UnitTest
 			WorkspaceReset();
 			using (DepotClient depotClient = new DepotClient()) 
 			{
+				depotClient.Unattended = true;
 				DepotConfig config = new DepotConfig{ Port=_P4Port, Client="__invalid_p4vfs_client__", User=_P4User };
 				Assert(depotClient.Connect(config));
 				DepotResultInfo.Node info = depotClient.Info();
@@ -1623,6 +1624,7 @@ namespace Microsoft.P4VFS.UnitTest
 			}
 			using (DepotClient depotClient = new DepotClient()) 
 			{
+				depotClient.Unattended = true;
 				DepotConfig config = new DepotConfig{ Port=_P4Port, Client="__invalid_p4vfs_client__", User="__invalid_user__" };
 				Assert(depotClient.Connect(config));
 				DepotResultInfo.Node info = depotClient.Info();
@@ -1635,6 +1637,7 @@ namespace Microsoft.P4VFS.UnitTest
 			}
 			using (DepotClient depotClient = new DepotClient()) 
 			{
+				depotClient.Unattended = true;
 				DepotConfig config = new DepotConfig{ Port=_P4Port, Client="__invalid_p4vfs_client__" };
 				Assert(depotClient.Connect(config));
 				DepotResultInfo.Node info = depotClient.Info();
@@ -1647,11 +1650,13 @@ namespace Microsoft.P4VFS.UnitTest
 			}
 			using (DepotClient depotClient = new DepotClient()) 
 			{
+				depotClient.Unattended = true;
 				DepotConfig config = new DepotConfig{ Port=_P4Port, User="__invalid_user__" };
 				Assert(depotClient.Connect(config) == false);
 			}
 			using (DepotClient depotClient = new DepotClient()) 
 			{
+				depotClient.Unattended = true;
 				DepotConfig config = new DepotConfig{ Port=_P4Port, Client=_P4Client };
 				Assert(depotClient.Connect(config));
 				DepotResultInfo.Node info = depotClient.Info();
@@ -1664,6 +1669,7 @@ namespace Microsoft.P4VFS.UnitTest
 			}
 			using (DepotClient depotClient = new DepotClient()) 
 			{
+				depotClient.Unattended = true;
 				DepotConfig config = new DepotConfig{ Port=_P4Port, User=_P4User };
 				Assert(depotClient.Connect(config));
 				DepotResultInfo.Node info = depotClient.Info();
@@ -2137,7 +2143,6 @@ namespace Microsoft.P4VFS.UnitTest
 			HttpListener loginListener = new HttpListener();
 			loginListener.Prefixes.Add(loginEndpoint);
 			loginListener.Start();
-			
 
 			Thread loginListenerThread = new Thread(new ThreadStart(() =>
 			{

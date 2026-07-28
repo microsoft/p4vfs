@@ -487,15 +487,17 @@ static UNICODE_STRING CStrToUnicodeString(const WCHAR* text)
 
 void TestDriverUnicodeString(const TestContext& context)
 {
-	const UCHAR sentinalByte = 0xCD;
 	const WCHAR* shortFilePath = L"C:\\memory.dmp";
 	const WCHAR* typicalFilePath = L"C:\\depot\\tools\\dev\\source\\Hammer\\Hammer.Interfaces\\BaseClasses\\Launcher\\ApplicationDescription.cs";
 	const WCHAR* veryLongFilePath = L"C:\\depot\\tools\\dev\\external\\packages\\thirdparty\\microsoft\\Windows Kits\\10\\References\\10.0.17134.0\\Windows.ApplicationModel.Activation.WebUISearchActivatedEventsContract\\1.0.0.0\\zh-hans\\2019\\Enterprise\\VSSDK\\VisualStudioIntegration\\Common\\Source\\CPP\\VSL\\VSLArcitecture_files\\Microsoft Azure Tools\\Visual Studio 16.0\\2.9\\RemoteDebuggerConnector\\Connector\\MSBuild\\Microsoft\\Microsoft.NET.Build.Extensions\\net471\\Windows.ApplicationModel.Activation.WebUISearchActivatedEventsContract\\References\\Windows.ApplicationModel.CommunicationBlocking.CommunicationBlockingContract\\2.0.0.0\\Windows.ApplicationModel.CommunicationBlocking.CommunicationBlockingContract.WinMD\\Windows.ApplicationModel.Background.BackgroundAlarmApplicationContract.xml";
 
-	auto AssertCopyAssignUnicodeString = [&](const WCHAR* srcText, const ULONG dstPadding = 0, const LONG srcLength = -1) -> void 
+	auto AssertCopyAssignUnicodeString = [&context](const WCHAR* srcText, const ULONG dstPadding = 0, const LONG srcLength = -1) -> void 
 	{
 		InternalTestDriverReset(context);
+
+		const UCHAR sentinalByte = 0xCD;
 		const LONG srcTextLength = srcLength < 0 ? LONG(StringInfo::Strlen(srcText)) : srcLength;
+		const ULONG largeTextOffset = max(srcTextLength * 8, 1024);
 		const ULONG srcTextSizeBytes = ULONG(srcTextLength*sizeof(WCHAR));
 		const ULONG dstTextSizeBytes = srcTextSizeBytes+sizeof(WCHAR);
 		Array<UCHAR> dstBuffer(sizeof(P4VFS_UNICODE_STRING)+dstPadding+dstTextSizeBytes+sizeof(sentinalByte), 0);
@@ -509,6 +511,48 @@ void TestDriverUnicodeString(const TestContext& context)
 		Assert(dstString->c_str()[srcTextLength] == L'\0');
 		Assert(dstString->sizeBytes == dstTextSizeBytes);
 		Assert(dstBuffer[dstBuffer.size()-1] == sentinalByte);
+		const P4VFS_UNICODE_STRING dstValidString = *dstString;
+
+		auto AssertToUnicodeString = [srcText, srcTextLength](const P4VFS_UNICODE_STRING* dataString, const void* dataBuffer, size_t dataBufferLength, NTSTATUS expectStatus) -> void
+		{
+			UNICODE_STRING kmString = {0};
+			Assert(P4vfsToUnicodeString(dataString, &kmString, dataBuffer, (ULONG)dataBufferLength) == expectStatus);
+			if (expectStatus == STATUS_SUCCESS)
+			{
+				Assert(kmString.Length == srcTextLength*sizeof(WCHAR));
+				Assert(kmString.Buffer && memcmp(kmString.Buffer, srcText, srcTextLength*sizeof(WCHAR)) == 0);
+			}
+		};
+
+		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_SUCCESS);
+		AssertToUnicodeString(dstString, dstBuffer.data()-largeTextOffset, dstBuffer.size(), STATUS_INVALID_ADDRESS);
+		AssertToUnicodeString(dstString, dstBuffer.data()-largeTextOffset, dstBuffer.size()+largeTextOffset, STATUS_SUCCESS);
+		AssertToUnicodeString(dstString, dstBuffer.data()+largeTextOffset, dstBuffer.size(), STATUS_INVALID_ADDRESS);
+		
+		P4VFS_UNICODE_STRING dstStackString = *dstString;
+		AssertToUnicodeString(&dstStackString, dstBuffer.data(), dstBuffer.size(), STATUS_INVALID_ADDRESS);
+		
+		dstString->sizeBytes = largeTextOffset;
+		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_INVALID_OFFSET_ALIGNMENT);
+		*dstString = dstValidString;
+
+		dstString->sizeBytes += 1;
+		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_DATATYPE_MISALIGNMENT);
+		*dstString = dstValidString;
+
+		dstString->offsetBytes = largeTextOffset;
+		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_INVALID_OFFSET_ALIGNMENT);
+		*dstString = dstValidString;
+
+		dstString->offsetBytes = largeTextOffset;
+		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_INVALID_OFFSET_ALIGNMENT);
+		*dstString = dstValidString;
+
+		dstString->offsetBytes = LONG_MAX;
+		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_INVALID_OFFSET_ALIGNMENT);
+		*dstString = dstValidString;
+
+		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_SUCCESS);
 	};
 
 	AssertCopyAssignUnicodeString(typicalFilePath);

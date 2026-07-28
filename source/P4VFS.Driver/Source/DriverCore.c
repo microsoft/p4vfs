@@ -794,7 +794,7 @@ P4vfsToUnicodeString(
 	}
 
 	// The P4VFS_UNICODE_STRING must have a WCHAR string length
-	if (pSrcString->sizeBytes % sizeof(WCHAR) || pSrcString->offsetBytes % sizeof(WCHAR))
+	if (pSrcString->sizeBytes % sizeof(WCHAR))
 	{
 		return STATUS_DATATYPE_MISALIGNMENT;
 	}

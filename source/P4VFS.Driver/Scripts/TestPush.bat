@@ -11,10 +11,12 @@ IF NOT "%1" == "" (
 )
 
 SET DEPLOY_FOLDER=\\%DEPLOY_COMPUTERNAME%\C$\P4VFS
-SET ROBOCOPY_COMMON_OPTIONS=/XD .* *.tlog lib include /MT /S /NJH /NJS /NP
+SET ROBOCOPY_COMMON_OPTIONS=/XD .* *.tlog lib include /MT /E /NJH /NJS /NP
 
 robocopy.exe %REPO_FOLDER%\source %DEPLOY_FOLDER%\source %ROBOCOPY_COMMON_OPTIONS%
 robocopy.exe %REPO_FOLDER%\intermediate\builds\P4VFS.Setup %DEPLOY_FOLDER%\intermediate\builds\P4VFS.Setup %ROBOCOPY_COMMON_OPTIONS%
 robocopy.exe %REPO_FOLDER%\intermediate\builds\P4VFS.Driver %DEPLOY_FOLDER%\intermediate\builds\P4VFS.Driver %ROBOCOPY_COMMON_OPTIONS%
 robocopy.exe %REPO_FOLDER%\intermediate\builds\P4VFS.Console %DEPLOY_FOLDER%\intermediate\builds\P4VFS.Console %ROBOCOPY_COMMON_OPTIONS%
-robocopy.exe %REPO_FOLDER%\external\P4API %DEPLOY_FOLDER%\external\P4API %ROBOCOPY_COMMON_OPTIONS%
+robocopy.exe %REPO_FOLDER%\external\P4API %DEPLOY_FOLDER%\external\P4API %ROBOCOPY_COMMON_OPTIONS% /PURGE
+
+EXIT /B 0

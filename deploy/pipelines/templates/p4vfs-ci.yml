@@ -38,14 +38,14 @@ jobs:
     inputs:
       restoreSolution: '${{parameters.solutionFile}}'
 
-  - task: VSBuild@1
+  - task: MSBuild@1
     displayName: 'Build'
     timeoutInMinutes: 180
     inputs:
-      vsVersion: '17.0'
       solution: '${{parameters.solutionFile}}'
-      platform: '${{parameters.platform}}'
-      configuration: '${{parameters.configuration}}'
+      msbuildVersion: '17.0'
+      msbuildArchitecture: 'x64'
+      configuration: ${{parameters.configuration}}
       msbuildArgs: '${{parameters.additionalBuildArguments}}'
 
   - task: PublishSymbols@2

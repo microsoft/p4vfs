@@ -220,7 +220,8 @@ DepotSyncActionInfo FDepotSyncActionInfo::FromInfoOutput(const DepotString& info
 			info->m_ClientFile = match[1];
 		}
 	}
-	else if (std::regex_search(infoText.c_str(), match, rx.m_ActionNeedsResolve))
+	
+	if (std::regex_search(infoText.c_str(), match, rx.m_ActionNeedsResolve))
 	{
 		info->m_DepotFile = match[2];
 		info->m_Revision = FDepotRevision::FromString(match[4]);

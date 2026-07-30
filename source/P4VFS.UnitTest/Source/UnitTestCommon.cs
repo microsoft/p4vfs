@@ -1042,7 +1042,7 @@ namespace Microsoft.P4VFS.UnitTest
 
 			// Simple test of expected values of SettingManager.Default
 			Assert(SettingManager.ExcludedProcessNames == SettingManager.Default.ExcludedProcessNames);
-			Assert(SettingManager.ExcludedProcessNames == "MsSense.exe;MsMpEng.exe;SenseCE.exe;SenseIR.exe;SearchProtocolHost.exe;MpDlpService.exe");
+			Assert(SettingManager.ExcludedProcessNames == "MsSense.exe;MsMpEng.exe;SenseCE.exe;SenseIR.exe;SearchProtocolHost.exe;MpDlpService.exe;SenseNdr.exe;SenseDlpProcessor.exe");
 			Assert(SettingManager.PopulateMethod == SettingManager.Default.PopulateMethod);
 			Assert(SettingManager.PopulateMethod == "Stream");
 

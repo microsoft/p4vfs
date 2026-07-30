@@ -833,6 +833,8 @@ namespace Microsoft.P4VFS.UnitTest
 
 			AssertRetry(() => { try { FileUtilities.DeleteDirectoryAndFiles(serverRootFolder); return true; } catch {} return false; });
 			AssertRetry(() => Directory.Exists(serverRootFolder) == false, String.Format("directory exists {0}", serverRootFolder));
+
+			WorkspaceEnvironmentReset();
 		}
 
 		public static string GetServerPortIPAddress(string p4Port = null)

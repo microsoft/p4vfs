@@ -22,6 +22,7 @@ Version [1.30.0.0]
   enable database journal to avoid bug with p4d crash when deleting auth extension
 * Addition to default ExcludedProcessNames of SenseNdr.exe, SenseDlpProcessor.exe
 * OpenSSL configure now includes no-makedepend for a slight reduction in build time
+* Fixing info output log when syncing to files that must resolve before submitting
 
 Version [1.29.4.0]
 * Updating to latest P4API 25.2

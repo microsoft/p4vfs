@@ -95,6 +95,11 @@ namespace Microsoft.P4VFS.CodeSign
 			return esrpClientExitCode == 0;
 		}
 
+		public CodeSignToken[] CreateTokens(bool interactive)
+		{
+			return null;
+		}
+
 		private string CreateJobSignAuthFile(CodeSignJob job)
 		{
 			return CodeSignUtilities.ExtractResourceToFile(job.TargetFolder, CodeSignResources.SignAuthJson);

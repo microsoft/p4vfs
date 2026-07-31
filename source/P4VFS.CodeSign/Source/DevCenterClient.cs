@@ -109,6 +109,18 @@ namespace Microsoft.P4VFS.CodeSign
 			return true;
 		}
 
+		public CodeSignToken[] CreateTokens(bool interactive)
+		{
+			JToken hdcSignInput = JObject.Parse(CodeSignUtilities.ExtractResourceToString(CodeSignResources.SignInputAttestation));
+			JToken hdcTokenManifest = hdcSignInput.SelectTokens("$.SignBatches[*].SignRequestFiles[*].Manifest").FirstOrDefault();
+			CodeSignJob job = null;
+
+			InitializeJob(job, hdcTokenManifest);
+			CodeSignToken accessToken = new CodeSignToken{ Name = "AccessToken", Value = GetCachedAccessTokenAsync().Result };
+
+			return new CodeSignToken[]{ accessToken };
+		}
+
 		public static bool PreprocessSignRequestFile(CodeSignJob job, JToken tokenSignRequestFile, string signFilePath)
 		{
 			JToken tokenManifest = tokenSignRequestFile.SelectToken("$.Manifest");

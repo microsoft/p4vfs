@@ -500,12 +500,15 @@ void TestDriverUnicodeString(const TestContext& context)
 		const ULONG largeTextOffset = max(srcTextLength * 8, 1024);
 		const ULONG srcTextSizeBytes = ULONG(srcTextLength*sizeof(WCHAR));
 		const ULONG dstTextSizeBytes = srcTextSizeBytes+sizeof(WCHAR);
+
 		Array<UCHAR> dstBuffer(sizeof(P4VFS_UNICODE_STRING)+dstPadding+dstTextSizeBytes+sizeof(sentinalByte), 0);
 		dstBuffer[dstBuffer.size()-sizeof(sentinalByte)] = sentinalByte;
 		P4VFS_UNICODE_STRING* dstString = (P4VFS_UNICODE_STRING*)dstBuffer.data();
 
+		// Serialize the srcText into a variable length P4VFS_UNICODE_STRING starting dstPadding past the header 
 		Assert(P4vfsCopyAssignUnicodeString(dstString, dstBuffer.data()+sizeof(P4VFS_UNICODE_STRING)+dstPadding, dstTextSizeBytes, srcText, srcTextSizeBytes) == STATUS_SUCCESS);
 
+		// Verify the P4VFS_UNICODE_STRING reflects the srcText we expect
 		Assert(StringInfo::Strncmp(dstString->c_str(), srcText, srcTextLength) == 0);
 		Assert(StringInfo::Strlen(dstString->c_str()) == srcTextLength);
 		Assert(dstString->c_str()[srcTextLength] == L'\0');
@@ -513,6 +516,7 @@ void TestDriverUnicodeString(const TestContext& context)
 		Assert(dstBuffer[dstBuffer.size()-1] == sentinalByte);
 		const P4VFS_UNICODE_STRING dstValidString = *dstString;
 
+		// Test reading a P4VFS_UNICODE_STRING from an arbitrary buffer for goodness or badness!
 		auto AssertToUnicodeString = [srcText, srcTextLength](const P4VFS_UNICODE_STRING* dataString, const void* dataBuffer, size_t dataBufferLength, NTSTATUS expectStatus) -> void
 		{
 			UNICODE_STRING kmString = {0};
@@ -524,34 +528,42 @@ void TestDriverUnicodeString(const TestContext& context)
 			}
 		};
 
+		// Test reading a P4VFS_UNICODE_STRING with good or bad buffer ranges
 		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_SUCCESS);
 		AssertToUnicodeString(dstString, dstBuffer.data()-largeTextOffset, dstBuffer.size(), STATUS_INVALID_ADDRESS);
 		AssertToUnicodeString(dstString, dstBuffer.data()-largeTextOffset, dstBuffer.size()+largeTextOffset, STATUS_SUCCESS);
 		AssertToUnicodeString(dstString, dstBuffer.data()+largeTextOffset, dstBuffer.size(), STATUS_INVALID_ADDRESS);
 		
+		// Testing reading when header buffer is outside data buffer
 		P4VFS_UNICODE_STRING dstStackString = *dstString;
 		AssertToUnicodeString(&dstStackString, dstBuffer.data(), dstBuffer.size(), STATUS_INVALID_ADDRESS);
 		
+		// Test when string size overflows the data buffer
 		dstString->sizeBytes = largeTextOffset;
 		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_INVALID_OFFSET_ALIGNMENT);
 		*dstString = dstValidString;
 
+		// Test when string data size is not 2 byte aligned, as expected for WCHAR string 
 		dstString->sizeBytes += 1;
 		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_DATATYPE_MISALIGNMENT);
 		*dstString = dstValidString;
 
+		// Test when offset to string payload overflows the data buffer
 		dstString->offsetBytes = largeTextOffset;
 		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_INVALID_OFFSET_ALIGNMENT);
 		*dstString = dstValidString;
 
-		dstString->offsetBytes = largeTextOffset;
+		// Test when offset to string payload underflows the data buffer
+		dstString->offsetBytes = -1 * LONG(largeTextOffset);
 		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_INVALID_OFFSET_ALIGNMENT);
 		*dstString = dstValidString;
 
+		// Test when offset to string payload overflows the data buffer by maximum possible, confirming pointer arithmatic safety
 		dstString->offsetBytes = LONG_MAX;
 		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_INVALID_OFFSET_ALIGNMENT);
 		*dstString = dstValidString;
 
+		// Test again to confirm our previous tests didn't fail for some other reason
 		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_SUCCESS);
 	};
 

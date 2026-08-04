@@ -113,7 +113,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
-      <AdditionalDependencies>$(P4VFSCoreName).lib;advapi32.lib;bcrypt.lib;ws2_32.lib;wtsapi32.lib;shlwapi.lib;shell32.lib;fltlib.lib;userenv.lib;crypt32.lib;$(PerforceApiLibFiles);$(OpenSSLApiLibFiles)</AdditionalDependencies>
+      <AdditionalDependencies>$(P4VFSCoreName).lib;advapi32.lib;bcrypt.lib;ws2_32.lib;wtsapi32.lib;shlwapi.lib;shell32.lib;fltlib.lib;userenv.lib;crypt32.lib;iphlpapi.lib;$(PerforceApiLibFiles);$(OpenSSLApiLibFiles)</AdditionalDependencies>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <AdditionalLibraryDirectories>$(P4VFSCoreBuildDir)\$(Configuration);$(PerforceApiLibDir);$(OpenSSLApiLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
@@ -141,7 +141,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
-      <AdditionalDependencies>$(P4VFSCoreName).lib;advapi32.lib;bcrypt.lib;ws2_32.lib;wtsapi32.lib;shlwapi.lib;shell32.lib;fltlib.lib;userenv.lib;crypt32.lib;$(PerforceApiLibFiles);$(OpenSSLApiLibFiles)</AdditionalDependencies>
+      <AdditionalDependencies>$(P4VFSCoreName).lib;advapi32.lib;bcrypt.lib;ws2_32.lib;wtsapi32.lib;shlwapi.lib;shell32.lib;fltlib.lib;userenv.lib;crypt32.lib;iphlpapi.lib;$(PerforceApiLibFiles);$(OpenSSLApiLibFiles)</AdditionalDependencies>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <AdditionalLibraryDirectories>$(P4VFSCoreBuildDir)\$(Configuration);$(PerforceApiLibDir);$(OpenSSLApiLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>

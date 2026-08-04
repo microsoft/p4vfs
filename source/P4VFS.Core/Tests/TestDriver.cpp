@@ -243,18 +243,21 @@ typedef enum _POOL_TYPE {
 #define max(a,b)						(((a) > (b)) ? (a) : (b))
 #define RtlUShortAdd					UShortAdd
 
-#define NT_SUCCESS(Status)				(((NTSTATUS)(Status)) >= 0)
-#define	STATUS_SUCCESS					((NTSTATUS)0x00000000L)
-#define	STATUS_UNSUCCESSFUL				((NTSTATUS)0xC0000001L)
-#define	STATUS_BUFFER_OVERFLOW			((NTSTATUS)0x80000005L)
-#define STATUS_BUFFER_TOO_SMALL			((NTSTATUS)0xC0000023L)
-#define	STATUS_PORT_DISCONNECTED		((NTSTATUS)0xC0000037L)
-#define	STATUS_DATA_ERROR				((NTSTATUS)0xC000003EL)
-#define STATUS_INVALID_PORT_HANDLE		((NTSTATUS)0xC0000042L)
-#define	STATUS_INSUFFICIENT_RESOURCES	((NTSTATUS)0xC000009AL)
-#define	STATUS_MEMORY_NOT_ALLOCATED		((NTSTATUS)0xC00000A0L)
-#define STATUS_NOT_ALL_ASSIGNED			((NTSTATUS)0x00000106L)
-#define STATUS_INVALID_BUFFER_SIZE		((NTSTATUS)0xC0000206L)
+#define NT_SUCCESS(Status)						(((NTSTATUS)(Status)) >= 0)
+#define	STATUS_SUCCESS							((NTSTATUS)0x00000000L)
+#define	STATUS_UNSUCCESSFUL						((NTSTATUS)0xC0000001L)
+#define	STATUS_BUFFER_OVERFLOW					((NTSTATUS)0x80000005L)
+#define STATUS_BUFFER_TOO_SMALL					((NTSTATUS)0xC0000023L)
+#define	STATUS_PORT_DISCONNECTED				((NTSTATUS)0xC0000037L)
+#define	STATUS_DATA_ERROR						((NTSTATUS)0xC000003EL)
+#define STATUS_INVALID_PORT_HANDLE				((NTSTATUS)0xC0000042L)
+#define	STATUS_INSUFFICIENT_RESOURCES			((NTSTATUS)0xC000009AL)
+#define	STATUS_MEMORY_NOT_ALLOCATED				((NTSTATUS)0xC00000A0L)
+#define STATUS_NOT_ALL_ASSIGNED					((NTSTATUS)0x00000106L)
+#define STATUS_INVALID_BUFFER_SIZE				((NTSTATUS)0xC0000206L)
+#define STATUS_NOT_FOUND						((NTSTATUS)0xC0000225L)
+#define STATUS_INVALID_ADDRESS					((NTSTATUS)0xC0000141L)
+#define STATUS_INVALID_OFFSET_ALIGNMENT			((NTSTATUS)0xC0000474L)
 
 #define	IO_IGNORE_SHARE_ACCESS_CHECK			0x0800
 #define	FILE_SHARE_VALID_FLAGS					0x00000007
@@ -263,6 +266,7 @@ typedef enum _POOL_TYPE {
 #define	FLT_FILE_NAME_ALLOW_QUERY_ON_REPARSE	0x04000000
 #define OBJ_CASE_INSENSITIVE					0x00000040L
 #define OBJ_KERNEL_HANDLE						0x00000200L
+#define OBJ_FORCE_ACCESS_CHECK					0x00000400L
 #define POOL_FLAG_NON_PAGED						0x0000000000000040UI64
 #define	FileBasicInformation					4
 #define FileStandardInformation					5
@@ -278,7 +282,8 @@ typedef enum _POOL_TYPE {
 
 #define P4VFS_DEFAULT_ACTION()							[](...) -> VOID { }
 #define P4VFS_DEFAULT_FUNCTION(retType, retValue)		[](...) -> retType { return retValue; }
-#define P4VFS_DEFAULT_FUNCTION_NTSTATUS()				P4VFS_DEFAULT_FUNCTION(NTSTATUS, STATUS_UNSUCCESSFUL)
+#define P4VFS_DEFAULT_FUNCTION_NTSTATUS()				[](...) -> NTSTATUS { return STATUS_UNSUCCESSFUL; }
+#define P4VFS_UNIMPLEMENTED_FUNCTION_NTSTATUS()			[](...) -> NTSTATUS { Assert(false); return STATUS_UNSUCCESSFUL; }
 
 std::function<NTSTATUS(PFLT_CALLBACK_DATA, FLT_FILE_NAME_OPTIONS, PFLT_FILE_NAME_INFORMATION*)> FltGetFileNameInformation;
 std::function<NTSTATUS(PFLT_FILE_NAME_INFORMATION)> FltParseFileNameInformation;
@@ -301,6 +306,8 @@ std::function<PVOID(POOL_TYPE, SIZE_T, ULONG)> ExAllocatePoolZero;
 std::function<VOID(PVOID, ULONG)> ExFreePoolWithTag;
 std::function<VOID(PFAST_MUTEX)> ExAcquireFastMutex;
 std::function<VOID(PFAST_MUTEX)> ExReleaseFastMutex;
+std::function<VOID(PVOID, SIZE_T, ULONG)> ProbeForRead;
+std::function<VOID(PVOID, SIZE_T, ULONG)> ProbeForWrite;
 
 NTSTATUS RtlAppendUnicodeToString(PUNICODE_STRING dst, PCWSTR src)
 {
@@ -417,6 +424,13 @@ NTSTATUS SeQueryInformationToken(PACCESS_TOKEN token, TOKEN_INFORMATION_CLASS to
 	return STATUS_UNSUCCESSFUL;
 }
 
+LARGE_INTEGER KeQueryPerformanceCounter(PLARGE_INTEGER*)
+{
+    LARGE_INTEGER counter = {0};
+    QueryPerformanceCounter(&counter);
+    return counter;
+}
+
 #include "DriverCore.h"
 #include "DriverCore.c"
 
@@ -451,10 +465,12 @@ static void InternalTestDriverReset(const TestContext& context)
 	FltGetVolumeFromFileObject = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
 	FltGetVolumeInstanceFromName = P4VFS_DEFAULT_FUNCTION_NTSTATUS();
 
-	ExAllocatePoolZero = [](POOL_TYPE, SIZE_T s, ULONG) -> PVOID { return GAlloc(s); };
+	ExAllocatePoolZero = [](POOL_TYPE, SIZE_T s, ULONG) -> PVOID { void* p = GAlloc(s); Assert(p); ZeroMemory(p, s); return p; };
 	ExFreePoolWithTag = [](PVOID p, ULONG) -> VOID { GFree(p); };
 	ExAcquireFastMutex = P4VFS_DEFAULT_ACTION();
 	ExReleaseFastMutex = P4VFS_DEFAULT_ACTION();
+	ProbeForRead = P4VFS_UNIMPLEMENTED_FUNCTION_NTSTATUS();
+	ProbeForWrite = P4VFS_UNIMPLEMENTED_FUNCTION_NTSTATUS();
 };
 
 static UNICODE_STRING CStrToUnicodeString(const WCHAR* text)
@@ -471,28 +487,84 @@ static UNICODE_STRING CStrToUnicodeString(const WCHAR* text)
 
 void TestDriverUnicodeString(const TestContext& context)
 {
-	const UCHAR sentinalByte = 0xCD;
 	const WCHAR* shortFilePath = L"C:\\memory.dmp";
 	const WCHAR* typicalFilePath = L"C:\\depot\\tools\\dev\\source\\Hammer\\Hammer.Interfaces\\BaseClasses\\Launcher\\ApplicationDescription.cs";
 	const WCHAR* veryLongFilePath = L"C:\\depot\\tools\\dev\\external\\packages\\thirdparty\\microsoft\\Windows Kits\\10\\References\\10.0.17134.0\\Windows.ApplicationModel.Activation.WebUISearchActivatedEventsContract\\1.0.0.0\\zh-hans\\2019\\Enterprise\\VSSDK\\VisualStudioIntegration\\Common\\Source\\CPP\\VSL\\VSLArcitecture_files\\Microsoft Azure Tools\\Visual Studio 16.0\\2.9\\RemoteDebuggerConnector\\Connector\\MSBuild\\Microsoft\\Microsoft.NET.Build.Extensions\\net471\\Windows.ApplicationModel.Activation.WebUISearchActivatedEventsContract\\References\\Windows.ApplicationModel.CommunicationBlocking.CommunicationBlockingContract\\2.0.0.0\\Windows.ApplicationModel.CommunicationBlocking.CommunicationBlockingContract.WinMD\\Windows.ApplicationModel.Background.BackgroundAlarmApplicationContract.xml";
 
-	auto AssertCopyAssignUnicodeString = [&](const WCHAR* srcText, const ULONG dstPadding = 0, const LONG srcLength = -1) -> void 
+	auto AssertCopyAssignUnicodeString = [&context](const WCHAR* srcText, const ULONG dstPadding = 0, const LONG srcLength = -1) -> void 
 	{
 		InternalTestDriverReset(context);
+
+		const UCHAR sentinalByte = 0xCD;
 		const LONG srcTextLength = srcLength < 0 ? LONG(StringInfo::Strlen(srcText)) : srcLength;
+		const ULONG largeTextOffset = max(srcTextLength * 8, 1024);
 		const ULONG srcTextSizeBytes = ULONG(srcTextLength*sizeof(WCHAR));
 		const ULONG dstTextSizeBytes = srcTextSizeBytes+sizeof(WCHAR);
+
 		Array<UCHAR> dstBuffer(sizeof(P4VFS_UNICODE_STRING)+dstPadding+dstTextSizeBytes+sizeof(sentinalByte), 0);
 		dstBuffer[dstBuffer.size()-sizeof(sentinalByte)] = sentinalByte;
 		P4VFS_UNICODE_STRING* dstString = (P4VFS_UNICODE_STRING*)dstBuffer.data();
 
+		// Serialize the srcText into a variable length P4VFS_UNICODE_STRING starting dstPadding past the header 
 		Assert(P4vfsCopyAssignUnicodeString(dstString, dstBuffer.data()+sizeof(P4VFS_UNICODE_STRING)+dstPadding, dstTextSizeBytes, srcText, srcTextSizeBytes) == STATUS_SUCCESS);
 
+		// Verify the P4VFS_UNICODE_STRING reflects the srcText we expect
 		Assert(StringInfo::Strncmp(dstString->c_str(), srcText, srcTextLength) == 0);
 		Assert(StringInfo::Strlen(dstString->c_str()) == srcTextLength);
 		Assert(dstString->c_str()[srcTextLength] == L'\0');
 		Assert(dstString->sizeBytes == dstTextSizeBytes);
 		Assert(dstBuffer[dstBuffer.size()-1] == sentinalByte);
+		const P4VFS_UNICODE_STRING dstValidString = *dstString;
+
+		// Test reading a P4VFS_UNICODE_STRING from an arbitrary buffer for goodness or badness!
+		auto AssertToUnicodeString = [srcText, srcTextLength](const P4VFS_UNICODE_STRING* dataString, const void* dataBuffer, size_t dataBufferLength, NTSTATUS expectStatus) -> void
+		{
+			UNICODE_STRING kmString = {0};
+			Assert(P4vfsToUnicodeString(dataString, &kmString, dataBuffer, (ULONG)dataBufferLength) == expectStatus);
+			if (expectStatus == STATUS_SUCCESS)
+			{
+				Assert(kmString.Length == srcTextLength*sizeof(WCHAR));
+				Assert(kmString.Buffer && memcmp(kmString.Buffer, srcText, srcTextLength*sizeof(WCHAR)) == 0);
+			}
+		};
+
+		// Test reading a P4VFS_UNICODE_STRING with good or bad buffer ranges
+		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_SUCCESS);
+		AssertToUnicodeString(dstString, dstBuffer.data()-largeTextOffset, dstBuffer.size(), STATUS_INVALID_ADDRESS);
+		AssertToUnicodeString(dstString, dstBuffer.data()-largeTextOffset, dstBuffer.size()+largeTextOffset, STATUS_SUCCESS);
+		AssertToUnicodeString(dstString, dstBuffer.data()+largeTextOffset, dstBuffer.size(), STATUS_INVALID_ADDRESS);
+		
+		// Testing reading when header buffer is outside data buffer
+		P4VFS_UNICODE_STRING dstStackString = *dstString;
+		AssertToUnicodeString(&dstStackString, dstBuffer.data(), dstBuffer.size(), STATUS_INVALID_ADDRESS);
+		
+		// Test when string size overflows the data buffer
+		dstString->sizeBytes = largeTextOffset;
+		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_INVALID_OFFSET_ALIGNMENT);
+		*dstString = dstValidString;
+
+		// Test when string data size is not 2 byte aligned, as expected for WCHAR string 
+		dstString->sizeBytes += 1;
+		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_DATATYPE_MISALIGNMENT);
+		*dstString = dstValidString;
+
+		// Test when offset to string payload overflows the data buffer
+		dstString->offsetBytes = largeTextOffset;
+		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_INVALID_OFFSET_ALIGNMENT);
+		*dstString = dstValidString;
+
+		// Test when offset to string payload underflows the data buffer
+		dstString->offsetBytes = -1 * LONG(largeTextOffset);
+		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_INVALID_OFFSET_ALIGNMENT);
+		*dstString = dstValidString;
+
+		// Test when offset to string payload overflows the data buffer by maximum possible, confirming pointer arithmatic safety
+		dstString->offsetBytes = LONG_MAX;
+		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_INVALID_OFFSET_ALIGNMENT);
+		*dstString = dstValidString;
+
+		// Test again to confirm our previous tests didn't fail for some other reason
+		AssertToUnicodeString(dstString, dstBuffer.data(), dstBuffer.size(), STATUS_SUCCESS);
 	};
 
 	AssertCopyAssignUnicodeString(typicalFilePath);
@@ -544,3 +616,50 @@ void TestDriverUnicodeString(const TestContext& context)
 	AssertUserModeResolveFile(veryLongFilePath, L"C:\\");
 }
 
+void TestDriverOpenFileObjectList(const TestContext& context)
+{
+	auto MakeFileObject = [](const VOID* fileObject, const VOID* fileHandle) -> P4VFS_OPEN_FILE_OBJECT
+	{
+		P4VFS_OPEN_FILE_OBJECT obj = {0};
+		obj.pFileObject = (PFILE_OBJECT)fileObject;
+		obj.fltFileHandle.fileHandle = (PVOID)fileHandle;
+		return obj;
+	};
+
+	InternalTestDriverReset(context);
+	Assert(g_FltContext.pOpenFileObjectList == NULL);
+
+	const P4VFS_OPEN_FILE_OBJECT src0 = MakeFileObject(L"fo0", L"fh0");
+	P4VFS_OPEN_FILE_OBJECT push0 = {0};
+	Assert(P4vfsPushOpenFileObject(src0.pFileObject, src0.fltFileHandle.fileHandle, &push0) == STATUS_SUCCESS);
+	Assert(src0.pFileObject == push0.pFileObject && src0.fltFileHandle.fileHandle == push0.fltFileHandle.fileHandle && push0.fltFileHandle.fileId.data != 0 && push0.pNext == NULL);
+
+	Assert(g_FltContext.pOpenFileObjectList != NULL);
+
+	const P4VFS_OPEN_FILE_OBJECT src1 = MakeFileObject(L"fo1", L"fh1");
+	P4VFS_OPEN_FILE_OBJECT push1 = {0};
+	Assert(P4vfsPushOpenFileObject(src1.pFileObject, src1.fltFileHandle.fileHandle, &push1) == STATUS_SUCCESS);
+	Assert(src1.pFileObject == push1.pFileObject && src1.fltFileHandle.fileHandle == push1.fltFileHandle.fileHandle && push1.fltFileHandle.fileId.data != 0 && push1.pNext == NULL);
+	Assert(push1.fltFileHandle.fileId.data != push0.fltFileHandle.fileId.data);
+
+	P4VFS_OPEN_FILE_OBJECT pop1 = {0};
+	Assert(P4vfsPopOpenFileObject(&push1.fltFileHandle, &pop1) == STATUS_SUCCESS);
+	Assert(src1.pFileObject == pop1.pFileObject && src1.fltFileHandle.fileHandle == pop1.fltFileHandle.fileHandle && push1.fltFileHandle.fileId.data == pop1.fltFileHandle.fileId.data && pop1.pNext == NULL);
+
+	P4VFS_OPEN_FILE_OBJECT push2 = {0};
+	Assert(P4vfsPushOpenFileObject(src0.pFileObject, src0.fltFileHandle.fileHandle, &push2) == STATUS_SUCCESS);
+	Assert(src0.pFileObject == push2.pFileObject && src0.fltFileHandle.fileHandle == push2.fltFileHandle.fileHandle && push2.fltFileHandle.fileId.data != 0 && push2.pNext == NULL);
+	
+	P4VFS_OPEN_FILE_OBJECT pop0 = {0};
+	Assert(P4vfsPopOpenFileObject(&push0.fltFileHandle, &pop0) == STATUS_SUCCESS);
+	Assert(pop0.pFileObject == push0.pFileObject && pop0.fltFileHandle.fileHandle == push0.fltFileHandle.fileHandle && pop0.fltFileHandle.fileId.data == push0.fltFileHandle.fileId.data && pop0.pNext == NULL);
+
+	P4VFS_OPEN_FILE_OBJECT pop3 = {0};
+	Assert(P4vfsPopOpenFileObject(&push0.fltFileHandle, &pop3) == STATUS_NOT_FOUND);
+
+	P4VFS_OPEN_FILE_OBJECT pop2 = {0};
+	Assert(P4vfsPopOpenFileObject(&push2.fltFileHandle, &pop2) == STATUS_SUCCESS);
+	Assert(pop2.pFileObject == push2.pFileObject && pop2.fltFileHandle.fileHandle == push2.fltFileHandle.fileHandle && pop2.fltFileHandle.fileId.data != 0 && pop2.pNext == NULL);
+
+	Assert(g_FltContext.pOpenFileObjectList == NULL);
+}

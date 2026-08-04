@@ -37,8 +37,9 @@ namespace Microsoft.P4VFS.UnitTest
 			string serverDatabaseFolder = String.Format("{0}\\db", serverRootFolder);
 			FileUtilities.CreateDirectory(serverDatabaseFolder);
 			string serverLogFile = String.Format("{0}\\p4d.log", serverRootFolder);
+			string serverJnlFile = String.Format("{0}\\journal", serverDatabaseFolder);
 			string serverDescription = GetServerDescription(_P4Port);
-			string serverArgs = String.Format("-L \"{0}\" -r \"{1}\" -p {2} -Id {3} -J off", serverLogFile, serverDatabaseFolder, serverPortNumber, serverDescription);
+			string serverArgs = String.Format("-L \"{0}\" -r \"{1}\" -p {2} -Id {3} -J {4}", serverLogFile, serverDatabaseFolder, serverPortNumber, serverDescription, serverJnlFile);
 			
 			ProcessStartInfo serverStartInfo = new ProcessStartInfo{ 
 				FileName = serverP4dExe, 
@@ -53,6 +54,10 @@ namespace Microsoft.P4VFS.UnitTest
 			Assert(!serverProcess.HasExited, "Server process quit prematuraly");
 			AssertRetry(() => ProcessInfo.ExecuteWait(P4Exe, String.Format("-p {0} info", _P4Port)) == 0);
 
+			// Set the password for the default generated admin for this new database. This user will be deleted afterwards
+			Assert(ProcessInfo.ExecuteWait(P4Exe, String.Format("-p {0} passwd", _P4Port), echo:true, stdin:String.Format("{0}\n{0}\n", DefaultP4Passwd)) == 0);
+			Assert(ProcessInfo.ExecuteWait(P4Exe, String.Format("-p {0} login", _P4Port), echo:true, stdin:String.Format("{0}\n", DefaultP4Passwd)) == 0);
+
 			string[] serverConfigVariables = new[] {
 				"auth.sso.allow.passwd=1",
 				"db.peeking=3",
@@ -62,6 +67,7 @@ namespace Microsoft.P4VFS.UnitTest
 				"monitor=10",
 				"net.parallel.submit.threads=8",
 				"net.parallel.max=8",
+				"security=4",
 				"server=2",
 				"submit.unlocklocked=1",
 			};
@@ -90,10 +96,8 @@ namespace Microsoft.P4VFS.UnitTest
 			Assert(defaultUsers.Length == 1);
 			string defaultUser = defaultUsers[0];
 
-			// Set a password for the admin, then restart the server for the SSO login options to take effect, then change the admin password as required 
-			Assert(ProcessInfo.ExecuteWait(P4Exe, String.Format("-p {0} -u {1} passwd -P {2}{2}", _P4Port, defaultUser, DefaultP4Passwd), echo:true) == 0);
+			// Restart the server for the SSO login options to take effect, then change the admin password as required 
 			Assert(ProcessInfo.ExecuteWait(P4Exe, String.Format("-p {0} admin restart", _P4Port), echo:true) == 0);
-			Assert(ProcessInfo.ExecuteWait(P4Exe, String.Format("-p {0} -u {1} passwd", _P4Port, defaultUser), echo:true, stdin:String.Format("{0}{0}\n{0}\n{0}\n", DefaultP4Passwd)) == 0);
 			Assert(ProcessInfo.ExecuteWait(P4Exe, String.Format("-p {0} -u {1} set P4PASSWD=", _P4Port, defaultUser), echo:true) == 0);
 
 			// Perform initial administrator operations using the default generated admin user (typically current session user name).
@@ -621,6 +625,7 @@ namespace Microsoft.P4VFS.UnitTest
 			string targetRootFolder = GetServerRootFolder(targetPort);
 			string targetDatabaseFolder = String.Format("{0}\\db", targetRootFolder);
 			string targetServerLogFile = String.Format("{0}\\p4d.log", targetRootFolder);
+			string targetServerJnlFile = String.Format("{0}\\journal", targetDatabaseFolder);
 			string targetServerDescription = GetServerDescription(targetPort);
 
 			Action<string> copyFileToTarget = (string sourceFilePath) => 
@@ -647,7 +652,7 @@ namespace Microsoft.P4VFS.UnitTest
 
 			string targetP4dExe = String.Format("{0}\\{1}", targetRootFolder, Path.GetFileName(GetServerP4dExe()));
 			Assert(File.Exists(targetP4dExe));
-			string targetServerArgs = String.Format("-L \"{0}\" -r \"{1}\" -p {2} -Id {3} -J off", targetServerLogFile, targetDatabaseFolder, targetServerPort, targetServerDescription);
+			string targetServerArgs = String.Format("-L \"{0}\" -r \"{1}\" -p {2} -Id {3} -J {4}", targetServerLogFile, targetDatabaseFolder, targetServerPort, targetServerDescription, targetServerJnlFile);
 			Assert(ProcessInfo.ExecuteWait(targetP4dExe, String.Format("{0} -jr {1}", targetServerArgs, checkpointFile), echo: true) == 0);
 
 			Dictionary<string,string> targetEnvironment = new Dictionary<string, string>();
@@ -828,6 +833,8 @@ namespace Microsoft.P4VFS.UnitTest
 
 			AssertRetry(() => { try { FileUtilities.DeleteDirectoryAndFiles(serverRootFolder); return true; } catch {} return false; });
 			AssertRetry(() => Directory.Exists(serverRootFolder) == false, String.Format("directory exists {0}", serverRootFolder));
+
+			WorkspaceEnvironmentReset();
 		}
 
 		public static string GetServerPortIPAddress(string p4Port = null)

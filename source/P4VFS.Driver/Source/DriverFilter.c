@@ -13,6 +13,7 @@ Environment:
 
 --*/
 #include <fltKernel.h>
+#include <ntintsafe.h>
 #include "DriverCore.h"
 #include "DriverFilter.h"
 #include "DriverFilter.tmh"
@@ -341,6 +342,7 @@ DriverEntry(
 		goto CLEANUP; 
 	}
 
+	// Grant all access to the control port as each command will enforce elevated permission as necessary
 	RtlSetDaclSecurityDescriptor(controlSecurityDescriptor, TRUE, NULL, FALSE);
 	if (!NT_SUCCESS(status)) 
 	{ 
@@ -374,8 +376,9 @@ DriverEntry(
 		goto CLEANUP; 
 	}
 
-	// Initialize the reparse action mutex
+	// Initialize required mutexes
 	ExInitializeFastMutex(&g_FltContext.hReparseActionLock);
+	ExInitializeFastMutex(&g_FltContext.hOpenFileObjectLock);
 
 	// After we have created everything we needed, actually start filtering 
 	status = FltStartFiltering(g_FltContext.pFilter);
@@ -720,21 +723,23 @@ P4vfsControlPortMessage(
 	)
 {
 	NTSTATUS status = STATUS_SUCCESS;
-	P4VFS_CONTROL_MSG* input = NULL;
-	P4VFS_CONTROL_REPLY* output = NULL;
+	P4VFS_CONTROL_MSG* pInputMsg = NULL;
+	P4VFS_CONTROL_REPLY* pOutputReply = NULL;
+	ULONG dwInputMsgLength = 0;
+	ULONG dwOutputReplyLength = 0;
 
 	UNREFERENCED_PARAMETER(pPortCookie);
 
 	PAGED_CODE();
 
-	if (pInputBuffer == NULL || dwInputBufferLength < sizeof(P4VFS_CONTROL_MSG))
+	if (pInputBuffer == NULL || dwInputBufferLength < sizeof(P4VFS_CONTROL_MSG) || dwInputBufferLength > P4VFS_CONTROL_MAX_BUFFER_LENGTH)
 	{
 		status = STATUS_INVALID_PARAMETER;
 		P4vfsTraceError(Filter, L"P4vfsControlPortMessage: pInputBuffer is invalid [%ld]", dwInputBufferLength); 
 		goto CLEANUP;
 	}
 
-	if (pOutputBuffer == NULL || dwOutputBufferLength < sizeof(P4VFS_CONTROL_REPLY))
+	if (pOutputBuffer == NULL || dwOutputBufferLength < sizeof(P4VFS_CONTROL_REPLY) || dwOutputBufferLength > P4VFS_CONTROL_MAX_BUFFER_LENGTH)
 	{
 		status = STATUS_INVALID_PARAMETER;
 		P4vfsTraceError(Filter, L"P4vfsControlPortMessage: pOutputBuffer is invalid [%ld]", dwOutputBufferLength); 
@@ -747,28 +752,60 @@ P4vfsControlPortMessage(
 		P4vfsTraceError(Filter, L"P4vfsControlPortMessage: pReturnOutputBufferLength is NULL"); 
 		goto CLEANUP;
 	}
-
-	input = (P4VFS_CONTROL_MSG*)pInputBuffer;
-	output = (P4VFS_CONTROL_REPLY*)pOutputBuffer;
 	
-	RtlZeroMemory(output, sizeof(P4VFS_CONTROL_REPLY));
-	output->operation = input->operation;
-	*pReturnOutputBufferLength = sizeof(P4VFS_CONTROL_REPLY);
+	// Copy the user-mode pInputBuffer safely into kernel-mode memory to ensure proper access 
+	// and exclusive use in this routine
 
-	switch (input->operation) 
+	dwInputMsgLength = dwInputBufferLength;
+	pInputMsg = (P4VFS_CONTROL_MSG*)ExAllocatePoolZero( 
+										NonPagedPoolNx,
+										dwInputMsgLength,
+										P4VFS_CONTROL_MSG_ALLOC_TAG);
+
+	if (pInputMsg == NULL) 
+	{
+		status = STATUS_INSUFFICIENT_RESOURCES;
+		P4vfsTraceError(Filter, L"P4vfsControlPortMessage: Failed to allocate P4VFS_CONTROL_MSG size [%d]", dwInputMsgLength); 
+		goto CLEANUP;
+	}
+
+	status = P4vfsReadUserMemory(pInputMsg, pInputBuffer, dwInputMsgLength);
+	if (!NT_SUCCESS(status)) 
+	{
+		P4vfsTraceError(Filter, L"P4vfsControlPortMessage: Failed to read user-mode pInputBuffer size [%d]", dwInputMsgLength); 
+		goto CLEANUP;
+	}
+
+	// Create a reply buffer in kernel-mode memory for exclusive use in this routine, and then safely 
+	// write to the user-mode pOutputBuffer at the end
+
+	dwOutputReplyLength = sizeof(P4VFS_CONTROL_REPLY);
+	pOutputReply = (P4VFS_CONTROL_REPLY*)ExAllocatePoolZero( 
+												NonPagedPoolNx,
+												dwOutputReplyLength,
+												P4VFS_CONTROL_REPLY_ALLOC_TAG);
+
+	if (pOutputReply == NULL) 
+	{
+		status = STATUS_INSUFFICIENT_RESOURCES;
+		P4vfsTraceError(Filter, L"P4vfsControlPortMessage: Failed to allocate P4VFS_CONTROL_REPLY size [%d]", dwOutputReplyLength); 
+		goto CLEANUP;
+	}
+
+	switch (pInputMsg->operation) 
 	{
 		case P4VFS_OPERATION_GET_IS_CONNECTED:
 		{
-			output->data.GET_IS_CONNECTED.connected = g_FltContext.pServiceClientPort ? 1 : 0;
-			P4vfsTraceInfo(Filter, L"P4vfsControlPortMessage: P4VFS_CONTROL_GET_IS_CONNECTED [%d]", output->data.GET_IS_CONNECTED.connected);
+			pOutputReply->data.GET_IS_CONNECTED.connected = g_FltContext.pServiceClientPort ? 1 : 0;
+			P4vfsTraceInfo(Filter, L"P4vfsControlPortMessage: P4VFS_CONTROL_GET_IS_CONNECTED [%d]", pOutputReply->data.GET_IS_CONNECTED.connected);
 			break;
 		}
 		case P4VFS_OPERATION_GET_VERSION:
 		{
-			output->data.GET_VERSION.major = P4VFS_VER_MAJOR;
-			output->data.GET_VERSION.minor = P4VFS_VER_MINOR;
-			output->data.GET_VERSION.build = P4VFS_VER_BUILD;
-			output->data.GET_VERSION.revision = P4VFS_VER_REVISION;
+			pOutputReply->data.GET_VERSION.major = P4VFS_VER_MAJOR;
+			pOutputReply->data.GET_VERSION.minor = P4VFS_VER_MINOR;
+			pOutputReply->data.GET_VERSION.build = P4VFS_VER_BUILD;
+			pOutputReply->data.GET_VERSION.revision = P4VFS_VER_REVISION;
 			P4vfsTraceInfo(Filter, L"P4vfsControlPortMessage: P4VFS_CONTROL_GET_VERSION [%ls]", P4VFS_VER_VERSION_STRING);
 			break;
 		}
@@ -781,18 +818,18 @@ P4vfsControlPortMessage(
 				break;
 			}
 
-			const WCHAR strSanitizeAttributes[] = L"SanitizeAttributes";
-			if (RtlCompareMemory(strSanitizeAttributes, input->data.SET_FLAG.name, sizeof(strSanitizeAttributes)) == sizeof(strSanitizeAttributes))
+			CONST WCHAR strSanitizeAttributes[] = L"SanitizeAttributes";
+			if (RtlCompareMemory(strSanitizeAttributes, pInputMsg->data.SET_FLAG.name, sizeof(strSanitizeAttributes)) == sizeof(strSanitizeAttributes))
 			{
-				g_FltContext.bSanitizeAttributes = !!input->data.SET_FLAG.value;
+				g_FltContext.bSanitizeAttributes = !!pInputMsg->data.SET_FLAG.value;
 				P4vfsTraceInfo(Filter, L"P4vfsControlPortMessage: P4VFS_CONTROL_SET_FLAG SanitizeAttributes = [0x%08d]", (LONG)g_FltContext.bSanitizeAttributes);
 				break;
 			}
 
-			const WCHAR strShareModeDuringHydration[] = L"ShareModeDuringHydration";
-			if (RtlCompareMemory(strShareModeDuringHydration, input->data.SET_FLAG.name, sizeof(strShareModeDuringHydration)) == sizeof(strShareModeDuringHydration))
+			CONST WCHAR strShareModeDuringHydration[] = L"ShareModeDuringHydration";
+			if (RtlCompareMemory(strShareModeDuringHydration, pInputMsg->data.SET_FLAG.name, sizeof(strShareModeDuringHydration)) == sizeof(strShareModeDuringHydration))
 			{
-				g_FltContext.bShareModeDuringHydration = !!input->data.SET_FLAG.value;
+				g_FltContext.bShareModeDuringHydration = !!pInputMsg->data.SET_FLAG.value;
 				P4vfsTraceInfo(Filter, L"P4vfsControlPortMessage: P4VFS_CONTROL_SET_FLAG ShareModeDuringHydration = [0x%08d]", (LONG)g_FltContext.bShareModeDuringHydration);
 				break;
 			}
@@ -802,8 +839,19 @@ P4vfsControlPortMessage(
 		}
 		case P4VFS_OPERATION_OPEN_REPARSE_POINT:
 		{
+			if (P4vfsIsCurrentProcessElevated() == FALSE)
+			{
+				P4vfsTraceError(Filter, L"P4vfsControlPortMessage: P4VFS_OPERATION_OPEN_REPARSE_POINT elevation required");
+				status = STATUS_ELEVATION_REQUIRED;
+				break;
+			}
+
 			UNICODE_STRING unicodeFilePath = {0};
-			status = P4vfsToUnicodeString(&input->data.OPEN_REPARSE_POINT.filePath, &unicodeFilePath);
+			status = P4vfsToUnicodeString(&pInputMsg->data.OPEN_REPARSE_POINT.filePath, 
+										  &unicodeFilePath, 
+										  pInputMsg, 
+										  dwInputMsgLength);
+			
 			if (!NT_SUCCESS(status))
 			{
 				P4vfsTraceInfo(Filter, L"P4vfsControlPortMessage: P4VFS_OPERATION_OPEN_REPARSE_POINT P4vfsToUnicodeString failed [%!STATUS!]", status);
@@ -811,35 +859,63 @@ P4vfsControlPortMessage(
 			}
 
 			ACCESS_MASK desiredAccess = 0;
-			desiredAccess |= input->data.OPEN_REPARSE_POINT.accessRead ? FILE_GENERIC_READ : 0;
-			desiredAccess |= input->data.OPEN_REPARSE_POINT.accessWrite ? FILE_GENERIC_WRITE : 0;
-			desiredAccess |= input->data.OPEN_REPARSE_POINT.accessDelete ? DELETE : 0;
+			desiredAccess |= pInputMsg->data.OPEN_REPARSE_POINT.accessRead ? FILE_GENERIC_READ : 0;
+			desiredAccess |= pInputMsg->data.OPEN_REPARSE_POINT.accessWrite ? FILE_GENERIC_WRITE : 0;
+			desiredAccess |= pInputMsg->data.OPEN_REPARSE_POINT.accessDelete ? DELETE : 0;
 			
 			status = P4vfsOpenReparsePoint(&unicodeFilePath,
 										   desiredAccess,
-										   &output->data.OPEN_REPARSE_POINT.handle.fileHandle,
-										   &output->data.OPEN_REPARSE_POINT.handle.fileObject);
+										   &pOutputReply->data.OPEN_REPARSE_POINT.handle);
 
-			output->data.OPEN_REPARSE_POINT.ntstatus = status;
+			pOutputReply->data.OPEN_REPARSE_POINT.ntstatus = status;
 			break;
 		}
 		case P4VFS_OPERATION_CLOSE_REPARSE_POINT:
 		{
-			status = P4vfsCloseReparsePoint(input->data.CLOSE_REPARSE_POINT.handle.fileHandle,
-											input->data.CLOSE_REPARSE_POINT.handle.fileObject);
+			if (P4vfsIsCurrentProcessElevated() == FALSE)
+			{
+				P4vfsTraceError(Filter, L"P4vfsControlPortMessage: P4VFS_OPERATION_CLOSE_REPARSE_POINT elevation required");
+				status = STATUS_ELEVATION_REQUIRED;
+				break;
+			}
 
-			output->data.CLOSE_REPARSE_POINT.ntstatus = status;
+			status = P4vfsCloseReparsePoint(&pInputMsg->data.CLOSE_REPARSE_POINT.handle);
+
+			pOutputReply->data.CLOSE_REPARSE_POINT.ntstatus = status;
 			break;
 		}
 		default:
 		{
-			P4vfsTraceInfo(Filter, L"P4vfsControlPortMessage: UNKNOWN 0x%08x", input->operation);
+			P4vfsTraceInfo(Filter, L"P4vfsControlPortMessage: UNKNOWN 0x%08x", pInputMsg->operation);
 			status = STATUS_INVALID_PARAMETER;
 			break;
 		}
 	}
 
+	pOutputReply->operation = pInputMsg->operation;
+	NTSTATUS writeStatus = P4vfsWriteUserMemory(pOutputBuffer, pOutputReply, dwOutputReplyLength);
+	if (!NT_SUCCESS(writeStatus)) 
+	{
+		P4vfsTraceError(Filter, L"P4vfsControlPortMessage: Failed to write user-mode pOutputBuffer overriding operation status [%!STATUS!] with status [%!STATUS!]", status, writeStatus);
+		status = writeStatus;
+		goto CLEANUP;
+	}
+
+	*pReturnOutputBufferLength = dwOutputReplyLength;
+
 CLEANUP:
+	if (pInputMsg)
+	{
+		ExFreePoolWithTag(pInputMsg, P4VFS_CONTROL_MSG_ALLOC_TAG);
+		pInputMsg = NULL;
+	}
+
+	if (pOutputReply)
+	{
+		ExFreePoolWithTag(pOutputReply, P4VFS_CONTROL_REPLY_ALLOC_TAG);
+		pOutputReply = NULL;
+	}
+
 	return status;
 }
 

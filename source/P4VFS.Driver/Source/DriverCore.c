@@ -230,12 +230,12 @@ P4vfsUserModeResolveFile(
 
 	ULONG requestMsgSize = sizeof(P4VFS_SERVICE_MSG);
 
-	const ULONG volumeNameSize = pFileNameInfo->Volume.Length + sizeof(WCHAR);
-	const ULONG volumeNameOffset = requestMsgSize;
+	CONST ULONG volumeNameSize = pFileNameInfo->Volume.Length + sizeof(WCHAR);
+	CONST ULONG volumeNameOffset = requestMsgSize;
 	requestMsgSize += volumeNameSize;
 
-	const ULONG dataNameSize = pFileNameInfo->Name.Length + sizeof(WCHAR);
-	const ULONG dataNameOffset = requestMsgSize;
+	CONST ULONG dataNameSize = pFileNameInfo->Name.Length + sizeof(WCHAR);
+	CONST ULONG dataNameOffset = requestMsgSize;
 	requestMsgSize += dataNameSize;
 
 	pRequestMsg = (P4VFS_SERVICE_MSG*)ExAllocatePoolZero( 
@@ -460,7 +460,9 @@ P4vfsIsEqualActionFileKey(
 	if (fileKey0->Length == fileKey1->Length && fileKey0->Buffer != NULL && fileKey1->Buffer != NULL)
 	{
 		if (RtlCompareMemory(fileKey0->Buffer, fileKey1->Buffer, fileKey0->Length) == fileKey0->Length)
+		{
 			return TRUE;
+		}
 	}
 
 	return FALSE;
@@ -476,7 +478,9 @@ P4vfsQueryAnyReparseActionInProgress(
 	ExAcquireFastMutex(&g_FltContext.hReparseActionLock);
 	{
 		if (g_FltContext.pReparseActionList != NULL)
+		{
 			result = TRUE;
+		}
 	}
 	ExReleaseFastMutex(&g_FltContext.hReparseActionLock);
 	return result;
@@ -688,7 +692,7 @@ P4vfsCopyAssignUnicodeString(
 	_In_ P4VFS_UNICODE_STRING* pTargetString,
 	_In_ VOID* pTargetBuffer,
 	_In_ ULONG targetBufferSize,
-	_In_ const VOID* pSourceBuffer,
+	_In_ CONST VOID* pSourceBuffer,
 	_In_ ULONG sourceBufferSize
 	)
 {
@@ -717,8 +721,8 @@ P4vfsCopyAssignUnicodeString(
 		goto CLEANUP;
 	}
 
-	const INT64 ptrOffset = ((CHAR*)pTargetBuffer) - ((CHAR*)pTargetString);
-	const LONG longOffset = (LONG)ptrOffset;
+	CONST INT64 ptrOffset = ((CHAR*)pTargetBuffer) - ((CHAR*)pTargetString);
+	CONST LONG longOffset = (LONG)ptrOffset;
 	if (((INT64)longOffset) != ptrOffset)
 	{
 		status = STATUS_INTEGER_OVERFLOW;
@@ -770,8 +774,10 @@ P4vfsAllocateUnicodeString(
 
 NTSTATUS
 P4vfsToUnicodeString(
-	_In_ const P4VFS_UNICODE_STRING* pSrcString,
-	_Out_ UNICODE_STRING* pDstString
+	_In_ CONST P4VFS_UNICODE_STRING* pSrcString,
+	_Out_ UNICODE_STRING* pDstString,
+	_In_ CONST VOID* pSrcBuffer, 
+	_In_ CONST ULONG dwSrcBufferLength
 	)
 {
 	PAGED_CODE();
@@ -781,16 +787,37 @@ P4vfsToUnicodeString(
 		return STATUS_INVALID_PARAMETER;
 	}
 
+	// The P4VFS_UNICODE_STRING must have a valid string length
 	if (pSrcString->sizeBytes >= UNICODE_STRING_MAX_BYTES)
 	{
 		return STATUS_BUFFER_OVERFLOW;
 	}
 
+	// The P4VFS_UNICODE_STRING must have a WCHAR string length
 	if (pSrcString->sizeBytes % sizeof(WCHAR))
 	{
 		return STATUS_DATATYPE_MISALIGNMENT;
 	}
-	
+
+	// The P4VFS_UNICODE_STRING header must lie within the pSrcBuffer up to dwSrcBufferLength
+	CONST BYTE* pSrcBufferBegin = (CONST BYTE*)pSrcBuffer;
+	CONST BYTE* pSrcBufferEnd = pSrcBufferBegin + dwSrcBufferLength;
+	CONST BYTE* pSrcStr = (CONST BYTE*)pSrcString;
+	if (pSrcStr < pSrcBufferBegin || (pSrcStr + sizeof(P4VFS_UNICODE_STRING)) > pSrcBufferEnd)
+	{
+		return STATUS_INVALID_ADDRESS;
+	}
+
+	// The P4VFS_UNICODE_STRING payload must lie within the buffer. Compute as
+	// offsets relative to the buffer base so that it's overflow-safe LONGLONG arithmetic
+	CONST LONGLONG headerOffset = (LONGLONG)(pSrcStr - pSrcBufferBegin);
+	CONST LONGLONG dataBegin = headerOffset + (LONGLONG)pSrcString->offsetBytes;
+	CONST LONGLONG dataEnd = dataBegin + (LONGLONG)pSrcString->sizeBytes;
+	if (dataBegin < 0 || dataEnd < dataBegin || dataEnd > (LONGLONG)dwSrcBufferLength)
+	{
+		return STATUS_INVALID_OFFSET_ALIGNMENT;
+	}
+
 	pDstString->Length = (USHORT)(pSrcString->sizeBytes >= sizeof(WCHAR) ? pSrcString->sizeBytes-sizeof(WCHAR) : 0);
 	pDstString->MaximumLength = (USHORT)pSrcString->sizeBytes;
 	pDstString->Buffer = (WCHAR*)P4VFS_UNICODE_STRING_CSTR(*pSrcString);
@@ -855,7 +882,7 @@ P4vfsSetFileWritable(
 
 	if (!NT_SUCCESS(status))
 	{
-		P4vfsTraceError(Core, L"P4vfsSetFileWritable: FltCreateFileEx2 failed fileIdPath [%wZ] [%!STATUS!]", pFileIdPath, status); 
+		P4vfsTraceError(Core, L"P4vfsSetFileWritable: FltCreateFileEx2 failed fileIdPath [%!FILEIDPATH!] [%!STATUS!]", pFileIdPath, status); 
 		goto CLEANUP;
 	}
 
@@ -868,7 +895,7 @@ P4vfsSetFileWritable(
 
 	if (!NT_SUCCESS(status))
 	{
-		P4vfsTraceError(Core, L"P4vfsSetFileWritable: FltQueryInformationFile FileBasicInformation fileIdPath [%wZ] [%!STATUS!]", pFileIdPath, status); 
+		P4vfsTraceError(Core, L"P4vfsSetFileWritable: FltQueryInformationFile FileBasicInformation fileIdPath [%!FILEIDPATH!] [%!STATUS!]", pFileIdPath, status); 
 		goto CLEANUP;
 	}
 
@@ -884,7 +911,7 @@ P4vfsSetFileWritable(
 
 		if (!NT_SUCCESS(status))
 		{
-			P4vfsTraceError(Core, L"P4vfsSetFileWritable: FltSetInformationFile FileBasicInformation fileIdPath [%wZ] [%!STATUS!]", pFileIdPath, status); 
+			P4vfsTraceError(Core, L"P4vfsSetFileWritable: FltSetInformationFile FileBasicInformation fileIdPath [%!FILEIDPATH!] [%!STATUS!]", pFileIdPath, status); 
 			goto CLEANUP;
 		}
 	}
@@ -1038,7 +1065,7 @@ P4vfsGetFileIdByFileName(
 
 	if (!NT_SUCCESS(status))
 	{
-		P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: RtlAppendUnicodeToString separator failed [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
+		P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: RtlAppendUnicodeToString separator failed [%wZ] fileIdPath [%!FILEIDPATH!] [%!STATUS!]", pFileName, &fileIdPath, status); 
 		goto CLEANUP;
 	}
 
@@ -1051,7 +1078,7 @@ P4vfsGetFileIdByFileName(
 
 	if (!NT_SUCCESS(status))
 	{
-		P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: RtlAppendUnicodeToString fileIdString failed [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
+		P4vfsTraceError(Core, L"P4vfsGetFileIdByFileName: RtlAppendUnicodeToString fileIdString failed [%wZ] fileIdPath [%!FILEIDPATH!] [%!STATUS!]", pFileName, &fileIdPath, status); 
 		goto CLEANUP;
 	}
 
@@ -1094,11 +1121,147 @@ CLEANUP:
 }
 
 NTSTATUS
+P4vfsPushOpenFileObject(
+	_In_ PFILE_OBJECT pFileObject,
+	_In_ HANDLE	fileHandle,
+	_Out_ P4VFS_OPEN_FILE_OBJECT* pOpenFileObject
+	)
+{
+	NTSTATUS status = STATUS_SUCCESS;
+	P4VFS_OPEN_FILE_OBJECT* pLinkedFileObject = NULL;
+
+	PAGED_CODE();
+
+	if (pOpenFileObject == NULL)
+	{
+		status = STATUS_INVALID_PARAMETER;
+		P4vfsTraceError(Core, L"P4vfsPushOpenFileObject: pOpenFileObject is NULL"); 
+		goto CLEANUP;
+	}
+
+	pLinkedFileObject = (P4VFS_OPEN_FILE_OBJECT*)ExAllocatePoolZero( 
+													NonPagedPoolNx,
+													sizeof(P4VFS_OPEN_FILE_OBJECT),
+													P4VFS_OPEN_FILE_OBJECT_ALLOC_TAG);
+
+	if (pLinkedFileObject == NULL) 
+	{
+		status = STATUS_INSUFFICIENT_RESOURCES;
+		P4vfsTraceError(Core, L"P4vfsPushOpenFileObject: Failed to Allocate P4VFS_OPEN_FILE_OBJECT size [%d]", sizeof(P4VFS_OPEN_FILE_OBJECT)); 
+		goto CLEANUP;
+	}
+
+	ULONGLONG seed = KeQueryPerformanceCounter(NULL).QuadPart;
+	ULONGLONG nextUniqueId = (ULONGLONG)(ULONG)InterlockedIncrement(&g_FltContext.nFileIdCount);
+	ULONGLONG processId = seed * (ULONGLONG)(ULONG_PTR)PsGetCurrentProcessId();
+	ULONGLONG threadId = seed * (ULONGLONG)(ULONG_PTR)PsGetCurrentThreadId();
+	
+	#define MIX_U64_TO_U16(a) (((a)>>48)&0xFFFF) ^ (((a)>>32)&0xFFFF) ^ (((a)>>16)&0xFFFF) ^ ((a)&0xFFFF)
+	processId = MIX_U64_TO_U16(processId);
+	threadId = MIX_U64_TO_U16(threadId);
+	#undef MIX_U64_TO_U16
+	
+	// The interal pLinkedFileObject will reside in the linked list of P4VFS_OPEN_FILE_OBJECT
+	// The fileId is a unique and obfuscated 64bit value which will serve well to track this handle in user mode.
+	// We can also use the fileHandle to cross-reference with the fileId for additional verification
+	pLinkedFileObject->fltFileHandle.fileId.data = (nextUniqueId<<32) | (processId<<16) | threadId;
+	pLinkedFileObject->fltFileHandle.fileHandle = fileHandle;
+	pLinkedFileObject->pFileObject = pFileObject;
+
+	// Insert the pLinkedFileObject into the linked list
+	// Assign a copy of the pLinkedFileObject which we are now tracking
+	ExAcquireFastMutex(&g_FltContext.hOpenFileObjectLock);
+	{
+		pLinkedFileObject->pNext = g_FltContext.pOpenFileObjectList;
+		g_FltContext.pOpenFileObjectList = pLinkedFileObject;
+
+		*pOpenFileObject = *pLinkedFileObject;
+		pOpenFileObject->pNext = NULL;
+	}
+	ExReleaseFastMutex(&g_FltContext.hOpenFileObjectLock);
+
+CLEANUP:
+	return status;
+}
+
+NTSTATUS
+P4vfsPopOpenFileObject(
+	_In_ P4VFS_FLT_FILE_HANDLE* pFileHandle,
+	_Out_ P4VFS_OPEN_FILE_OBJECT* pOpenFileObject
+	)
+{
+	NTSTATUS status = STATUS_SUCCESS;
+	P4VFS_OPEN_FILE_OBJECT* pObject = NULL;
+	P4VFS_OPEN_FILE_OBJECT* pPrevObject = NULL;
+	P4VFS_OPEN_FILE_OBJECT* pFreeObject = NULL;
+
+	PAGED_CODE();
+
+	if (pOpenFileObject == NULL)
+	{
+		status = STATUS_INVALID_PARAMETER;
+		P4vfsTraceError(Core, L"P4vfsPopOpenFileObject: pOpenFileObject is NULL"); 
+		goto CLEANUP;
+	}
+
+	if (pFileHandle == NULL)
+	{
+		status = STATUS_INVALID_PARAMETER;
+		P4vfsTraceError(Core, L"P4vfsPopOpenFileObject: pFileHandle is NULL"); 
+		goto CLEANUP;
+	}
+	
+	// Search our linked list of known file objects for one with this pFileId and fileHandle
+	ExAcquireFastMutex(&g_FltContext.hOpenFileObjectLock);
+	{
+		for (pObject = g_FltContext.pOpenFileObjectList; pObject != NULL; pObject = pObject->pNext)
+		{
+			if (pObject->fltFileHandle.fileId.data == pFileHandle->fileId.data && pObject->fltFileHandle.fileHandle == pFileHandle->fileHandle)
+			{
+				break;
+			}
+
+			pPrevObject = pObject;
+		}
+
+		if (pObject != NULL)
+		{
+			// Remove the pObject that we found from the linked list
+			if (g_FltContext.pOpenFileObjectList == pObject)
+			{
+				g_FltContext.pOpenFileObjectList = pObject->pNext;
+			}
+			else if (pPrevObject != NULL)
+			{
+				pPrevObject->pNext = pObject->pNext;
+			}
+
+			// Return a copy of the object that we've removed and free it
+			*pOpenFileObject = *pObject;
+			pOpenFileObject->pNext = NULL;
+			pFreeObject = pObject;
+		}
+		else
+		{
+			status = STATUS_NOT_FOUND;
+		}
+	}
+	ExReleaseFastMutex(&g_FltContext.hOpenFileObjectLock);
+
+CLEANUP:
+	if (pFreeObject != NULL)
+	{
+		ExFreePoolWithTag(pFreeObject, P4VFS_OPEN_FILE_OBJECT_ALLOC_TAG);
+	}
+
+	return status;
+}
+
+NTSTATUS
 P4vfsOpenReparsePoint(
 	_In_ PUNICODE_STRING pFileName,
 	_In_ ACCESS_MASK desiredAccess,
-	_Out_ PHANDLE pTargetHandle,
-	_Outptr_ PFILE_OBJECT* ppTargetFileObject
+	_Out_ P4VFS_FLT_FILE_HANDLE* pFileHandle
 	)
 {
 	NTSTATUS status = STATUS_SUCCESS;
@@ -1109,8 +1272,16 @@ P4vfsOpenReparsePoint(
 	PFILE_OBJECT pLocalFileObject = NULL;
 	UNICODE_STRING fileIdPath = {0};
 	PFLT_INSTANCE pFltInstance = NULL;
+	P4VFS_OPEN_FILE_OBJECT openFileObject = {0};
 
 	PAGED_CODE();
+
+	if (pFileHandle == NULL)
+	{
+		status = STATUS_INVALID_PARAMETER;
+		P4vfsTraceError(Core, L"P4vfsOpenReparsePoint: pFileHandle is NULL"); 
+		goto CLEANUP;
+	}
 
 	// We wish to open an existing reparse point file by using FILE_OPEN_BY_FILE_ID so as to avoid 
 	// directory notifications. We take this opportunity to query our PFLT_INSTANCE for the volume
@@ -1141,11 +1312,12 @@ P4vfsOpenReparsePoint(
 	createContext.SiloContext =	PsGetHostSilo();
 
 	// We use the fileIdPath in place of the pFileName path for FILE_OPEN_BY_FILE_ID.
+	// Use OBJ_FORCE_ACCESS_CHECK to verify that the application has the necessary access.
 	// The IO_IGNORE_SHARE_ACCESS_CHECK is used to avoid existing share conflicts
 
 	InitializeObjectAttributes(&objectAttributes,
 							   &fileIdPath,
-							   OBJ_CASE_INSENSITIVE,
+							   OBJ_CASE_INSENSITIVE | OBJ_FORCE_ACCESS_CHECK,
 							   NULL,
 							   NULL);
 
@@ -1168,15 +1340,27 @@ P4vfsOpenReparsePoint(
 
 	if (!NT_SUCCESS(status))
 	{
-		P4vfsTraceError(Core, L"P4vfsReopenFile: FltCreateFileEx2 failed [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
+		P4vfsTraceError(Core, L"P4vfsOpenReparsePoint: FltCreateFileEx2 failed [%wZ] fileIdPath [%!FILEIDPATH!] [%!STATUS!]", pFileName, &fileIdPath, status); 
 		goto CLEANUP;
 	}
 
-	P4vfsTraceInfo(Core, L"P4vfsReopenFile: FltCreateFileEx2 success [%wZ] fileIdPath [%wZ] [%!STATUS!]", pFileName, &fileIdPath, status); 
+	// The kernel PFILE_OBJECT will remain private. We will only expose the user mode HANDLE along with an opaque P4VFS_FLT_FILE_ID.
+	// Future operations on this PFILE_OBJECT will restricted behind the P4VFS_FLT_FILE_ID and our internal P4VFS_OPEN_FILE_OBJECT.
 
-	*pTargetHandle = hLocalFile;
+	status = P4vfsPushOpenFileObject(pLocalFileObject, 
+									 hLocalFile, 
+									 &openFileObject);
+									 
+	if (!NT_SUCCESS(status))
+	{
+		P4vfsTraceError(Core, L"P4vfsOpenReparsePoint: P4vfsPushOpenFileObject failed [%wZ] fileIdPath [%!FILEIDPATH!] [%!STATUS!]", pFileName, &fileIdPath, status); 
+		goto CLEANUP;
+	}
+
+	*pFileHandle = openFileObject.fltFileHandle;
+	P4vfsTraceInfo(Core, L"P4vfsOpenReparsePoint: FltCreateFileEx2 success [%wZ] fileIdPath [%!FILEIDPATH!] Id [0x%016I64X] [%!STATUS!]", pFileName, &fileIdPath, openFileObject.fltFileHandle.fileId.data, status); 
+
 	hLocalFile = NULL;
-	*ppTargetFileObject = pLocalFileObject;
 	pLocalFileObject = NULL;
 
 CLEANUP:
@@ -1205,23 +1389,45 @@ CLEANUP:
 
 NTSTATUS
 P4vfsCloseReparsePoint(
-	_In_ HANDLE hFile,
-	_In_ PFILE_OBJECT pFileObject
+	_In_ P4VFS_FLT_FILE_HANDLE* pFileHandle
 	)
 {
+	NTSTATUS status = STATUS_SUCCESS;
+	P4VFS_OPEN_FILE_OBJECT openFileObject = {0};
+
 	PAGED_CODE();
 
-	if (hFile != NULL)
+	if (pFileHandle == NULL)
 	{
-		FltClose(hFile);
+		status = STATUS_INVALID_PARAMETER;
+		P4vfsTraceError(Core, L"P4vfsCloseReparsePoint: pFileHandle is NULL"); 
+		goto CLEANUP;
 	}
 
-	if (pFileObject != NULL)
+	// We do not trust the HANDLE passed in from P4VFS_FLT_FILE_HANDLE. Instead we'll look for the P4VFS_OPEN_FILE_OBJECT by Id 
+	// and confirm the HANDLE and ownership is what we expect.
+
+	status = P4vfsPopOpenFileObject(pFileHandle,
+									&openFileObject);
+									
+	if (!NT_SUCCESS(status))
 	{
-		ObDereferenceObject(pFileObject);
+		P4vfsTraceError(Core, L"P4vfsCloseReparsePoint: P4vfsPopOpenFileObject failed with fileId [0x%016I64X] [%!STATUS!]", pFileHandle->fileId.data, status); 
+		goto CLEANUP;
 	}
 
-	return STATUS_SUCCESS;
+	if (openFileObject.fltFileHandle.fileHandle != NULL)
+	{
+		FltClose(openFileObject.fltFileHandle.fileHandle);
+	}
+
+	if (openFileObject.pFileObject != NULL)
+	{
+		ObDereferenceObject(openFileObject.pFileObject);
+	}
+
+CLEANUP:
+	return status;
 }
 
 BOOLEAN
@@ -1232,7 +1438,7 @@ P4vfsIsCurrentProcessElevated(
 	NTSTATUS status = STATUS_SUCCESS;
 	PEPROCESS pProcessObject = NULL;
 	PACCESS_TOKEN pAccessToken = NULL;
-	PTOKEN_ELEVATION_TYPE pElevationType = NULL;
+	PTOKEN_ELEVATION pElevation = NULL;
 
 	PAGED_CODE();
 
@@ -1243,6 +1449,9 @@ P4vfsIsCurrentProcessElevated(
 		goto CLEANUP;
 	}
 
+	// Reference the process primary token explicitly. This is unaffected by any impersonation
+	// that may be active on the current thread.
+	
 	pAccessToken = PsReferencePrimaryToken(pProcessObject);
 	if (pAccessToken == NULL)
 	{
@@ -1250,27 +1459,31 @@ P4vfsIsCurrentProcessElevated(
 		goto CLEANUP;
 	}
 
+	// Use TokenElevation (TOKEN_ELEVATION::TokenIsElevated) rather than TokenElevationType.
+	// TokenElevationType may not report TokenElevationTypeFull type while impersonating, whereas 
+	// TokenIsElevated reflects the true elevation state of the primary token.
+	
 	status = SeQueryInformationToken(pAccessToken,
-									 TokenElevationType,
-									 &pElevationType);
+									 TokenElevation,
+									 &pElevation);
 
-	if (!NT_SUCCESS(status) || pElevationType == NULL) 
+	if (!NT_SUCCESS(status) || pElevation == NULL) 
 	{
-		P4vfsTraceError(Core, L"P4vfsIsCurrentProcessElevated: Failed to query TokenElevationType");
+		P4vfsTraceError(Core, L"P4vfsIsCurrentProcessElevated: Failed to query TokenElevation");
 		goto CLEANUP;
 	}
 
-	if (*pElevationType == TokenElevationTypeFull)
+	if (pElevation->TokenIsElevated != 0)
 	{
 		result = TRUE;
 	}
 
-	P4vfsTraceInfo(Core, L"P4vfsIsCurrentProcessElevated: Result [%d] pElevationType [%d]", (LONG)result, (LONG)(*pElevationType));
+	P4vfsTraceInfo(Core, L"P4vfsIsCurrentProcessElevated: Result [%d] TokenIsElevated [%d]", (LONG)result, (LONG)(pElevation->TokenIsElevated));
 
 CLEANUP:
-	if (pElevationType != NULL) 
+	if (pElevation != NULL) 
 	{
-		ExFreePool(pElevationType);
+		ExFreePool(pElevation);
 	}
 
 	if (pAccessToken != NULL)
@@ -1281,3 +1494,50 @@ CLEANUP:
 	return result;
 }
 
+NTSTATUS
+P4vfsReadUserMemory(
+	_Out_ PVOID pTargetBuffer, 
+	_In_ CONST VOID* pUserSourceBuffer,
+	_In_ ULONG dwLength
+	)
+{
+	NTSTATUS status = STATUS_SUCCESS;
+
+	PAGED_CODE();
+
+	__try 
+	{
+		ProbeForRead((PVOID)pUserSourceBuffer, dwLength, sizeof(UCHAR));
+		RtlCopyMemory(pTargetBuffer, pUserSourceBuffer, dwLength);
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER) 
+	{
+		status = GetExceptionCode();
+	}
+
+	return status;
+}
+
+NTSTATUS
+P4vfsWriteUserMemory(
+	_Out_ PVOID pUserTargetBuffer, 
+	_In_ CONST VOID* pSourceBuffer,
+	_In_ ULONG dwLength
+	)
+{
+	NTSTATUS status = STATUS_SUCCESS;
+
+	PAGED_CODE();
+
+	__try 
+	{
+		ProbeForWrite(pUserTargetBuffer, dwLength, sizeof(UCHAR));
+		RtlCopyMemory(pUserTargetBuffer, pSourceBuffer, dwLength);
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER) 
+	{
+		status = GetExceptionCode();
+	}
+
+	return status;
+}

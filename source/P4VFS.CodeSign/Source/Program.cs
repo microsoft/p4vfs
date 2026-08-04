@@ -6,6 +6,7 @@ using System.Linq;
 using System.IO;
 using System.Security;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Microsoft.P4VFS.Extensions;
 using Microsoft.P4VFS.Extensions.Linq;
 using Microsoft.P4VFS.CoreInterop;
@@ -46,7 +47,19 @@ Commands:
    -i <name>    Name of input json file resource for signing
    -c <dir>     Optional path to the folder containing EsrpClient.exe tool
    -n <dir>     Optional path to the folder containing nuget.exe tool if EsrpClient
-                folder is not specified. This may be an interactive login.
+                folder is not specified. This may be an interactive login
+
+
+  tokens        Request and display short-lived access tokens for debugging 
+                service REST APIs
+
+                P4VFS.CodeSign.exe tokens -q -a -i [-s <name>]
+
+   -q           Query available codesign services
+   -a           Request and display tokens for all services
+   -i           Use public interative authentication for codesign service
+                instead of default SignAuth service principal
+   -s <name>    Request and disply tokens for service by name
 ";
 
 		public static int Main(string[] args)
@@ -114,6 +127,9 @@ Commands:
 						break;
 					case "submit":
 						status = CommandSubmit(cmdArgs);
+						break;
+					case "tokens":
+						status = CommandTokens(cmdArgs);
 						break;
 					default:
 						VirtualFileSystemLog.Error("P4VFS.CodeSign Unknown Command {0}", args[argIndex]);
@@ -197,11 +213,77 @@ Commands:
 			return true;
 		}
 
+		private static bool CommandTokens(string[] args)
+		{
+			List<string> serviceNames = new List<string>();
+			bool query = false;
+			bool interactive = false;
+
+			int argIndex = 0;
+			for (; argIndex < args.Length; ++argIndex)
+			{
+				if (String.Compare(args[argIndex], "-s") == 0 && argIndex+1 < args.Length)
+					serviceNames.Add(args[++argIndex]);
+				else if (String.Compare(args[argIndex], "-a") == 0)
+					serviceNames.Add(null);
+				else if (String.Compare(args[argIndex], "-i") == 0)
+					interactive = true;
+				else if (String.Compare(args[argIndex], "-q") == 0)
+					query = true;
+				else
+					break;
+			}
+
+			if (argIndex < args.Length)
+			{
+				VirtualFileSystemLog.Error("Unexpected argument: {0}", args[argIndex]);
+				return false;
+			}
+
+			Type[] clientTypes = Assembly.GetExecutingAssembly()
+				.GetTypes()
+				.Where(type => type.IsAbstract == false && type.IsClass && typeof(ICodeSignClient).IsAssignableFrom(type))
+				.OrderBy(type => type.Name)
+				.ToArray();
+
+			Func<Type, string> getServiceName = (Type clientType) => 
+				Regex.Replace(clientType.Name, @"Client$", "", RegexOptions.IgnoreCase);
+			
+			if (query)
+			{
+				VirtualFileSystemLog.Info("Available codesign services: {0}", String.Join(", ", clientTypes.Select(t => getServiceName(t))));
+				return true;
+			}
+
+			foreach (Type clientType in clientTypes)
+			{
+				string serviceName = getServiceName(clientType);
+				if (serviceNames.Any(name => name == null || String.Equals(name, serviceName, StringComparison.InvariantCultureIgnoreCase)))
+				{
+					foreach (CodeSignToken token in CreateCodeSignTokens(clientType, interactive))
+					{
+						VirtualFileSystemLog.Info($"{serviceName}.{token.Name} = {token.Value}\n"); 
+					}
+				}
+			}
+			return true;
+		}
+
 		private static bool SubmitCodeSignJob<ClientType>(CodeSignJob job) where ClientType : ICodeSignClient, new()
 		{
+			VirtualFileSystemLog.Info("Submitting codesign job for service {0}", typeof(ClientType).Name);
 			using (ICodeSignClient client = new ClientType())
 			{
 				return client.Submit(job);
+			}
+		}
+
+		private static CodeSignToken[] CreateCodeSignTokens(Type clientType, bool interactive)
+		{
+			VirtualFileSystemLog.Info("Creating codesign tokens for service {0}", clientType.Name);
+			using (ICodeSignClient client = Activator.CreateInstance(clientType) as ICodeSignClient)
+			{
+				return client.CreateTokens(interactive) ?? Array.Empty<CodeSignToken>();
 			}
 		}
 	}

@@ -55,6 +55,7 @@ P4VFS_REGISTER_TEST( TestThreadPool,							10800 )
 
 // TestDriver
 P4VFS_REGISTER_TEST( TestDriverUnicodeString,					10900 )
+P4VFS_REGISTER_TEST( TestDriverOpenFileObjectList,				10901 )
 
 // TestFileOperations
 P4VFS_REGISTER_TEST( TestFileOperationsUnicodeString,			11000 )

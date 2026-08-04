@@ -12,6 +12,13 @@ typedef struct _P4VFS_REPARSE_ACTION
 	LONG							nRefCount;
 } P4VFS_REPARSE_ACTION;
 
+typedef struct _P4VFS_OPEN_FILE_OBJECT
+{
+	struct _P4VFS_OPEN_FILE_OBJECT*	pNext;
+	P4VFS_FLT_FILE_HANDLE			fltFileHandle;
+	PFILE_OBJECT					pFileObject;
+} P4VFS_OPEN_FILE_OBJECT;
+
 typedef struct _P4VFS_FLT_CONTEXT
 {
 	DRIVER_OBJECT*					pDriverObject;				// The object that IDs the driver
@@ -19,11 +26,14 @@ typedef struct _P4VFS_FLT_CONTEXT
 	PFLT_PORT						pServiceServerPort;			// Filter service listening port
 	PFLT_PORT						pServiceClientPort;			// Latest active service port
 	PFLT_PORT						pControlServerPort;			// Filter control listening port
-	LONG							nRequestCount;				// Number of requests processed
+	LONG							nRequestCount;				// Monotonic increasing number of requests processed
+	LONG							nFileIdCount;				// Monotonic increasing number of P4VFS_FLT_FILE_ID's created
 	BOOLEAN							bSanitizeAttributes;		// Enable stripping reparse and sparse file attributes
 	BOOLEAN							bShareModeDuringHydration;	// Force file handle creation during hydration have share mode (legacy requirement)
-	P4VFS_REPARSE_ACTION*			pReparseActionList;
-	FAST_MUTEX						hReparseActionLock;
+	P4VFS_REPARSE_ACTION*			pReparseActionList;			// Linked list of reparse actions in progress
+	FAST_MUTEX						hReparseActionLock;			// Mutex for exclusive access to pReparseActionList
+	P4VFS_OPEN_FILE_OBJECT*			pOpenFileObjectList;		// Linked list of open file objects from P4vfsOpenReparsePoint
+	FAST_MUTEX						hOpenFileObjectLock;		// Mutex for exclusive access to pOpenFileObjectList
 } P4VFS_FLT_CONTEXT;
 
 extern P4VFS_FLT_CONTEXT g_FltContext;

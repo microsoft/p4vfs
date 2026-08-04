@@ -142,6 +142,15 @@
   <ItemGroup>
     <ResourceCompile Include="Resource\Driver.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Scripts\TestInstall.bat" />
+    <None Include="Scripts\TestPush.bat" />
+    <None Include="Scripts\TestSetup.bat" />
+    <None Include="Scripts\TestUninstall.bat" />
+    <None Include="Scripts\TraceEnv.bat" />
+    <None Include="Scripts\TraceStart.bat" />
+    <None Include="Scripts\TraceStop.bat" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -254,11 +254,7 @@ namespace Microsoft.P4VFS.UnitTest
 				Assert(File.Exists(settingsPath) == false, String.Format("User settings file not allowed for unit tests: {0}", settingsPath));
 			}
 
-			foreach (string name in new[]{DepotConstants.P4PORT, DepotConstants.P4USER, DepotConstants.P4CLIENT, DepotConstants.P4CONFIG, DepotConstants.P4TRUST, DepotConstants.P4TICKETS})
-			{
-				Environment.SetEnvironmentVariable(name, "");
-				Assert(ProcessInfo.ExecuteWait(P4Exe, String.Format("set {0}=", name)) == 0);
-			}
+			WorkspaceEnvironmentReset();
 
 			AssertRetry(() => VirtualFileSystem.IsDriverLoaded(), message:"IsDriverLoaded");
 			AssertRetry(() => VirtualFileSystem.IsDriverReady(), message:"IsDriverReady");
@@ -332,6 +328,15 @@ namespace Microsoft.P4VFS.UnitTest
 			Extensions.SocketModel.SocketModelClient service = new Extensions.SocketModel.SocketModelClient(); 
 			Assert(service.GarbageCollect());
 			Assert(service.GetServiceSetting(nameof(SettingManager.ExcludedProcessNames)).ToString() == SettingManager.Default.ExcludedProcessNames);
+		}
+
+		public static void WorkspaceEnvironmentReset()
+		{
+			foreach (string name in new[]{DepotConstants.P4PORT, DepotConstants.P4USER, DepotConstants.P4CLIENT, DepotConstants.P4CONFIG, DepotConstants.P4TRUST, DepotConstants.P4TICKETS})
+			{
+				Environment.SetEnvironmentVariable(name, "");
+				Assert(ProcessInfo.ExecuteWait(P4Exe, String.Format("set {0}=", name)) == 0);
+			}
 		}
 
 		public void ServiceRestart()

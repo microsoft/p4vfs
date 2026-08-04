@@ -25,7 +25,7 @@ namespace Microsoft.P4VFS.CodeSign
 {
 	public class DevCenterClient : ICodeSignClient
 	{
-		private static readonly string HdcVersion = "1.0";
+		private static readonly string HdcVersion = "2.0";
 		private static readonly string HdcTenant = "my";
 		private static readonly string HdcRootUri = $"/v{HdcVersion}/{HdcTenant}/hardware";
 
@@ -107,6 +107,18 @@ namespace Microsoft.P4VFS.CodeSign
 				}
 			}
 			return true;
+		}
+
+		public CodeSignToken[] CreateTokens(bool interactive)
+		{
+			JToken hdcSignInput = JObject.Parse(CodeSignUtilities.ExtractResourceToString(CodeSignResources.SignInputAttestation));
+			JToken hdcTokenManifest = hdcSignInput.SelectTokens("$.SignBatches[*].SignRequestFiles[*].Manifest").FirstOrDefault();
+			CodeSignJob job = null;
+
+			InitializeJob(job, hdcTokenManifest);
+			CodeSignToken accessToken = new CodeSignToken{ Name = "AccessToken", Value = GetCachedAccessTokenAsync().Result };
+
+			return new CodeSignToken[]{ accessToken };
 		}
 
 		public static bool PreprocessSignRequestFile(CodeSignJob job, JToken tokenSignRequestFile, string signFilePath)

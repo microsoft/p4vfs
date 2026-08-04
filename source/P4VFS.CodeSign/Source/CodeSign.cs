@@ -15,7 +15,14 @@ namespace Microsoft.P4VFS.CodeSign
 	public interface ICodeSignClient : IDisposable
 	{
 		bool Submit(CodeSignJob job);
+		CodeSignToken[] CreateTokens(bool interactive);
 	}
+
+	public class CodeSignToken
+	{
+		public string Name { get; set; }
+		public string Value { get; set; }
+	};
 
 	public static class CodeSignInterop
 	{
@@ -32,6 +39,7 @@ namespace Microsoft.P4VFS.CodeSign
 		public const string HardwareLabPlaylistXml = "HardwareLabPlaylist.xml";
 		public const string SignAuthJson = "SignAuth.json";
 		public const string SignInputSetupJson = "SignInputSetup.json";
+		public const string SignInputAttestation = "SignInputAttestation.json";
 		public const string SignPolicyJson = "SignPolicy.json";
 	};
 

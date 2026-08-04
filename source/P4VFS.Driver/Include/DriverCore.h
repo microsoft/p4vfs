@@ -13,6 +13,9 @@
 #define P4VFS_FILE_NAME_ALLOC_TAG				'NsvP'
 #define P4VFS_SERVICE_PORT_HANDLE_ALLOC_TAG		'SsvP'
 #define P4VFS_CONTROL_PORT_HANDLE_ALLOC_TAG		'CsvP'
+#define P4VFS_OPEN_FILE_OBJECT_ALLOC_TAG		'FsvP'
+#define P4VFS_CONTROL_MSG_ALLOC_TAG				'MsvP'
+#define P4VFS_CONTROL_REPLY_ALLOC_TAG			'RsvP'
 
 NTSTATUS
 P4vfsUserModeExecuteDrvRequest(
@@ -97,7 +100,7 @@ P4vfsCopyAssignUnicodeString(
 	_In_ P4VFS_UNICODE_STRING* pTargetString,
 	_In_ VOID* pTargetBuffer,
 	_In_ ULONG targetBufferSize,
-	_In_ const VOID* pSourceBuffer,
+	_In_ CONST VOID* pSourceBuffer,
 	_In_ ULONG sourceBufferSize
 	);
 
@@ -109,8 +112,10 @@ P4vfsAllocateUnicodeString(
 
 NTSTATUS
 P4vfsToUnicodeString(
-	_In_ const P4VFS_UNICODE_STRING* pSrcString,
-	_Out_ UNICODE_STRING* pDstString
+	_In_ CONST P4VFS_UNICODE_STRING* pSrcString,
+	_Out_ UNICODE_STRING* pDstString,
+	_In_ CONST VOID* pSrcBuffer, 
+	_In_ CONST ULONG dwSrcBufferLength
 	);
 
 NTSTATUS
@@ -127,20 +132,45 @@ P4vfsGetFileIdByFileName(
 	);
 
 NTSTATUS
+P4vfsPushOpenFileObject(
+	_In_ PFILE_OBJECT pFileObject,
+	_In_ HANDLE	fileHandle,
+	_Out_ P4VFS_OPEN_FILE_OBJECT* pOpenFileObject
+	);
+
+NTSTATUS
+P4vfsPopOpenFileObject(
+	_In_ P4VFS_FLT_FILE_HANDLE* pFileHandle,
+	_Out_ P4VFS_OPEN_FILE_OBJECT* pOpenFileObject
+	);
+
+NTSTATUS
 P4vfsOpenReparsePoint(
 	_In_ PUNICODE_STRING pFileName,
 	_In_ ACCESS_MASK desiredAccess,
-	_Out_ PHANDLE pTargetHandle,
-	_Outptr_ PFILE_OBJECT* ppTargetFileObject
+	_Out_ P4VFS_FLT_FILE_HANDLE* pFileHandle
 	);
 
 NTSTATUS
 P4vfsCloseReparsePoint(
-	_In_ HANDLE hHandle,
-	_In_ PFILE_OBJECT pFileObject
+	_In_ P4VFS_FLT_FILE_HANDLE* pFileHandle
 	);
 
 BOOLEAN
 P4vfsIsCurrentProcessElevated(
+	);
+
+NTSTATUS
+P4vfsReadUserMemory(
+	_Out_ PVOID pTargetBuffer, 
+	_In_ CONST VOID* pUserSourceBuffer,
+	_In_ ULONG dwLength
+	);
+
+NTSTATUS
+P4vfsWriteUserMemory(
+	_Out_ PVOID pUserTargetBuffer, 
+	_In_ CONST VOID* pSourceBuffer,
+	_In_ ULONG dwLength
 	);
 

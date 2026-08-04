@@ -40,6 +40,7 @@
 
 #define P4VFS_CONTROL_PORT_NAME					L"\\P4VFS_CONTROL_PORT_NAME"
 #define P4VFS_CONTROL_FLAG_LENGTH				32
+#define P4VFS_CONTROL_MAX_BUFFER_LENGTH			USHORT_MAX
 
 typedef struct _P4VFS_UNICODE_STRING
 {
@@ -135,10 +136,15 @@ typedef struct _P4VFS_SERVICE_REPLY
 typedef struct _FILE_OBJECT* PFILE_OBJECT;
 #endif
 
+typedef struct _P4VFS_FLT_FILE_ID
+{
+	ULONGLONG data;
+} P4VFS_FLT_FILE_ID;
+
 typedef struct _P4VFS_FLT_FILE_HANDLE
 {
 	HANDLE fileHandle;
-	PFILE_OBJECT fileObject;
+	P4VFS_FLT_FILE_ID fileId;
 } P4VFS_FLT_FILE_HANDLE;
 
 typedef struct _P4VFS_CONTROL_MSG

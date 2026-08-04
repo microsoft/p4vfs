@@ -472,6 +472,7 @@ namespace Microsoft.P4VFS.UnitTest
 				";
 
 			ProcessInfo.ExecuteResultOutput mountOutput = executePowershellCommand(mountDevDriveScript);
+			VirtualFileSystemLog.Info(mountOutput.Text);
 			Assert(mountOutput?.ExitCode == 0);
 			Assert(File.Exists(devDriveVhd));
 			

@@ -1,6 +1,6 @@
 Microsoft P4VFS Release Notes
 
-Version [1.30.0.0]
+Version [1.30.1.0]
 * Updating to P4API 26.1
 * Updating to OpenSSL 3.0.21 as recommended by P4API 26.1
 * Driver security updates to address Microsoft Security Response Center recommendations 

@@ -14,3 +14,9 @@ stages:
       configuration: $(configuration)
       additionalBuildArguments: '/Property:P4VFSCodeSignMethod=Attestation'
 
+- stage: CD
+  jobs:
+  - template: templates/p4vfs-cd.yml
+    parameters:
+      configuration: $(configuration)
+      additionalBuildArguments: '/Property:P4VFSPublishDeployDir=\\tc\studio\tools\P4VFS\Public'

@@ -18,5 +18,6 @@ robocopy.exe %REPO_FOLDER%\intermediate\builds\P4VFS.Setup %DEPLOY_FOLDER%\inter
 robocopy.exe %REPO_FOLDER%\intermediate\builds\P4VFS.Driver %DEPLOY_FOLDER%\intermediate\builds\P4VFS.Driver %ROBOCOPY_COMMON_OPTIONS%
 robocopy.exe %REPO_FOLDER%\intermediate\builds\P4VFS.Console %DEPLOY_FOLDER%\intermediate\builds\P4VFS.Console %ROBOCOPY_COMMON_OPTIONS%
 robocopy.exe %REPO_FOLDER%\external\P4API %DEPLOY_FOLDER%\external\P4API %ROBOCOPY_COMMON_OPTIONS% /PURGE
+robocopy.exe %REPO_FOLDER%\external\P4VFS %DEPLOY_FOLDER%\external\P4VFS %ROBOCOPY_COMMON_OPTIONS% /PURGE
 
 EXIT /B 0
